@@ -4,8 +4,17 @@ import { mount } from '@vue/test-utils'
 import App from '../App.vue'
 
 describe('App', () => {
-  it('mounts renders properly', () => {
-    const wrapper = mount(App)
-    expect(wrapper.text()).toContain('You did it!')
+  it('mounts the routed application shell', () => {
+    const wrapper = mount(App, {
+      global: {
+        stubs: {
+          RouterView: {
+            template: '<section data-test="app-route-view" />',
+          },
+        },
+      },
+    })
+
+    expect(wrapper.find('[data-test="app-route-view"]').exists()).toBe(true)
   })
 })
