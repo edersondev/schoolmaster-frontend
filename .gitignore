@@ -45,3 +45,6 @@ playwright-report/
 
 # simbolic link
 specs
+
+# Local Spec Kit state
+.specify/feature.json

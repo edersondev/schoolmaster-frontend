@@ -25,6 +25,13 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 npm install
 ```
 
+## Spec Kit
+
+This repository consumes specification artifacts from the separate
+`schoolmaster-specs` repository. Keep repo-local Spec Kit state, including
+`.specify/feature.json`, uncommitted and set the active feature directory from
+your local workspace when needed.
+
 ### Compile and Hot-Reload for Development
 
 ```sh
