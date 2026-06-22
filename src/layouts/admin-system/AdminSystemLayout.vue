@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch } from 'vue'
+import { computed, toRef, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -23,7 +23,8 @@ const { t } = useI18n()
 const shellStore = useAdminShellStore()
 const { sidebarCollapsed, mobileDrawerOpen, activeRouteKey, notificationPanelOpen, feedbackState } =
   storeToRefs(shellStore)
-const { visibleNavigationItems } = useAdminShellPermissions(ADMIN_NAVIGATION_ITEMS, props.userPermissions)
+const userPermissions = toRef(props, 'userPermissions')
+const { visibleNavigationItems } = useAdminShellPermissions(ADMIN_NAVIGATION_ITEMS, userPermissions)
 const { isMobile, toggleNavigation, handleRouteSelection } = useAdminShellState({ store: shellStore })
 
 const pageContext = computed(() => ({
@@ -89,7 +90,9 @@ function onNavigate(routeKey) {
       <AdminShellFeedback v-if="feedbackState" :feedback-state="feedbackState" />
 
       <main class="admin-shell__content" :aria-label="t('adminSystem.shell.contentLabel')">
-        <RouterView />
+        <RouterView v-slot="{ Component }">
+          <component :is="Component" :user-permissions="userPermissions" />
+        </RouterView>
       </main>
     </section>
   </div>

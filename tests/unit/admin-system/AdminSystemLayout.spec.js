@@ -4,16 +4,25 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { SHELL_FEEDBACK_STATES } from '@/contracts/admin-system/shell'
 import AdminSystemLayout from '@/layouts/admin-system/AdminSystemLayout.vue'
 import { useAdminShellStore } from '@/stores/admin-system/shell.store'
-import { adminGlobalPlugins, allowedAdminPermissions } from './shell.fixtures'
+import { adminGlobalPlugins, allowedAdminPermissions, deniedAdminPermissions } from './shell.fixtures'
 
-async function mountLayout() {
+async function mountLayout(userPermissions = allowedAdminPermissions) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
       {
         path: '/admin',
         name: 'adminDashboard',
-        component: { template: '<section />' },
+        component: {
+          props: {
+            userPermissions: {
+              type: Array,
+              default: () => [],
+            },
+          },
+          template:
+            '<section data-test="route-content">{{ userPermissions.length ? userPermissions.join(",") : "none" }}</section>',
+        },
         meta: {
           title: 'dashboard.title',
           breadcrumb: [{ label: 'dashboard.title', routeName: 'adminDashboard' }],
@@ -26,7 +35,7 @@ async function mountLayout() {
 
   return mount(AdminSystemLayout, {
     props: {
-      userPermissions: allowedAdminPermissions,
+      userPermissions,
     },
     global: {
       plugins: adminGlobalPlugins([router]),
@@ -34,9 +43,6 @@ async function mountLayout() {
         RouterLink: {
           props: ['to'],
           template: '<a href="#" @click="$emit(\'click\')"><slot /></a>',
-        },
-        RouterView: {
-          template: '<section data-test="route-content">Dashboard content</section>',
         },
       },
     },
@@ -54,6 +60,24 @@ describe('AdminSystemLayout', () => {
     expect(wrapper.text()).toContain('Dashboard')
     expect(wrapper.text()).toContain('System Administration')
     expect(wrapper.find('[data-test="route-content"]').exists()).toBe(true)
+  })
+
+  it('forwards shell permissions to the routed dashboard component', async () => {
+    const wrapper = await mountLayout(deniedAdminPermissions)
+
+    expect(wrapper.find('[data-test="route-content"]').text()).toBe('none')
+
+    await wrapper.setProps({ userPermissions: allowedAdminPermissions })
+    expect(wrapper.find('[data-test="route-content"]').text()).toBe('admin.dashboard.view')
+  })
+
+  it('reacts when shell permissions are refreshed after mount', async () => {
+    const wrapper = await mountLayout(allowedAdminPermissions)
+
+    expect(wrapper.find('nav').text()).toContain('Dashboard')
+
+    await wrapper.setProps({ userPermissions: deniedAdminPermissions })
+    expect(wrapper.find('nav').text()).not.toContain('Dashboard')
   })
 
   it('renders shell-level unauthorized, forbidden, and session-expired states', async () => {

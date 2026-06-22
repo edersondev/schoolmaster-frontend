@@ -1,4 +1,5 @@
 <script setup>
+import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ADMIN_PERMISSIONS, ADMIN_QUICK_ACTIONS } from '@/contracts/admin-system/navigation'
 import {
@@ -20,7 +21,8 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
-const { visibleQuickActions } = useAdminQuickActions(ADMIN_QUICK_ACTIONS, props.userPermissions)
+const userPermissions = toRef(props, 'userPermissions')
+const { visibleQuickActions } = useAdminQuickActions(ADMIN_QUICK_ACTIONS, userPermissions)
 </script>
 
 <template>
