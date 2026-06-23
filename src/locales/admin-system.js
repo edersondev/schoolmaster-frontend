@@ -1,0 +1,69 @@
+export const adminSystemMessages = {
+  shell: {
+    title: 'System Administration',
+    accountLabel: 'System Administrator',
+    sidebarToggle: 'Toggle sidebar',
+    drawerToggle: 'Open navigation',
+    closeDrawer: 'Close navigation',
+    noticeToggle: 'Toggle notification placeholder',
+    contentLabel: 'Admin content',
+  },
+  navigation: {
+    dashboard: 'Dashboard',
+  },
+  dashboard: {
+    title: 'Dashboard',
+    subtitle: 'Operational shell foundation with placeholder-only status regions.',
+    summaryTitle: 'Summary',
+    summary: {
+      schools: 'Schools',
+      users: 'Users',
+      operations: 'Operations',
+    },
+    activity: {
+      title: 'Activity',
+      empty: 'No approved activity source is connected in this slice.',
+    },
+    notice: {
+      title: 'Notifications',
+      absent: 'No notification contract is approved yet.',
+    },
+    dependencies: {
+      contractRequired: 'Contract required before live values can be shown.',
+    },
+    states: {
+      placeholder: 'Placeholder',
+      empty: 'Empty',
+      unavailable: 'Unavailable',
+      loading: 'Loading',
+      error: 'Error',
+      absent: 'Absent',
+    },
+  },
+  quickActions: {
+    title: 'Quick actions',
+    openDashboard: 'Open dashboard',
+    openDashboardDescription: 'Return to the approved dashboard route.',
+    empty: 'No approved actions are available.',
+  },
+  feedback: {
+    loadingTitle: 'Loading workspace',
+    loadingMessage: 'The admin shell is preparing the requested surface.',
+    emptyTitle: 'Nothing to show',
+    emptyMessage: 'This area has no approved content to render.',
+    errorTitle: 'Workspace error',
+    errorMessage: 'The admin shell could not render this surface.',
+    forbiddenTitle: 'Access forbidden',
+    forbiddenMessage: 'Your current permissions do not allow this admin surface.',
+    unauthorizedTitle: 'Unauthorized access',
+    unauthorizedMessage: 'The protected admin shell cannot render without an approved session.',
+    sessionExpiredTitle: 'Session expired',
+    sessionExpiredMessage: 'The protected admin shell detected an expired session state.',
+    tenantMismatchTitle: 'Tenant context mismatch',
+    tenantMismatchMessage: 'The shell cannot continue with the current tenant context.',
+    unavailableTitle: 'Unavailable',
+    unavailableMessage: 'This region is blocked until a later contract approves it.',
+  },
+}
+
+export default adminSystemMessages
