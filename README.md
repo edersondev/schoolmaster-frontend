@@ -27,10 +27,10 @@ npm install
 
 ## Spec Kit
 
-This repository consumes specification artifacts from the separate
-`schoolmaster-specs` repository. Keep repo-local Spec Kit state, including
-`.specify/feature.json`, uncommitted and set the active feature directory from
-your local workspace when needed.
+This repository contains the active specification artifacts under `specs/`,
+including the repo-local Spec Kit state in `.specify/`. Keep
+`.specify/feature.json` uncommitted and point it at the feature directory you
+are actively working on in this workspace.
 
 ### Compile and Hot-Reload for Development
 

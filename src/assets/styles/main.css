@@ -1,4 +1,15 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@theme {
+  --color-sm-bg: #f6f8fb;
+  --color-sm-surface: #ffffff;
+  --color-sm-border: #d7dde8;
+  --color-sm-text: #1d2738;
+  --color-sm-muted: #667085;
+  --color-sm-brand: #0f766e;
+  --color-sm-brand-strong: #115e59;
+  --font-display: Georgia, 'Times New Roman', serif;
+}
 
 :root {
   --sm-color-bg: #f6f8fb;
@@ -16,10 +27,7 @@ body {
   min-height: 100vh;
   background: var(--sm-color-bg);
   color: var(--sm-color-text);
-  font-family:
-    "Aptos",
-    "Segoe UI",
-    sans-serif;
+  font-family: 'Aptos', 'Segoe UI', sans-serif;
 }
 
 #app {

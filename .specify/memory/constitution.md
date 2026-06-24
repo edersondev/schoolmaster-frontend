@@ -1,50 +1,124 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: template -> 1.0.0
+- Modified principles:
+  - Template principle slot 1 -> I. Specification-First Delivery
+  - Template principle slot 2 -> II. API-First Contract Integrity
+  - Template principle slot 3 -> III. Repository Boundary Discipline
+  - Template principle slot 4 -> IV. Verification Before Merge
+  - Template principle slot 5 -> V. Security and Tenant Safety
+- Added sections:
+  - Technology and Delivery Constraints
+  - Workflow and Quality Gates
+- Removed sections:
+  - None
+- Templates requiring updates:
+  - ✅ /home/ederson/workspace/schoolmaster/schoolmaster-frontend/.specify/templates/plan-template.md
+  - ✅ /home/ederson/workspace/schoolmaster/schoolmaster-frontend/.specify/templates/spec-template.md
+  - ✅ /home/ederson/workspace/schoolmaster/schoolmaster-frontend/.specify/templates/tasks-template.md
+  - ✅ /home/ederson/workspace/schoolmaster/schoolmaster-frontend/README.md
+- Follow-up TODOs:
+  - None
+-->
+
+# Schoolmaster Frontend Specification Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Specification-First Delivery
+Every material feature change MUST begin in specification artifacts before
+implementation. `spec.md` defines the requirement baseline, `plan.md` defines
+the approved technical approach, `tasks.md` defines the executable work, and
+implementation MUST not outrun those documents. Engineers MUST not invent
+requirements, undocumented flows, or unsupported business rules. When behavior
+changes, the relevant specification, plan, tasks, and quickstart artifacts MUST
+be updated in the same delivery stream.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. API-First Contract Integrity
+OpenAPI and documented contracts are the source of truth for frontend/backend
+integration. Frontend work MUST consume only approved, documented operations,
+payloads, headers, and error semantics. Backend or frontend behavior that
+changes a contract MUST update `specs/api/openapi.yaml` and any affected
+contract artifacts before implementation is considered complete. Undocumented
+API consumption, frontend-local contract drift, and route aliases without spec
+approval are prohibited.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Repository Boundary Discipline
+This repository owns specifications, contracts, decisions, diagrams, and
+implementation constraints. It does not own runtime frontend or backend feature
+code. Plans and tasks MUST identify the target implementation repository and
+must preserve clear ownership boundaries between specification work and runtime
+delivery. Cross-repository features MUST document sequencing explicitly so
+frontend, backend, and contract changes can be executed without ambiguity.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Verification Before Merge
+Every feature plan MUST define how correctness will be verified, and every task
+set MUST include the verification work needed for the affected surface. For
+Laravel-backed behavior this means Feature and Unit coverage where applicable;
+for Vue 3 SPA behavior this means service, store, composable, route, or
+component tests where the feature changes those boundaries. Contract validation,
+spec checklist completion, and implementation-specific test execution MUST be
+recorded before work is treated as complete. If a test or validation step is
+deferred, the deferment MUST be explicit in the artifact and justified.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Security and Tenant Safety
+Authentication, authorization, tenant scoping, and data-handling rules are
+non-negotiable. Features MUST validate backend inputs, protect routes with the
+correct middleware or guard behavior, preserve tenant-by-column boundaries, and
+avoid exposing secrets or sensitive identifiers in code, docs, or UI states.
+Frontend flows MUST not infer tenant access client-side, and specification work
+MUST call out any intentional cross-tenant or privileged-access path. Security
+guidance in specs MUST follow OWASP fundamentals and remain aligned with the
+published contract behavior.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Technology and Delivery Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+The approved delivery stack is Laravel API backend plus Vue 3 SPA frontend with
+Composition API, Pinia, Axios service boundaries, Element Plus, and Tailwind
+CSS. Architecture work MUST keep controllers thin, place business logic in
+services, use Requests for validation and Resources for API output on backend
+surfaces, and keep frontend API logic out of pages and presentation components.
+Reusable patterns defined in repository guidance, including service layers,
+DTOs for complex input, repository use for complex data access, exception-based
+flow, and API Resources, MUST be followed unless a feature plan documents and
+justifies an exception.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Workflow and Quality Gates
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+Work MUST follow this order:
+
+1. Read relevant specifications, docs, and ADRs before editing anything.
+2. Update or create the feature specification.
+3. Update the implementation plan and task list as required.
+4. Update OpenAPI and supporting contracts when behavior or payloads change.
+5. Deliver runtime implementation in the target repository only after the above
+   artifacts are aligned.
+6. Run the relevant validation steps and record the outcome.
+
+Quality gates for any feature are:
+
+1. Spec artifacts are complete and contain no unresolved clarification markers.
+2. Constitution check in `plan.md` passes or documents approved exceptions.
+3. Tasks trace to user stories, requirements, and contract boundaries.
+4. OpenAPI matches the intended behavior for any affected integration.
+5. Required tests, checklists, and validation commands have been executed or
+   explicitly deferred with rationale.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution overrides conflicting informal practice for work in this
+repository. Changes to it MUST be made through a documented update that
+explains the rationale, records a semantic version bump, and reviews dependent
+templates and guidance files for consistency. Versioning policy is:
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+- MAJOR: Removes or redefines a core principle in a backward-incompatible way.
+- MINOR: Adds a principle, section, or materially stronger governance rule.
+- PATCH: Clarifies wording without changing governance meaning.
+
+Compliance review MUST happen during planning and again before implementation is
+considered complete. Any exception to these rules MUST be documented in the
+feature plan’s Constitution Check and justified with a simpler rejected
+alternative. Runtime engineering guidance is anchored in `AGENTS.md`,
+`specs/AGENTS.md`, and the active feature artifacts under `specs/specs/`.
+
+**Version**: 1.0.0 | **Ratified**: 2026-06-23 | **Last Amended**: 2026-06-23
