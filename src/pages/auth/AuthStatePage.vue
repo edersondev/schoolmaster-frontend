@@ -1,29 +1,49 @@
 <script setup>
-import { getCurrentInstance } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
+import { AUTH_SESSION_STATUSES } from '@/contracts/auth/authSession.contract'
+import { getPostAuthRoute } from '@/router/authGuards'
+import { AUTH_ROUTE_NAMES } from '@/router/modules/auth.routes'
 import AuthFeedbackState from '@/components/auth/AuthFeedbackState.vue'
 
 const { t } = useI18n()
+const router = useRouter()
 const store = useAuthSessionStore()
 const { feedbackState } = storeToRefs(store)
-const instance = getCurrentInstance()
 
 async function recover(action) {
-  const router = instance?.proxy?.$router
-  if (!router) {
-    return
-  }
   if (action === 'choose-school') {
-    await router.replace({ name: 'authSchoolSelection' })
+    await router.replace({ name: AUTH_ROUTE_NAMES.schoolSelection })
     return
   }
   if (action === 'allowed-workspace') {
     await router.replace({ name: 'adminDashboard' })
     return
   }
-  await router.replace({ name: 'authLogin' })
+  if (action === 'retry') {
+    try {
+      await store.bootstrap({
+        requiresSchoolContext: store.requestedRoute?.requiresSchoolContext === true,
+      })
+    } catch {
+      return
+    }
+
+    if (store.status === AUTH_SESSION_STATUSES.selectingSchool) {
+      await router.replace({ name: AUTH_ROUTE_NAMES.schoolSelection })
+      return
+    }
+
+    if (store.status === AUTH_SESSION_STATUSES.authenticated) {
+      const destination = getPostAuthRoute(store, { name: 'adminDashboard' })
+      store.clearRequestedRoute()
+      await router.replace(destination)
+    }
+    return
+  }
+  await router.replace({ name: AUTH_ROUTE_NAMES.login })
 }
 </script>
 

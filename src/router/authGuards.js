@@ -50,6 +50,14 @@ export function getPostAuthRoute(store, fallbackRoute) {
 
 export function createAuthGuard({ store, fallbackRoute }) {
   return async function authGuard(to) {
+    if (to.meta.guestOnly && !store.hasBootstrapped) {
+      try {
+        await store.bootstrap()
+      } catch {
+        // The store owns the normalized denial state used by the guest page.
+      }
+    }
+
     if (to.meta.guestOnly && store.status === AUTH_SESSION_STATUSES.authenticated) {
       return getPostAuthRoute(store, fallbackRoute)
     }

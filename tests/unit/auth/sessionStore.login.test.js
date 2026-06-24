@@ -21,6 +21,21 @@ describe('auth session login transitions', () => {
     expect(store.feedbackState).toBeNull()
   })
 
+  it('restores the persisted school context during login', async () => {
+    window.localStorage.setItem('schoolmaster.auth.lastApprovedSchoolId', 'school-1')
+    createActivePinia()
+    const store = useAuthSessionStore()
+    const service = { login: vi.fn().mockResolvedValue(mapAuthSession(authSessionEnvelope.data)) }
+
+    await store.login({ email: 'avery@example.com', password: 'password123' }, service)
+
+    expect(service.login).toHaveBeenCalledWith({
+      email: 'avery@example.com',
+      password: 'password123',
+      schoolId: 'school-1',
+    })
+  })
+
   it('clears stale protected state when login is denied', async () => {
     const store = useAuthSessionStore()
     store.currentUser = { id: 'stale' }
