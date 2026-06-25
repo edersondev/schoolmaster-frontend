@@ -2,7 +2,16 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { House } from '@element-plus/icons-vue'
+import {
+  Avatar,
+  Calendar,
+  Clock,
+  House,
+  Key,
+  Lock,
+  Management,
+  User,
+} from '@element-plus/icons-vue'
 
 const props = defineProps({
   items: {
@@ -27,7 +36,14 @@ const emit = defineEmits(['navigate'])
 const { t } = useI18n()
 
 const iconComponents = {
+  Avatar,
+  Calendar,
+  Clock,
   House,
+  Key,
+  Lock,
+  Management,
+  User,
 }
 
 const sidebarClasses = computed(() => ({
@@ -41,12 +57,22 @@ const sidebarClasses = computed(() => ({
   <nav :class="sidebarClasses" aria-label="System administrator navigation">
     <div class="admin-sidebar__brand">
       <span class="admin-sidebar__mark">SM</span>
-      <span v-if="!collapsed" class="admin-sidebar__brand-text">{{ t('adminSystem.shell.title') }}</span>
+      <span v-if="!collapsed" class="admin-sidebar__brand-text">{{
+        t('adminSystem.shell.title')
+      }}</span>
     </div>
 
-    <ElMenu :collapse="collapsed && !mobile" :default-active="activeRouteKey" class="admin-sidebar__menu">
+    <ElMenu
+      :collapse="collapsed && !mobile"
+      :default-active="activeRouteKey"
+      class="admin-sidebar__menu"
+    >
       <ElMenuItem v-for="item in items" :key="item.key" :index="item.key">
-        <RouterLink class="admin-sidebar__link" :to="item.destination" @click="emit('navigate', item.key)">
+        <RouterLink
+          class="admin-sidebar__link"
+          :to="item.destination"
+          @click="emit('navigate', item.key)"
+        >
           <ElIcon class="admin-sidebar__icon">
             <component :is="iconComponents[item.icon] ?? House" />
           </ElIcon>

@@ -7,6 +7,7 @@ import 'element-plus/dist/index.css'
 import App from './App.vue'
 import router from './router'
 import { adminSystemMessages } from './locales/admin-system'
+import { administrationMessages } from './locales/administration'
 import { authMessages } from './locales/auth'
 import './assets/styles/main.css'
 
@@ -18,6 +19,7 @@ const i18n = createI18n({
   messages: {
     en: {
       adminSystem: adminSystemMessages,
+      administration: administrationMessages,
       auth: authMessages,
     },
   },

@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import { getPostAuthRoute } from '@/router/authGuards'
+import { getAdminFallbackRoute } from '@/router/adminFallbackRoute'
 import LoginForm from '@/components/auth/LoginForm.vue'
 import AuthFeedbackState from '@/components/auth/AuthFeedbackState.vue'
 
@@ -28,7 +29,7 @@ async function submit(credentials) {
       await store.login(credentials)
       const router = instance?.proxy?.$router
       if (router) {
-        const destination = getPostAuthRoute(store, { name: 'adminDashboard' })
+        const destination = getPostAuthRoute(store, getAdminFallbackRoute(store))
         store.clearRequestedRoute()
         await router.replace(destination)
       }

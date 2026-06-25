@@ -1,5 +1,5 @@
 <script setup>
-import { computed, toRef, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -7,6 +7,7 @@ import { ADMIN_NAVIGATION_ITEMS, ADMIN_PERMISSIONS } from '@/contracts/admin-sys
 import { useAdminShellPermissions } from '@/composables/admin-system/useAdminShellPermissions'
 import { useAdminShellState } from '@/composables/admin-system/useAdminShellState'
 import { useAdminShellStore } from '@/stores/admin-system/shell.store'
+import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import AdminShellSidebar from '@/components/admin-system/shell/AdminShellSidebar.vue'
 import AdminShellHeader from '@/components/admin-system/shell/AdminShellHeader.vue'
 import AdminShellFeedback from '@/components/admin-system/shell/AdminShellFeedback.vue'
@@ -14,18 +15,26 @@ import AdminShellFeedback from '@/components/admin-system/shell/AdminShellFeedba
 const props = defineProps({
   userPermissions: {
     type: Array,
-    default: () => [ADMIN_PERMISSIONS.viewDashboard],
+    default: null,
   },
 })
 
 const route = useRoute()
 const { t } = useI18n()
 const shellStore = useAdminShellStore()
+const sessionStore = useAuthSessionStore()
 const { sidebarCollapsed, mobileDrawerOpen, activeRouteKey, notificationPanelOpen, feedbackState } =
   storeToRefs(shellStore)
-const userPermissions = toRef(props, 'userPermissions')
+const userPermissions = computed(() => {
+  if (props.userPermissions) return props.userPermissions
+  return sessionStore.permissionCodes.length
+    ? sessionStore.permissionCodes
+    : [ADMIN_PERMISSIONS.viewDashboard]
+})
 const { visibleNavigationItems } = useAdminShellPermissions(ADMIN_NAVIGATION_ITEMS, userPermissions)
-const { isMobile, toggleNavigation, handleRouteSelection } = useAdminShellState({ store: shellStore })
+const { isMobile, toggleNavigation, handleRouteSelection } = useAdminShellState({
+  store: shellStore,
+})
 
 const pageContext = computed(() => ({
   title: t(`adminSystem.${route.meta.title ?? 'shell.title'}`),
@@ -103,8 +112,7 @@ function onNavigate(routeKey) {
   display: flex;
   min-height: 100vh;
   background:
-    linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 38%),
-    var(--sm-color-bg);
+    linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 38%), var(--sm-color-bg);
 }
 
 .admin-shell__workspace {
