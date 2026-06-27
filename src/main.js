@@ -9,6 +9,7 @@ import router from './router'
 import { adminSystemMessages } from './locales/admin-system'
 import { administrationMessages } from './locales/administration'
 import { authMessages } from './locales/auth'
+import globalComponents from './plugins/global-components'
 import './assets/styles/main.css'
 
 const app = createApp(App)
@@ -28,6 +29,7 @@ const i18n = createI18n({
 app.use(createPinia())
 app.use(i18n)
 app.use(ElementPlus)
+app.use(globalComponents)
 app.use(router)
 
 app.mount('#app')

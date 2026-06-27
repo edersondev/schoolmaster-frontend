@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import { mapAuthSession } from '@/contracts/auth/authSession.contract'
+import { authService } from '@/services/auth/authService'
 import { authSessionEnvelope, createActivePinia } from './auth.fixtures'
 
 describe('auth session login transitions', () => {
@@ -49,5 +50,20 @@ describe('auth session login transitions', () => {
 
     expect(store.status).toBe('inactive-user')
     expect(store.currentUser).toBeNull()
+  })
+
+  it('clears protected identity and access token when a session expires', () => {
+    const store = useAuthSessionStore()
+    store.currentUser = { id: 'user' }
+    store.activeSchool = { id: 'school' }
+    authService.setAccessToken('expired-token')
+
+    store.markSessionExpired()
+
+    expect(store.status).toBe('expired-session')
+    expect(store.currentUser).toBeNull()
+    expect(store.activeSchool).toBeNull()
+    expect(store.feedbackState.state).toBe('expired-session')
+    expect(authService.getAccessToken()).toBeNull()
   })
 })

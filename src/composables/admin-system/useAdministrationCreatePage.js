@@ -18,6 +18,7 @@ export function useAdministrationCreatePage(options) {
     initialValues: options.initialValues,
     operationId: options.operationId,
     routeName: route.name,
+    validate: options.validate,
     submitter: (values) => options.submitter(values, { schoolId: tenantId.value }),
   })
   useUnsavedChangesGuard({ isDirty: form.isDirty, submitted: form.submitted })

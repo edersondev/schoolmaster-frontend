@@ -34,6 +34,24 @@ export const TENANT_STATUSES = Object.freeze({
   selecting: 'selecting',
 })
 
+function mapAddress(address) {
+  if (!address) {
+    return null
+  }
+
+  return {
+    id: address.id ?? null,
+    street: address.street ?? '',
+    number: address.number ?? '',
+    complement: address.complement ?? null,
+    neighborhood: address.neighborhood ?? '',
+    city: address.city ?? '',
+    state: address.state ?? '',
+    zipCode: address.zip_code ?? '',
+    country: address.country ?? null,
+  }
+}
+
 /**
  * @typedef {Object} CurrentUser
  * @property {string} id
@@ -88,7 +106,7 @@ function mapSchool(school) {
     status: school.status ?? '',
     contactEmail: school.contact_email ?? null,
     contactPhone: school.contact_phone ?? null,
-    addressSummary: school.address_summary ?? null,
+    address: mapAddress(school.address),
   }
 }
 

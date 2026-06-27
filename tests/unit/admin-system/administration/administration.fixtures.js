@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { vi } from 'vitest'
 import { adminSystemMessages } from '@/locales/admin-system'
 import { administrationMessages } from '@/locales/administration'
+import globalComponents from '@/plugins/global-components'
 
 export const schoolId = '20000000-0000-4000-8000-000000000001'
 export const recordId = '30000000-0000-4000-8000-000000000001'
@@ -51,5 +52,5 @@ export function createAdministrationI18n() {
 export function administrationPlugins() {
   const pinia = createPinia()
   setActivePinia(pinia)
-  return [pinia, createAdministrationI18n(), ElementPlus]
+  return [pinia, createAdministrationI18n(), ElementPlus, globalComponents]
 }

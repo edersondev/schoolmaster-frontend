@@ -1,4 +1,9 @@
-import { compactPayload, mapCommonRecord } from './administration'
+import {
+  compactPayload,
+  isPresent,
+  isValidEmail,
+  mapCommonRecord,
+} from './administration'
 
 export function createGuardianForm() {
   return {
@@ -8,6 +13,24 @@ export function createGuardianForm() {
     contactPhone: '',
     studentProfileIds: [],
   }
+}
+
+export function validateGuardianForm(form = {}) {
+  const errors = {}
+
+  if (!isPresent(form.fullName)) {
+    errors.full_name = ['Full name is required.']
+  }
+
+  if (!isPresent(form.relationshipType)) {
+    errors.relationship_type = ['Relationship is required.']
+  }
+
+  if (isPresent(form.contactEmail) && !isValidEmail(form.contactEmail)) {
+    errors.contact_email = ['Enter a valid email address.']
+  }
+
+  return errors
 }
 
 export function mapGuardian(record) {

@@ -10,6 +10,7 @@ describe('admin list controls', () => {
       props: { status: '', showStatus: true },
       global: { plugins: administrationPlugins() },
     })
+    expect(filters.text()).toContain('Reset filters')
     filters.vm.$emit('update:status', 'active')
     filters.vm.$emit('reset')
     expect(filters.emitted('update:status')[0]).toEqual(['active'])

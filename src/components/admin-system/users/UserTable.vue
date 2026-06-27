@@ -2,6 +2,7 @@
 import AdminDataTable from '@/components/ui/admin/AdminDataTable.vue'
 import { useI18n } from 'vue-i18n'
 defineProps({ rows: { type: Array, default: () => [] } })
+defineEmits(['sort'])
 const { t } = useI18n()
 const columns = [
   {

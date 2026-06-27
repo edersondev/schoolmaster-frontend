@@ -48,4 +48,48 @@ describe('administration accessibility', () => {
     expect(list.find('a').text()).toBe('Create')
     expect(list.find('a button').exists()).toBe(false)
   })
+
+  it('offers an actionable sign-in recovery for expired administration sessions', () => {
+    const feedback = mount(AdminFeedbackState, {
+      props: { state: 'unauthorized' },
+      global: {
+        plugins: administrationPlugins(),
+        stubs: {
+          RouterLink: {
+            props: ['to'],
+            template: '<a href="/auth/login"><slot /></a>',
+          },
+        },
+      },
+    })
+
+    expect(feedback.text()).toContain('Your session expired')
+    expect(feedback.get('a').text()).toBe('Sign in')
+  })
+
+  it('uses session recovery instead of a validation summary for form authorization failures', () => {
+    const form = mount(AdminFormPage, {
+      props: {
+        title: 'Create user',
+        formError: {
+          type: 'unauthorized',
+          messageKey: 'common.sessionExpired',
+          recoveryAction: 'sign-in',
+        },
+      },
+      global: {
+        plugins: administrationPlugins(),
+        stubs: {
+          RouterLink: {
+            props: ['to'],
+            template: '<a href="/auth/login"><slot /></a>',
+          },
+        },
+      },
+    })
+
+    expect(form.find('[role="alert"][tabindex="-1"]').exists()).toBe(false)
+    expect(form.text()).toContain('Your session expired')
+    expect(form.get('a').text()).toBe('Sign in')
+  })
 })

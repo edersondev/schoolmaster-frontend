@@ -13,18 +13,20 @@ import AcademicPeriodFilters from '@/components/admin-system/academic-periods/Ac
 import AcademicPeriodTable from '@/components/admin-system/academic-periods/AcademicPeriodTable.vue'
 const { t } = useI18n()
 const { activeSchool } = storeToRefs(useAuthSessionStore())
+const tenantId = computed(() => activeSchool.value?.id ?? null)
 const list = useAdministrationResourceList({
   resource: 'academic-periods',
   loader: listAcademicPeriods,
   operationId: 'listAcademicPeriods',
   tenantOwned: true,
+  tenantResetQuery: { academicYearId: '' },
 })
 const selectedYearIds = computed(() =>
   list.query.value.academicYearId ? [list.query.value.academicYearId] : [],
 )
 const yearLookup = useAdminLookup({
   loader: listAcademicYears,
-  tenantId: activeSchool,
+  tenantId,
   selectedIds: selectedYearIds,
   operationId: 'listAcademicYears',
 })

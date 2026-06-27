@@ -1,5 +1,6 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
+import { mapUserTableSort } from '@/contracts/admin-system/users'
 import { listUsers } from '@/services/admin-system/users'
 import { useAdministrationResourceList } from '@/composables/admin-system/useAdministrationResourceList'
 import AdminListPage from '@/components/ui/admin/AdminListPage.vue'
@@ -32,7 +33,10 @@ const list = useAdministrationResourceList({
         @update:sort="list.updateQuery({ sort: $event })"
         @reset="list.resetFilters"
     /></template>
-    <UserTable :rows="list.items.value" />
+    <UserTable
+      :rows="list.items.value"
+      @sort="list.updateQuery({ sort: mapUserTableSort($event) })"
+    />
     <template #pagination
       ><AdminPagination
         :page="list.meta.value.page"

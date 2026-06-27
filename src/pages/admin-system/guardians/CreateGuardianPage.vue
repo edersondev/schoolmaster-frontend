@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
-import { createGuardianForm } from '@/contracts/admin-system/guardians'
+import { createGuardianForm, validateGuardianForm } from '@/contracts/admin-system/guardians'
 import { createGuardian } from '@/services/admin-system/guardians'
 import { useAdministrationCreatePage } from '@/composables/admin-system/useAdministrationCreatePage'
 import { useStudentProfileLookup } from '@/composables/admin-system/useStudentProfileLookup'
@@ -12,6 +12,7 @@ const { t } = useI18n()
 const session = useAuthSessionStore()
 const page = useAdministrationCreatePage({
   initialValues: createGuardianForm(),
+  validate: validateGuardianForm,
   submitter: createGuardian,
   operationId: 'createGuardian',
   listRouteName: 'guardiansList',

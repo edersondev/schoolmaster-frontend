@@ -22,7 +22,7 @@ const { t } = useI18n()
     @update:status="$emit('update:status', $event)"
     @reset="$emit('reset')"
   >
-    <ElFormItem :label="t('administration.common.academicYear')" class="mb-0 min-w-56">
+    <ElFormItem :label="t('administration.common.academicYear')" class="!mb-0 min-w-56">
       <AdminLookupSelect
         :model-value="academicYearId"
         :options="years"

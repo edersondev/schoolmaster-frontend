@@ -187,6 +187,14 @@ export const useAuthSessionStore = defineStore('auth-session', {
       this.requestedRoute = null
     },
 
+    markSessionExpired() {
+      authService.clearAccessToken()
+      this.clearIdentity()
+      this.feedbackState = createAuthFeedbackState(AUTH_FEEDBACK_STATES.expiredSession)
+      this.status = AUTH_SESSION_STATUSES.expired
+      this.hasBootstrapped = true
+    },
+
     setFeedbackState(state) {
       this.feedbackState = state ? createAuthFeedbackState(state) : null
       if (state) {

@@ -1,7 +1,11 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createRoleForm, isSchoolPermission } from '@/contracts/admin-system/access'
+import {
+  createRoleForm,
+  isSchoolPermission,
+  validateRoleForm,
+} from '@/contracts/admin-system/access'
 import { createRole } from '@/services/admin-system/roles'
 import { listPermissions } from '@/services/admin-system/permissions'
 import { useAdministrationCreatePage } from '@/composables/admin-system/useAdministrationCreatePage'
@@ -11,6 +15,7 @@ import RoleForm from '@/components/admin-system/roles/RoleForm.vue'
 const { t } = useI18n()
 const page = useAdministrationCreatePage({
   initialValues: createRoleForm(),
+  validate: validateRoleForm,
   submitter: createRole,
   operationId: 'createRole',
   listRouteName: 'rolesList',

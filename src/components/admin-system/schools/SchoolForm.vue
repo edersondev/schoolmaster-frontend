@@ -2,7 +2,10 @@
 import { useI18n } from 'vue-i18n'
 
 const model = defineModel({ type: Object, required: true })
-defineProps({ errors: { type: Object, default: () => ({}) } })
+defineProps({
+  errors: { type: Object, default: () => ({}) },
+  allowRemoveAddress: { type: Boolean, default: false },
+})
 const { t } = useI18n()
 </script>
 
@@ -18,14 +21,14 @@ const { t } = useI18n()
       <ElInput v-model="model.contactEmail" type="email" autocomplete="email" />
     </ElFormItem>
     <ElFormItem :label="t('administration.common.phone')" :error="errors.contact_phone?.[0]">
-      <ElInput v-model="model.contactPhone" autocomplete="tel" />
+      <PhoneField v-model="model.contactPhone" />
     </ElFormItem>
-    <ElFormItem
+    <AddressField
+      v-model="model.address"
+      v-model:remove-address="model.removeAddress"
       class="sm:col-span-2"
-      :label="t('administration.common.address')"
-      :error="errors.address_summary?.[0]"
-    >
-      <ElInput v-model="model.addressSummary" type="textarea" :rows="3" />
-    </ElFormItem>
+      :allow-remove-address="allowRemoveAddress"
+      :errors="errors"
+    />
   </div>
 </template>

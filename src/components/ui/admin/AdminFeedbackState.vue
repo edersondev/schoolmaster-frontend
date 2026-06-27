@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Loading } from '@element-plus/icons-vue'
+import { AUTH_ROUTE_NAMES } from '@/router/modules/auth.routes'
+import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 
 const props = defineProps({
   state: { type: String, required: true },
@@ -9,6 +11,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['retry', 'reset'])
 const { t } = useI18n()
+const sessionStore = useAuthSessionStore()
 
 const messageKey = computed(
   () =>
@@ -22,6 +25,7 @@ const messageKey = computed(
       'inactive-context': 'common.inactiveContext',
       'not-found': 'common.notFound',
       unavailable: 'common.unavailable',
+      unauthorized: 'common.sessionExpired',
     }[props.state] ??
     'common.unknownError',
 )
@@ -51,6 +55,14 @@ const messageKey = computed(
         t('administration.common.retry')
       }}</ElButton>
     </div>
+    <RouterLink
+      v-if="state === 'unauthorized'"
+      class="inline-flex min-h-8 items-center justify-center rounded border border-sm-brand bg-sm-brand px-4 py-2 text-sm font-medium text-white no-underline"
+      :to="{ name: AUTH_ROUTE_NAMES.login }"
+      @click="sessionStore.markSessionExpired"
+    >
+      {{ t('administration.common.signIn') }}
+    </RouterLink>
     <ElButton v-if="state === 'filtered-empty'" @click="emit('reset')">
       {{ t('administration.common.resetFilters') }}
     </ElButton>

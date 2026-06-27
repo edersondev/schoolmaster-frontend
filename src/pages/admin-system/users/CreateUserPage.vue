@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createUserForm } from '@/contracts/admin-system/users'
+import { createUserForm, validateUserForm } from '@/contracts/admin-system/users'
 import { createUser } from '@/services/admin-system/users'
 import { listRoles } from '@/services/admin-system/roles'
 import { useAdministrationCreatePage } from '@/composables/admin-system/useAdministrationCreatePage'
@@ -11,6 +11,7 @@ import UserForm from '@/components/admin-system/users/UserForm.vue'
 const { t } = useI18n()
 const page = useAdministrationCreatePage({
   initialValues: createUserForm(),
+  validate: validateUserForm,
   submitter: createUser,
   operationId: 'createUser',
   listRouteName: 'usersList',

@@ -1,7 +1,7 @@
 export const administrationMessages = {
   common: {
     create: 'Create',
-    submit: 'Create record',
+    submit: 'Create',
     cancel: 'Cancel',
     retry: 'Retry',
     resetFilters: 'Reset filters',
@@ -18,6 +18,8 @@ export const administrationMessages = {
     inactiveContext: 'Current school is inactive.',
     notFound: 'Requested record is unavailable in this permitted scope.',
     unavailable: 'Administration service is temporarily unavailable.',
+    sessionExpired: 'Your session expired. Sign in again to continue.',
+    signIn: 'Sign in',
     unknownError: 'Administration request failed.',
     validationSummary: 'Correct following fields before submitting.',
     discardTitle: 'Discard unsaved changes?',

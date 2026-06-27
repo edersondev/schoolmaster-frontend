@@ -16,7 +16,7 @@ const CODE_TYPES = Object.freeze({
 
 const TYPE_MESSAGES = Object.freeze({
   validation: 'common.validationSummary',
-  unauthorized: 'common.unknownError',
+  unauthorized: 'common.sessionExpired',
   forbidden: 'common.forbidden',
   'tenant-mismatch': 'common.tenantMismatch',
   'inactive-context': 'common.inactiveContext',

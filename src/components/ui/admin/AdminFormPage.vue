@@ -1,6 +1,7 @@
 <script setup>
-import { nextTick, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AdminFeedbackState from './AdminFeedbackState.vue'
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -11,9 +12,15 @@ const props = defineProps({
 defineEmits(['submit', 'cancel'])
 const { t } = useI18n()
 const validationSummary = useTemplateRef('validationSummary')
+const hasValidationFeedback = computed(
+  () => Object.keys(props.fieldErrors).length > 0 || props.formError?.type === 'validation',
+)
+const nonValidationState = computed(() =>
+  props.formError?.type && props.formError.type !== 'validation' ? props.formError.type : null,
+)
 
-watch([() => props.fieldErrors, () => props.formError], async ([fieldErrors, formError]) => {
-  if (!Object.keys(fieldErrors).length && !formError) return
+watch(hasValidationFeedback, async (hasFeedback) => {
+  if (!hasFeedback) return
   await nextTick()
   validationSummary.value?.focus()
 })
@@ -23,7 +30,7 @@ watch([() => props.fieldErrors, () => props.formError], async ([fieldErrors, for
   <section class="mx-auto flex w-full max-w-3xl flex-col gap-4">
     <h1 class="font-display text-2xl font-semibold text-sm-text">{{ title }}</h1>
     <div
-      v-if="Object.keys(fieldErrors).length || formError"
+      v-if="hasValidationFeedback"
       ref="validationSummary"
       role="alert"
       tabindex="-1"
@@ -36,6 +43,12 @@ watch([() => props.fieldErrors, () => props.formError], async ([fieldErrors, for
         </li>
       </ul>
     </div>
+    <AdminFeedbackState
+      v-if="nonValidationState"
+      :state="nonValidationState"
+      :feedback="formError"
+      @retry="$emit('submit')"
+    />
     <ElForm
       class="rounded-xl border border-sm-border bg-sm-surface p-4 sm:p-6"
       label-position="top"

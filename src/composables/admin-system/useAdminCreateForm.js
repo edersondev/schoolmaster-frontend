@@ -1,4 +1,5 @@
 import { computed, reactive, readonly, shallowRef, toRaw } from 'vue'
+import { ADMIN_RECOVERY_ACTIONS } from '@/contracts/admin-system/administration'
 import { normalizeAdministrationError } from '@/services/admin-system/administration-error-mapper'
 
 export function useAdminCreateForm(options) {
@@ -19,9 +20,31 @@ export function useAdminCreateForm(options) {
     formError.value = null
   }
 
+  function buildValidationFeedback(errors) {
+    return {
+      type: 'validation',
+      code: 'validation_failed',
+      status: 422,
+      messageKey: 'common.validationSummary',
+      recoveryAction: ADMIN_RECOVERY_ACTIONS.none,
+      fieldErrors: errors,
+      operationId: options.operationId ?? null,
+      routeName: options.routeName ?? null,
+      requestId: null,
+    }
+  }
+
   async function submit() {
     if (pendingPromise) return pendingPromise
     clearErrors()
+    const validationErrors = options.validate?.(structuredClone(toRaw(values))) ?? {}
+    if (Object.keys(validationErrors).length > 0) {
+      const feedback = buildValidationFeedback(validationErrors)
+      fieldErrors.value = feedback.fieldErrors
+      formError.value = feedback
+      status.value = feedback.type
+      throw feedback
+    }
     status.value = 'submitting'
     pendingPromise = Promise.resolve(options.submitter(structuredClone(toRaw(values))))
       .then((result) => {

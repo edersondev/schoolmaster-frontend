@@ -63,14 +63,61 @@ export function compactPayload(payload = {}) {
   )
 }
 
+export function isPresent(value) {
+  return String(value ?? '').trim().length > 0
+}
+
+export function isValidEmail(value) {
+  const email = String(value ?? '').trim()
+  return email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+export function isDateRangeOrdered(startDate, endDate) {
+  if (!startDate || !endDate) return true
+  return String(startDate) <= String(endDate)
+}
+
+export function mapAddress(record) {
+  if (!record) return null
+
+  return {
+    id: record.id ?? null,
+    street: record.street ?? '',
+    number: record.number ?? '',
+    complement: record.complement ?? null,
+    neighborhood: record.neighborhood ?? '',
+    city: record.city ?? '',
+    state: record.state ?? '',
+    zipCode: record.zip_code ?? '',
+    country: record.country ?? null,
+  }
+}
+
+export function formatAddress(address) {
+  if (!address) return null
+
+  return [
+    [address.street, address.number].filter(isPresent).join(' '),
+    address.neighborhood,
+    address.city,
+    address.state,
+    address.zipCode,
+  ]
+    .filter(isPresent)
+    .join(', ')
+}
+
 export function mapCommonRecord(record = {}) {
+  const address = mapAddress(record.address)
+
   return {
     ...record,
     schoolId: record.school_id ?? null,
     fullName: record.full_name ?? record.name ?? '',
     contactEmail: record.contact_email ?? null,
     contactPhone: record.contact_phone ?? null,
-    addressSummary: record.address_summary ?? null,
+    address,
+    addressLabel: formatAddress(address),
     startDate: record.start_date ?? null,
     endDate: record.end_date ?? null,
     academicYearId: record.academic_year_id ?? null,

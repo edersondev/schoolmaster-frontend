@@ -27,4 +27,18 @@ describe('administration error mapper', () => {
       }).type,
     ).toBe(type)
   })
+
+  it('provides explicit sign-in recovery for expired sessions', () => {
+    expect(
+      normalizeAdministrationError({
+        response: { status: 401, data: { error: { code: 'token_expired' } } },
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        type: 'unauthorized',
+        messageKey: 'common.sessionExpired',
+        recoveryAction: 'sign-in',
+      }),
+    )
+  })
 })

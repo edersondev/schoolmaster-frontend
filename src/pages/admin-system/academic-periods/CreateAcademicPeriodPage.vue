@@ -1,7 +1,10 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createAcademicPeriodForm } from '@/contracts/admin-system/academics'
+import {
+  createAcademicPeriodForm,
+  validateAcademicPeriodForm,
+} from '@/contracts/admin-system/academics'
 import { createAcademicPeriod } from '@/services/admin-system/academic-periods'
 import { listAcademicYears } from '@/services/admin-system/academic-years'
 import { useAdministrationCreatePage } from '@/composables/admin-system/useAdministrationCreatePage'
@@ -11,6 +14,7 @@ import AcademicPeriodForm from '@/components/admin-system/academic-periods/Acade
 const { t } = useI18n()
 const page = useAdministrationCreatePage({
   initialValues: createAcademicPeriodForm(),
+  validate: validateAcademicPeriodForm,
   submitter: createAcademicPeriod,
   operationId: 'createAcademicPeriod',
   listRouteName: 'academicPeriodsList',

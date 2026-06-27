@@ -23,8 +23,18 @@ export function useAdministrationResourceList(options) {
 
   watch(
     [query, tenantId],
-    ([, schoolId]) => {
+    async ([, schoolId], previous = []) => {
+      const previousSchoolId = previous[1]
       if (options.tenantOwned && !schoolId) return
+      if (
+        options.tenantOwned &&
+        previousSchoolId &&
+        schoolId !== previousSchoolId &&
+        options.tenantResetQuery
+      ) {
+        await update(options.tenantResetQuery)
+        return
+      }
       list.load(query.value)
     },
     { immediate: true, deep: true },

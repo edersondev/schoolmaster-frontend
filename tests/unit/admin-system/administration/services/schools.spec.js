@@ -7,6 +7,7 @@ describe('schools service', () => {
     const client = createAdminClient({
       get: vi.fn().mockResolvedValue({ data: paginatedEnvelope }),
       post: vi.fn().mockResolvedValue({ data: { data: paginatedEnvelope.data[0] } }),
+      patch: vi.fn().mockResolvedValue({ data: { data: paginatedEnvelope.data[0] } }),
     })
     const service = createSchoolsService(client, () => 'test-token')
     await service.listSchools({ page: 1, perPage: 25, status: 'active' })
@@ -21,6 +22,12 @@ describe('schools service', () => {
     expect(client.post).toHaveBeenCalledWith(
       '/api/v1/schools',
       { name: 'N', code: 'N' },
+      expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } }),
+    )
+    await service.updateSchool('school-id', { removeAddress: true })
+    expect(client.patch).toHaveBeenCalledWith(
+      '/api/v1/schools/school-id',
+      { address: null },
       expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } }),
     )
   })
