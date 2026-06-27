@@ -34,6 +34,13 @@ export function createSchoolForm() {
   }
 }
 
+export function createSchoolDeleteForm(now = new Date()) {
+  return {
+    effectiveAt: formatDateInput(now),
+    reason: '',
+  }
+}
+
 export function validateSchoolForm(form = {}) {
   const errors = {}
 
@@ -68,8 +75,41 @@ export function validateSchoolForm(form = {}) {
   return errors
 }
 
+export function validateSchoolDeleteForm(form = {}) {
+  const errors = {}
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(form.effectiveAt ?? ''))) {
+    errors.effective_at = ['Effective date is required.']
+  }
+
+  const reason = String(form.reason ?? '').trim()
+  if (!reason) {
+    errors.reason = ['Reason is required.']
+  } else if (reason.length > 500) {
+    errors.reason = ['Reason must be 500 characters or fewer.']
+  }
+
+  return errors
+}
+
 export function mapSchool(record) {
   return mapCommonRecord(record)
+}
+
+export function mapSchoolForm(record = {}) {
+  return {
+    ...createSchoolForm(),
+    name: record.name ?? '',
+    code: record.code ?? '',
+    status: record.status ?? 'active',
+    contactEmail: record.contactEmail ?? '',
+    contactPhone: record.contactPhone ?? '',
+    address: {
+      ...createAddressForm(),
+      ...(record.address ?? {}),
+    },
+    removeAddress: false,
+  }
 }
 
 export function mapSchoolCreateRequest(form) {
@@ -102,6 +142,13 @@ export function mapSchoolUpdateRequest(form) {
   return payload
 }
 
+export function mapSchoolDeleteRequest(form) {
+  return {
+    effective_at: String(form.effectiveAt ?? ''),
+    reason: String(form.reason ?? '').trim(),
+  }
+}
+
 function mapAddressInput(address) {
   if (!hasAddressInput(address)) return undefined
 
@@ -123,4 +170,12 @@ function hasAddressInput(address = {}) {
 
 function toSnakeCase(value) {
   return String(value).replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
+}
+
+function formatDateInput(value) {
+  const date = value instanceof Date ? value : new Date(value)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }

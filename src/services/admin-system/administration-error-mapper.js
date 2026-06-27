@@ -5,19 +5,20 @@ const CODE_TYPES = Object.freeze({
   token_revoked: 'unauthorized',
   unauthenticated: 'unauthorized',
   forbidden: 'forbidden',
+  conflict: 'conflict',
   tenant_mismatch: 'tenant-mismatch',
   inactive_school: 'inactive-context',
   not_found: 'not-found',
   validation_failed: 'validation',
   unavailable: 'unavailable',
   service_unavailable: 'unavailable',
-  conflict: 'unavailable',
 })
 
 const TYPE_MESSAGES = Object.freeze({
   validation: 'common.validationSummary',
   unauthorized: 'common.sessionExpired',
   forbidden: 'common.forbidden',
+  conflict: 'common.conflict',
   'tenant-mismatch': 'common.tenantMismatch',
   'inactive-context': 'common.inactiveContext',
   'not-found': 'common.notFound',
@@ -49,6 +50,7 @@ export function normalizeAdministrationError(error, context = {}) {
   if (!type) {
     if (status === 401) type = 'unauthorized'
     else if (status === 403) type = 'forbidden'
+    else if (status === 409) type = 'conflict'
     else if (status === 404) type = 'not-found'
     else if (status === 422) type = 'validation'
     else if (status >= 500) type = 'unavailable'

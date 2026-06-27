@@ -17,6 +17,7 @@ describe('administration error mapper', () => {
   it.each([
     [401, 'token_expired', 'unauthorized'],
     [403, 'forbidden', 'forbidden'],
+    [409, 'conflict', 'conflict'],
     [403, 'tenant_mismatch', 'tenant-mismatch'],
     [404, 'not_found', 'not-found'],
     [503, 'unavailable', 'unavailable'],

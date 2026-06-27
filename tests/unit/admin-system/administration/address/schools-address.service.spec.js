@@ -7,6 +7,7 @@ describe('school address service', () => {
     const client = createAdminClient({
       post: vi.fn().mockResolvedValue({ data: { data: paginatedEnvelope.data[0] } }),
       patch: vi.fn().mockResolvedValue({ data: { data: paginatedEnvelope.data[0] } }),
+      delete: vi.fn().mockResolvedValue({ data: { data: { status: 'deleted' } } }),
     })
     const service = createSchoolsService(client, () => 'test-token')
 

@@ -18,4 +18,12 @@ export const schoolRoutes = [
     permissions: ['schools.view', 'schools.manage'],
     schoolContext: false,
   }),
+  createAdministrationRoute({
+    path: 'schools/:schoolId/edit',
+    name: 'schoolEdit',
+    component: () => import('@/pages/admin-system/schools/EditSchoolPage.vue'),
+    title: 'navigation.editSchool',
+    permissions: ['schools.view', 'schools.manage'],
+    schoolContext: false,
+  }),
 ]

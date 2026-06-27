@@ -32,6 +32,8 @@ export function createAdminClient(overrides = {}) {
   return {
     get: vi.fn(),
     post: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
     ...overrides,
   }
 }

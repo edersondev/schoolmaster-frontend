@@ -21,6 +21,7 @@ const messageKey = computed(
       empty: 'common.empty',
       'filtered-empty': 'common.filteredEmpty',
       forbidden: 'common.forbidden',
+      conflict: 'common.conflict',
       'tenant-mismatch': 'common.tenantMismatch',
       'inactive-context': 'common.inactiveContext',
       'not-found': 'common.notFound',

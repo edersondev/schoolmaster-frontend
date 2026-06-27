@@ -5,6 +5,8 @@ const model = defineModel({ type: Object, required: true })
 defineProps({
   errors: { type: Object, default: () => ({}) },
   allowRemoveAddress: { type: Boolean, default: false },
+  readonlyCode: { type: Boolean, default: false },
+  showStatus: { type: Boolean, default: false },
 })
 const { t } = useI18n()
 </script>
@@ -15,7 +17,17 @@ const { t } = useI18n()
       <ElInput v-model="model.name" autocomplete="organization" />
     </ElFormItem>
     <ElFormItem :label="t('administration.common.code')" required :error="errors.code?.[0]">
-      <ElInput v-model="model.code" />
+      <ElInput v-model="model.code" :readonly="readonlyCode" />
+    </ElFormItem>
+    <ElFormItem
+      v-if="showStatus"
+      :label="t('administration.common.status')"
+      :error="errors.status?.[0]"
+    >
+      <ElSelect v-model="model.status" class="w-full">
+        <ElOption :label="t('administration.common.active')" value="active" />
+        <ElOption :label="t('administration.common.inactive')" value="inactive" />
+      </ElSelect>
     </ElFormItem>
     <ElFormItem :label="t('administration.common.email')" :error="errors.contact_email?.[0]">
       <ElInput v-model="model.contactEmail" type="email" autocomplete="email" />

@@ -3,7 +3,6 @@ import { mount } from '@vue/test-utils'
 import SchoolFilters from '@/components/admin-system/schools/SchoolFilters.vue'
 import SchoolForm from '@/components/admin-system/schools/SchoolForm.vue'
 import SchoolTable from '@/components/admin-system/schools/SchoolTable.vue'
-import AdminDataTable from '@/components/ui/admin/AdminDataTable.vue'
 import { administrationPlugins } from '../administration.fixtures'
 
 describe('schools module', () => {
@@ -41,11 +40,13 @@ describe('schools module', () => {
     expect(form.find('input[placeholder="(00) 00000-0000"]').exists()).toBe(true)
   })
 
-  it('omits the address column from the school list', () => {
+  it('omits the address column from the school list markup', () => {
     const table = mount(SchoolTable, {
       props: {
+        canManage: true,
         rows: [
           {
+            id: 'school-1',
             name: 'Northfield Academy',
             code: 'NORTH',
             status: 'active',
@@ -57,14 +58,6 @@ describe('schools module', () => {
       global: { plugins: administrationPlugins() },
     })
 
-    const columns = table.getComponent(AdminDataTable).props('columns')
-
-    expect(columns.map((column) => column.prop)).toEqual([
-      'name',
-      'code',
-      'status',
-      'contactEmail',
-    ])
-    expect(columns.map((column) => column.prop)).not.toContain('addressLabel')
+    expect(table.html()).not.toContain('Main Street 123')
   })
 })

@@ -8,6 +8,7 @@ const props = defineProps({
   pending: { type: Boolean, default: false },
   fieldErrors: { type: Object, default: () => ({}) },
   formError: { type: Object, default: null },
+  submitLabel: { type: String, default: null },
 })
 defineEmits(['submit', 'cancel'])
 const { t } = useI18n()
@@ -60,7 +61,7 @@ watch(hasValidationFeedback, async (hasFeedback) => {
           t('administration.common.cancel')
         }}</ElButton>
         <ElButton type="primary" native-type="submit" :loading="pending">
-          {{ t('administration.common.submit') }}
+          {{ submitLabel ?? t('administration.common.submit') }}
         </ElButton>
       </div>
     </ElForm>

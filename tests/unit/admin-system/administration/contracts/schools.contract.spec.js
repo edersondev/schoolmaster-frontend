@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  createSchoolDeleteForm,
   createSchoolForm,
+  mapSchoolDeleteRequest,
+  mapSchoolForm,
   mapSchool,
   mapSchoolCreateRequest,
   mapSchoolUpdateRequest,
+  validateSchoolDeleteForm,
   validateSchoolForm,
 } from '@/contracts/admin-system/schools'
 
@@ -63,8 +67,30 @@ describe('school contracts', () => {
       name: 'N',
       code: 'N',
     })
+    expect(
+      mapSchoolForm({
+        name: 'Northfield',
+        code: 'NORTH',
+        status: 'inactive',
+        contactEmail: 'office@northfield.test',
+        address: { street: 'Main Street', number: '123' },
+      }),
+    ).toMatchObject({
+      name: 'Northfield',
+      code: 'NORTH',
+      status: 'inactive',
+      contactEmail: 'office@northfield.test',
+      address: { street: 'Main Street', number: '123' },
+      removeAddress: false,
+    })
     expect(mapSchoolUpdateRequest({ name: 'N' })).toEqual({ name: 'N' })
     expect(mapSchoolUpdateRequest({ removeAddress: true })).toEqual({ address: null })
+    expect(
+      mapSchoolDeleteRequest({ effectiveAt: '2026-06-27', reason: 'Duplicate tenant' }),
+    ).toEqual({
+      effective_at: '2026-06-27',
+      reason: 'Duplicate tenant',
+    })
   })
 
   it('validates required fields and optional email format before submit', () => {
@@ -100,6 +126,14 @@ describe('school contracts', () => {
       'address.city': ['City is required.'],
       'address.state': ['State is required.'],
       'address.country': ['Country is required.'],
+    })
+    expect(createSchoolDeleteForm(new Date(2026, 5, 27))).toEqual({
+      effectiveAt: '2026-06-27',
+      reason: '',
+    })
+    expect(validateSchoolDeleteForm({ effectiveAt: '', reason: '' })).toEqual({
+      effective_at: ['Effective date is required.'],
+      reason: ['Reason is required.'],
     })
   })
 })

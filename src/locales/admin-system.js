@@ -13,6 +13,7 @@ export const adminSystemMessages = {
     dashboard: 'Dashboard',
     schools: 'Schools',
     createSchool: 'Create school',
+    editSchool: 'Edit school',
     users: 'Users',
     createUser: 'Create user',
     roles: 'Roles',

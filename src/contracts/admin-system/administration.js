@@ -7,6 +7,7 @@ export const ADMIN_FEEDBACK_STATES = Object.freeze({
   validation: 'validation',
   unauthorized: 'unauthorized',
   forbidden: 'forbidden',
+  conflict: 'conflict',
   tenantMismatch: 'tenant-mismatch',
   inactiveContext: 'inactive-context',
   notFound: 'not-found',

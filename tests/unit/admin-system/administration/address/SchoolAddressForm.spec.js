@@ -36,11 +36,15 @@ describe('school address form', () => {
       props: {
         modelValue: model,
         allowRemoveAddress: true,
+        showStatus: true,
+        readonlyCode: true,
       },
       global: { plugins: administrationPlugins() },
     })
 
     expect(wrapper.text()).toContain('Remove current address')
+    expect(wrapper.text()).toContain('Status')
+    expect(wrapper.get('input[readonly]').exists()).toBe(true)
 
     expect(model.removeAddress).toBe(false)
   })
