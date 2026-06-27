@@ -7,6 +7,7 @@ export const adminSystemMessages = {
     closeDrawer: 'Close navigation',
     noticeToggle: 'Toggle notification placeholder',
     contentLabel: 'Admin content',
+    logout: 'Log out',
   },
   navigation: {
     dashboard: 'Dashboard',

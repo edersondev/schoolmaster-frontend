@@ -1,9 +1,11 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { SHELL_FEEDBACK_STATES } from '@/contracts/admin-system/shell'
+import AdminShellHeader from '@/components/admin-system/shell/AdminShellHeader.vue'
 import AdminSystemLayout from '@/layouts/admin-system/AdminSystemLayout.vue'
 import { useAdminShellStore } from '@/stores/admin-system/shell.store'
+import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import { adminGlobalPlugins, allowedAdminPermissions, deniedAdminPermissions } from './shell.fixtures'
 
 async function mountLayout(userPermissions = allowedAdminPermissions) {
@@ -28,12 +30,19 @@ async function mountLayout(userPermissions = allowedAdminPermissions) {
           breadcrumb: [{ label: 'dashboard.title', routeName: 'adminDashboard' }],
         },
       },
+      {
+        path: '/auth/login',
+        name: 'authLogin',
+        component: {
+          template: '<section data-test="login-page">Login</section>',
+        },
+      },
     ],
   })
   router.push('/admin')
   await router.isReady()
 
-  return mount(AdminSystemLayout, {
+  const wrapper = mount(AdminSystemLayout, {
     props: {
       userPermissions,
     },
@@ -47,6 +56,8 @@ async function mountLayout(userPermissions = allowedAdminPermissions) {
       },
     },
   })
+
+  return { wrapper, router }
 }
 
 describe('AdminSystemLayout', () => {
@@ -54,8 +65,12 @@ describe('AdminSystemLayout', () => {
     window.localStorage.clear()
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('keeps dashboard content and navigation reachable inside the shell', async () => {
-    const wrapper = await mountLayout()
+    const { wrapper } = await mountLayout()
 
     expect(wrapper.text()).toContain('Dashboard')
     expect(wrapper.text()).toContain('System Administration')
@@ -63,7 +78,7 @@ describe('AdminSystemLayout', () => {
   })
 
   it('forwards shell permissions to the routed dashboard component', async () => {
-    const wrapper = await mountLayout(deniedAdminPermissions)
+    const { wrapper } = await mountLayout(deniedAdminPermissions)
 
     expect(wrapper.find('[data-test="route-content"]').text()).toBe('none')
 
@@ -72,7 +87,7 @@ describe('AdminSystemLayout', () => {
   })
 
   it('reacts when shell permissions are refreshed after mount', async () => {
-    const wrapper = await mountLayout(allowedAdminPermissions)
+    const { wrapper } = await mountLayout(allowedAdminPermissions)
 
     expect(wrapper.find('nav').text()).toContain('Dashboard')
 
@@ -81,7 +96,7 @@ describe('AdminSystemLayout', () => {
   })
 
   it('renders shell-level unauthorized, forbidden, and session-expired states', async () => {
-    const wrapper = await mountLayout()
+    const { wrapper } = await mountLayout()
     const store = useAdminShellStore()
 
     store.setFeedbackState(SHELL_FEEDBACK_STATES.unauthorized)
@@ -95,5 +110,17 @@ describe('AdminSystemLayout', () => {
     store.setFeedbackState(SHELL_FEEDBACK_STATES.sessionExpired)
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Session expired')
+  })
+
+  it('logs out and redirects to login when the header requests it', async () => {
+    const { wrapper, router } = await mountLayout()
+    const sessionStore = useAuthSessionStore()
+    const logoutSpy = vi.spyOn(sessionStore, 'logout').mockResolvedValue(undefined)
+
+    wrapper.findComponent(AdminShellHeader).vm.$emit('account-command', 'logout')
+    await flushPromises()
+
+    expect(logoutSpy).toHaveBeenCalledTimes(1)
+    expect(router.currentRoute.value.name).toBe('authLogin')
   })
 })

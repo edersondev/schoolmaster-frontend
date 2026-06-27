@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Bell, Expand, Fold, Menu, User } from '@element-plus/icons-vue'
+import { ArrowDown, Bell, Expand, Fold, Menu, User } from '@element-plus/icons-vue'
 
 const props = defineProps({
   pageContext: {
@@ -22,7 +22,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['toggleNavigation', 'toggleNotifications'])
+const emit = defineEmits(['toggleNavigation', 'toggleNotifications', 'account-command'])
 const { t } = useI18n()
 
 const navigationIcon = computed(() => {
@@ -32,6 +32,12 @@ const navigationIcon = computed(() => {
 
   return props.isSidebarCollapsed ? Expand : Fold
 })
+
+function onAccountCommand(command) {
+  if (command === 'logout') {
+    emit('account-command', command)
+  }
+}
 </script>
 
 <template>
@@ -64,10 +70,25 @@ const navigationIcon = computed(() => {
         :title="t('adminSystem.shell.noticeToggle')"
         @click="emit('toggleNotifications')"
       />
-      <div class="admin-header__account" :aria-label="t('adminSystem.shell.accountLabel')">
-        <ElIcon><User /></ElIcon>
-        <span>{{ t('adminSystem.shell.accountLabel') }}</span>
-      </div>
+      <ElDropdown placement="bottom-end" trigger="click" @command="onAccountCommand">
+        <button
+          type="button"
+          class="admin-header__account"
+          :aria-label="t('adminSystem.shell.accountLabel')"
+        >
+          <ElIcon><User /></ElIcon>
+          <span>{{ t('adminSystem.shell.accountLabel') }}</span>
+          <ElIcon class="admin-header__account-chevron"><ArrowDown /></ElIcon>
+        </button>
+
+        <template #dropdown>
+          <ElDropdownMenu>
+            <ElDropdownItem command="logout">
+              {{ t('adminSystem.shell.logout') }}
+            </ElDropdownItem>
+          </ElDropdownMenu>
+        </template>
+      </ElDropdown>
     </div>
   </header>
 </template>
@@ -111,9 +132,29 @@ const navigationIcon = computed(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
   color: var(--sm-color-muted);
+  cursor: pointer;
   font-size: 0.875rem;
+  font: inherit;
+  padding: 0.35rem 0.5rem;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
   white-space: nowrap;
+}
+
+.admin-header__account:hover,
+.admin-header__account:focus-visible {
+  background: rgba(15, 118, 110, 0.08);
+  color: var(--sm-color-text);
+  outline: none;
+}
+
+.admin-header__account-chevron {
+  font-size: 0.75rem;
 }
 
 @media (max-width: 640px) {

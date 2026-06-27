@@ -1,11 +1,12 @@
 <script setup>
 import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ADMIN_NAVIGATION_ITEMS, ADMIN_PERMISSIONS } from '@/contracts/admin-system/navigation'
 import { useAdminShellPermissions } from '@/composables/admin-system/useAdminShellPermissions'
 import { useAdminShellState } from '@/composables/admin-system/useAdminShellState'
+import { AUTH_ROUTE_NAMES } from '@/router/modules/auth.routes'
 import { useAdminShellStore } from '@/stores/admin-system/shell.store'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import AdminShellSidebar from '@/components/admin-system/shell/AdminShellSidebar.vue'
@@ -20,6 +21,7 @@ const props = defineProps({
 })
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 const shellStore = useAdminShellStore()
 const sessionStore = useAuthSessionStore()
@@ -56,6 +58,15 @@ watch(
 
 function onNavigate(routeKey) {
   handleRouteSelection(routeKey)
+}
+
+async function onAccountCommand(command) {
+  if (command !== 'logout') {
+    return
+  }
+
+  await sessionStore.logout()
+  await router.push({ name: AUTH_ROUTE_NAMES.login })
 }
 </script>
 
@@ -94,6 +105,7 @@ function onNavigate(routeKey) {
         :notification-panel-open="notificationPanelOpen"
         @toggle-navigation="toggleNavigation"
         @toggle-notifications="shellStore.toggleNotificationPanel"
+        @account-command="onAccountCommand"
       />
 
       <AdminShellFeedback v-if="feedbackState" :feedback-state="feedbackState" />
