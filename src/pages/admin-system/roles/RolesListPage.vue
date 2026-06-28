@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
-import { deriveLifecycleActions } from '@/composables/admin-system/useAdminActionEligibility'
+import { deriveBulkLifecycleActions, deriveLifecycleActions } from '@/composables/admin-system/useAdminActionEligibility'
 import { useAdminLifecycleAction } from '@/composables/admin-system/useAdminLifecycleAction'
 import { useAdminBulkLifecycle } from '@/composables/admin-system/useAdminBulkLifecycle'
 import { activateRole, bulkLifecycleRoles, deactivateRole, deleteRole, listRoles, restoreRole } from '@/services/admin-system/roles'
@@ -41,7 +41,7 @@ const lifecycle = useAdminLifecycleAction({
   },
 })
 const bulk = useAdminBulkLifecycle({ operationId: 'bulkLifecycleRoles', routeName: route.name, submitter: (input) => bulkLifecycleRoles(input, { schoolId: tenantId.value }), onSuccess: async () => { ElMessage.success(t('administration.common.updateSuccess')); await list.load(list.query.value) } })
-const bulkActions = computed(() => bulk.selectedSummaries.value.length ? deriveLifecycleActions({ resource: 'roles', status: bulk.selectedSummaries.value[0].status, permissions: sessionStore.permissionCodes, schoolReady: Boolean(tenantId.value) }) : [])
+const bulkActions = computed(() => deriveBulkLifecycleActions({ resource: 'roles', selectedSummaries: bulk.selectedSummaries.value, permissions: sessionStore.permissionCodes, schoolReady: Boolean(tenantId.value) }))
 watch([tenantId, () => sessionStore.permissionCodes.join('|'), () => list.query.value.page, () => list.query.value.perPage, () => list.query.value.status, () => list.query.value.search], () => bulk.clearSelection())
 function lifecycleActions(row) { return deriveLifecycleActions({ resource: 'roles', status: row.status, permissions: sessionStore.permissionCodes, schoolReady: Boolean(tenantId.value) }) }
 function onView(row) { router.push({ name: 'roleDetail', params: { roleId: row.id }, query: route.query }) }

@@ -21,6 +21,36 @@ export function deriveLifecycleActions({ resource, status, permissions = [], sch
   return actions.filter((action) => capability.actions.includes(action))
 }
 
+export function deriveBulkLifecycleActions({
+  resource,
+  selectedSummaries = [],
+  permissions = [],
+  schoolReady = true,
+} = {}) {
+  if (!selectedSummaries.length) return []
+
+  const [firstSummary, ...remainingSummaries] = selectedSummaries
+  const firstActions = deriveLifecycleActions({
+    resource,
+    status: firstSummary.status,
+    permissions,
+    schoolReady,
+  })
+
+  return remainingSummaries.reduce(
+    (availableActions, summary) => {
+      const rowActions = deriveLifecycleActions({
+        resource,
+        status: summary.status,
+        permissions,
+        schoolReady,
+      })
+      return availableActions.filter((action) => rowActions.includes(action))
+    },
+    firstActions,
+  )
+}
+
 export function useAdminActionEligibility(options = {}) {
   const actions = computed(() =>
     deriveLifecycleActions({

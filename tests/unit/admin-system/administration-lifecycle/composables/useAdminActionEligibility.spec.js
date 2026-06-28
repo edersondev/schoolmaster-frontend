@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { shallowRef } from 'vue'
-import { deriveLifecycleActions, useAdminActionEligibility } from '@/composables/admin-system/useAdminActionEligibility'
+import {
+  deriveBulkLifecycleActions,
+  deriveLifecycleActions,
+  useAdminActionEligibility,
+} from '@/composables/admin-system/useAdminActionEligibility'
 
 describe('useAdminActionEligibility', () => {
   it('derives actions from status, permissions, and resource capability', () => {
@@ -27,5 +31,55 @@ describe('useAdminActionEligibility', () => {
     expect(eligibility.actions.value).toEqual(['restore'])
     schoolReady.value = false
     expect(eligibility.actions.value).toEqual([])
+  })
+
+  it('derives bulk actions from the intersection of all selected row actions', () => {
+    expect(
+      deriveBulkLifecycleActions({
+        resource: 'users',
+        selectedSummaries: [
+          { id: 'u1', status: 'active' },
+          { id: 'u2', status: 'inactive' },
+        ],
+        permissions: ['users.view', 'users.manage'],
+        schoolReady: true,
+      }),
+    ).toEqual(['delete'])
+  })
+
+  it('omits bulk actions when selected rows have no common lifecycle action', () => {
+    expect(
+      deriveBulkLifecycleActions({
+        resource: 'users',
+        selectedSummaries: [
+          { id: 'u1', status: 'active' },
+          { id: 'u2', status: 'deleted' },
+        ],
+        permissions: ['users.view', 'users.manage'],
+        schoolReady: true,
+      }),
+    ).toEqual([])
+  })
+
+  it('requires permissions and tenant context for bulk actions', () => {
+    const selectedSummaries = [{ id: 'u1', status: 'active' }]
+
+    expect(
+      deriveBulkLifecycleActions({
+        resource: 'users',
+        selectedSummaries,
+        permissions: ['users.view'],
+        schoolReady: true,
+      }),
+    ).toEqual([])
+
+    expect(
+      deriveBulkLifecycleActions({
+        resource: 'users',
+        selectedSummaries,
+        permissions: ['users.view', 'users.manage'],
+        schoolReady: false,
+      }),
+    ).toEqual([])
   })
 })

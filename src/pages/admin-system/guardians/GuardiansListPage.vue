@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
-import { deriveLifecycleActions } from '@/composables/admin-system/useAdminActionEligibility'
+import { deriveBulkLifecycleActions, deriveLifecycleActions } from '@/composables/admin-system/useAdminActionEligibility'
 import { useAdminLifecycleAction } from '@/composables/admin-system/useAdminLifecycleAction'
 import { useAdminBulkLifecycle } from '@/composables/admin-system/useAdminBulkLifecycle'
 import { activateGuardian, bulkLifecycleGuardians, deactivateGuardian, deleteGuardian, listGuardians, restoreGuardian } from '@/services/admin-system/guardians'
@@ -31,7 +31,7 @@ const list = useAdministrationResourceList({
 const canManage = computed(() => list.can(['guardians.view', 'guardians.manage']))
 const lifecycle = useAdminLifecycleAction({ routeName: route.name, submitter: ({ target, action, values }) => ({ activate: activateGuardian, deactivate: deactivateGuardian, delete: deleteGuardian, restore: restoreGuardian })[action](target.id, values, { schoolId: tenantId.value }), onSuccess: async () => { ElMessage.success(t('administration.common.updateSuccess')); await list.load(list.query.value) } })
 const bulk = useAdminBulkLifecycle({ operationId: 'bulkLifecycleGuardians', routeName: route.name, submitter: (input) => bulkLifecycleGuardians(input, { schoolId: tenantId.value }), onSuccess: async () => { ElMessage.success(t('administration.common.updateSuccess')); await list.load(list.query.value) } })
-const bulkActions = computed(() => bulk.selectedSummaries.value.length ? deriveLifecycleActions({ resource: 'guardians', status: bulk.selectedSummaries.value[0].status, permissions: sessionStore.permissionCodes, schoolReady: Boolean(tenantId.value) }) : [])
+const bulkActions = computed(() => deriveBulkLifecycleActions({ resource: 'guardians', selectedSummaries: bulk.selectedSummaries.value, permissions: sessionStore.permissionCodes, schoolReady: Boolean(tenantId.value) }))
 watch([tenantId, () => sessionStore.permissionCodes.join('|'), () => list.query.value.page, () => list.query.value.perPage, () => list.query.value.status, () => list.query.value.search], () => bulk.clearSelection())
 function lifecycleActions(row) { return deriveLifecycleActions({ resource: 'guardians', status: row.status, permissions: sessionStore.permissionCodes, schoolReady: Boolean(tenantId.value) }) }
 function onView(row) { router.push({ name: 'guardianDetail', params: { guardianId: row.id }, query: route.query }) }

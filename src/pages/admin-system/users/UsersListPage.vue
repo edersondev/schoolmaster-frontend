@@ -5,7 +5,10 @@ import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { mapUserTableSort } from '@/contracts/admin-system/users'
-import { deriveLifecycleActions } from '@/composables/admin-system/useAdminActionEligibility'
+import {
+  deriveBulkLifecycleActions,
+  deriveLifecycleActions,
+} from '@/composables/admin-system/useAdminActionEligibility'
 import { useAdminLifecycleAction } from '@/composables/admin-system/useAdminLifecycleAction'
 import { useAdminBulkLifecycle } from '@/composables/admin-system/useAdminBulkLifecycle'
 import {
@@ -59,14 +62,12 @@ const bulk = useAdminBulkLifecycle({
   },
 })
 const bulkActions = computed(() =>
-  bulk.selectedSummaries.value.length
-    ? deriveLifecycleActions({
-        resource: 'users',
-        status: bulk.selectedSummaries.value[0].status,
-        permissions: sessionStore.permissionCodes,
-        schoolReady: Boolean(tenantId.value),
-      })
-    : [],
+  deriveBulkLifecycleActions({
+    resource: 'users',
+    selectedSummaries: bulk.selectedSummaries.value,
+    permissions: sessionStore.permissionCodes,
+    schoolReady: Boolean(tenantId.value),
+  }),
 )
 
 watch(

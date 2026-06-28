@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
-import { deriveLifecycleActions } from '@/composables/admin-system/useAdminActionEligibility'
+import { deriveBulkLifecycleActions, deriveLifecycleActions } from '@/composables/admin-system/useAdminActionEligibility'
 import { useAdminLifecycleAction } from '@/composables/admin-system/useAdminLifecycleAction'
 import { useAdminBulkLifecycle } from '@/composables/admin-system/useAdminBulkLifecycle'
 import { activateAcademicYear, bulkLifecycleAcademicYears, deactivateAcademicYear, deleteAcademicYear, listAcademicYears, restoreAcademicYear } from '@/services/admin-system/academic-years'
@@ -31,7 +31,7 @@ const list = useAdministrationResourceList({
 const canManage = computed(() => list.can(['academic_years.view', 'academic_years.manage']))
 const lifecycle = useAdminLifecycleAction({ routeName: route.name, submitter: ({ target, action, values }) => ({ activate: activateAcademicYear, deactivate: deactivateAcademicYear, delete: deleteAcademicYear, restore: restoreAcademicYear })[action](target.id, values, { schoolId: tenantId.value }), onSuccess: async () => { ElMessage.success(t('administration.common.updateSuccess')); await list.load(list.query.value) } })
 const bulk = useAdminBulkLifecycle({ operationId: 'bulkLifecycleAcademicYears', routeName: route.name, submitter: (input) => bulkLifecycleAcademicYears(input, { schoolId: tenantId.value }), onSuccess: async () => { ElMessage.success(t('administration.common.updateSuccess')); await list.load(list.query.value) } })
-const bulkActions = computed(() => bulk.selectedSummaries.value.length ? deriveLifecycleActions({ resource: 'academicYears', status: bulk.selectedSummaries.value[0].status, permissions: sessionStore.permissionCodes, schoolReady: Boolean(tenantId.value) }) : [])
+const bulkActions = computed(() => deriveBulkLifecycleActions({ resource: 'academicYears', selectedSummaries: bulk.selectedSummaries.value, permissions: sessionStore.permissionCodes, schoolReady: Boolean(tenantId.value) }))
 watch([tenantId, () => sessionStore.permissionCodes.join('|'), () => list.query.value.page, () => list.query.value.perPage, () => list.query.value.status, () => list.query.value.search], () => bulk.clearSelection())
 function lifecycleActions(row) { return deriveLifecycleActions({ resource: 'academicYears', status: row.status, permissions: sessionStore.permissionCodes, schoolReady: Boolean(tenantId.value) }) }
 function onView(row) { router.push({ name: 'academicYearDetail', params: { academicYearId: row.id }, query: route.query }) }
