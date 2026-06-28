@@ -13,8 +13,12 @@ const props = defineProps({
 defineEmits(['submit', 'cancel'])
 const { t } = useI18n()
 const validationSummary = useTemplateRef('validationSummary')
+const fieldErrorEntries = computed(() => Object.entries(props.fieldErrors))
 const hasValidationFeedback = computed(
-  () => Object.keys(props.fieldErrors).length > 0 || props.formError?.type === 'validation',
+  () => fieldErrorEntries.value.length > 0 || props.formError?.type === 'validation',
+)
+const validationMessageKey = computed(
+  () => props.formError?.messageKey ?? 'common.validationSummary',
 )
 const nonValidationState = computed(() =>
   props.formError?.type && props.formError.type !== 'validation' ? props.formError.type : null,
@@ -38,8 +42,11 @@ watch(hasValidationFeedback, async (hasFeedback) => {
       class="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800"
     >
       <p class="font-semibold">{{ t('administration.common.validationSummary') }}</p>
-      <ul class="mt-2 list-disc pl-5">
-        <li v-for="(messages, field) in fieldErrors" :key="field">
+      <p v-if="fieldErrorEntries.length === 0" class="mt-2">
+        {{ t(`administration.${validationMessageKey}`) }}
+      </p>
+      <ul v-else class="mt-2 list-disc pl-5">
+        <li v-for="[field, messages] in fieldErrorEntries" :key="field">
           {{ Array.isArray(messages) ? messages.join(' ') : messages }}
         </li>
       </ul>

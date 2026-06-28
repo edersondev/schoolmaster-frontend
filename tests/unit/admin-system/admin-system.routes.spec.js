@@ -39,4 +39,12 @@ describe('admin-system route metadata', () => {
       }),
     ).toEqual({ name: ADMIN_ROUTE_NAMES.schools })
   })
+
+  it('falls back to first permitted navigation destination for module-only admins', () => {
+    expect(
+      getAdminFallbackRoute({
+        hasPermission: (permission) => permission === ADMIN_PERMISSIONS.viewRoles,
+      }),
+    ).toEqual({ name: ADMIN_ROUTE_NAMES.roles })
+  })
 })

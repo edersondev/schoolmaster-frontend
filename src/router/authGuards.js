@@ -50,7 +50,10 @@ export function resolveRequestedRoute(requestedRoute, session) {
 }
 
 export function getPostAuthRoute(store, fallbackRoute) {
-  return resolveRequestedRoute(store.requestedRoute, store) ?? fallbackRoute
+  const requestedRoute = resolveRequestedRoute(store.requestedRoute, store)
+  if (requestedRoute) return requestedRoute
+
+  return typeof fallbackRoute === 'function' ? fallbackRoute(store) : fallbackRoute
 }
 
 export function createAuthGuard({ store, fallbackRoute }) {

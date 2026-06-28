@@ -16,7 +16,7 @@ router.beforeEach((to, from) => {
   const store = useAuthSessionStore()
   const guard = createAuthGuard({
     store,
-    fallbackRoute: getAdminFallbackRoute(store),
+    fallbackRoute: getAdminFallbackRoute,
   })
   return guard(to, from)
 })

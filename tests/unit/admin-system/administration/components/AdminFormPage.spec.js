@@ -16,4 +16,20 @@ describe('AdminFormPage', () => {
     expect(wrapper.find('[role="alert"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('Name is required.')
   })
+
+  it('renders normalized validation form errors without field messages', () => {
+    const wrapper = mount(AdminFormPage, {
+      props: {
+        title: 'Create school',
+        formError: {
+          type: 'validation',
+          messageKey: 'common.unknownError',
+        },
+      },
+      global: { plugins: administrationPlugins() },
+    })
+
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Administration request failed.')
+  })
 })
