@@ -1,12 +1,18 @@
 <script setup>
-import { computed, toRef, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ADMIN_NAVIGATION_ITEMS, ADMIN_PERMISSIONS } from '@/contracts/admin-system/navigation'
+import {
+  ADMIN_NAVIGATION_ITEMS,
+  ADMIN_PERMISSIONS,
+  ADMIN_ROUTE_NAMES,
+} from '@/contracts/admin-system/navigation'
 import { useAdminShellPermissions } from '@/composables/admin-system/useAdminShellPermissions'
 import { useAdminShellState } from '@/composables/admin-system/useAdminShellState'
+import { AUTH_ROUTE_NAMES } from '@/router/modules/auth.routes'
 import { useAdminShellStore } from '@/stores/admin-system/shell.store'
+import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import AdminShellSidebar from '@/components/admin-system/shell/AdminShellSidebar.vue'
 import AdminShellHeader from '@/components/admin-system/shell/AdminShellHeader.vue'
 import AdminShellFeedback from '@/components/admin-system/shell/AdminShellFeedback.vue'
@@ -14,18 +20,27 @@ import AdminShellFeedback from '@/components/admin-system/shell/AdminShellFeedba
 const props = defineProps({
   userPermissions: {
     type: Array,
-    default: () => [ADMIN_PERMISSIONS.viewDashboard],
+    default: null,
   },
 })
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 const shellStore = useAdminShellStore()
+const sessionStore = useAuthSessionStore()
 const { sidebarCollapsed, mobileDrawerOpen, activeRouteKey, notificationPanelOpen, feedbackState } =
   storeToRefs(shellStore)
-const userPermissions = toRef(props, 'userPermissions')
+const userPermissions = computed(() => {
+  if (props.userPermissions) return props.userPermissions
+  return sessionStore.permissionCodes.length
+    ? sessionStore.permissionCodes
+    : [ADMIN_PERMISSIONS.viewDashboard]
+})
 const { visibleNavigationItems } = useAdminShellPermissions(ADMIN_NAVIGATION_ITEMS, userPermissions)
-const { isMobile, toggleNavigation, handleRouteSelection } = useAdminShellState({ store: shellStore })
+const { isMobile, toggleNavigation, handleRouteSelection } = useAdminShellState({
+  store: shellStore,
+})
 
 const pageContext = computed(() => ({
   title: t(`adminSystem.${route.meta.title ?? 'shell.title'}`),
@@ -34,6 +49,9 @@ const pageContext = computed(() => ({
     label: t(`adminSystem.${item.label}`),
   })),
 }))
+const routeViewProps = computed(() =>
+  route.name === ADMIN_ROUTE_NAMES.dashboard ? { userPermissions: userPermissions.value } : {},
+)
 
 watch(
   () => route.name,
@@ -47,6 +65,15 @@ watch(
 
 function onNavigate(routeKey) {
   handleRouteSelection(routeKey)
+}
+
+async function onAccountCommand(command) {
+  if (command !== 'logout') {
+    return
+  }
+
+  await sessionStore.logout()
+  await router.push({ name: AUTH_ROUTE_NAMES.login })
 }
 </script>
 
@@ -85,13 +112,14 @@ function onNavigate(routeKey) {
         :notification-panel-open="notificationPanelOpen"
         @toggle-navigation="toggleNavigation"
         @toggle-notifications="shellStore.toggleNotificationPanel"
+        @account-command="onAccountCommand"
       />
 
       <AdminShellFeedback v-if="feedbackState" :feedback-state="feedbackState" />
 
       <main class="admin-shell__content" :aria-label="t('adminSystem.shell.contentLabel')">
         <RouterView v-slot="{ Component }">
-          <component :is="Component" :user-permissions="userPermissions" />
+          <component :is="Component" v-bind="routeViewProps" />
         </RouterView>
       </main>
     </section>
@@ -103,8 +131,7 @@ function onNavigate(routeKey) {
   display: flex;
   min-height: 100vh;
   background:
-    linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 38%),
-    var(--sm-color-bg);
+    linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 38%), var(--sm-color-bg);
 }
 
 .admin-shell__workspace {

@@ -5,6 +5,7 @@ import {
   ADMIN_ROUTE_NAMES,
   ADMIN_SYSTEM_LAYOUT,
 } from '@/contracts/admin-system/navigation'
+import { administrationRoutes } from './administration.routes'
 
 export const adminSystemRoutes = [
   {
@@ -40,6 +41,7 @@ export const adminSystemRoutes = [
           },
         },
       },
+      ...administrationRoutes,
     ],
   },
 ]

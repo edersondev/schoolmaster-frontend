@@ -5,6 +5,7 @@ import { adminSystemMessages } from '@/locales/admin-system'
 import { ADMIN_PERMISSIONS } from '@/contracts/admin-system/navigation'
 
 export const allowedAdminPermissions = [ADMIN_PERMISSIONS.viewDashboard]
+export const privilegedAdminPermissions = ['*']
 export const deniedAdminPermissions = []
 export const desktopViewport = 1280
 export const tabletViewport = 900

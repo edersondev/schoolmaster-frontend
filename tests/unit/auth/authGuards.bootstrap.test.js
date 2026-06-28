@@ -26,6 +26,37 @@ describe('protected route bootstrap guard', () => {
     expect(store.bootstrap).toHaveBeenCalledOnce()
   })
 
+  it('resolves guest-only fallback after bootstrap has populated permissions', async () => {
+    const store = {
+      hasBootstrapped: false,
+      status: 'signed-out',
+      permissions: [],
+      activeSchool: null,
+      requestedRoute: null,
+      bootstrap: vi.fn(async () => {
+        store.hasBootstrapped = true
+        store.status = 'authenticated'
+        store.permissions = [{ code: 'roles.view', status: 'active' }]
+      }),
+    }
+    const guard = createAuthGuard({
+      store,
+      fallbackRoute: () => ({
+        name: store.permissions.some((permission) => permission.code === 'roles.view')
+          ? 'rolesList'
+          : 'authState',
+      }),
+    })
+
+    await expect(
+      guard({
+        name: 'authLogin',
+        fullPath: '/auth/login',
+        meta: { guestOnly: true },
+      }),
+    ).resolves.toEqual({ name: 'rolesList' })
+  })
+
   it('waits for bootstrap before allowing protected content', async () => {
     let finishBootstrap
     const store = {
@@ -59,5 +90,26 @@ describe('protected route bootstrap guard', () => {
     expect(store.bootstrap).toHaveBeenCalled()
     finishBootstrap()
     await expect(navigation).resolves.toBe(true)
+  })
+
+  it('allows protected routes for active platform System Administrator roles', async () => {
+    const store = {
+      hasBootstrapped: true,
+      status: 'authenticated',
+      permissions: [{ code: 'admin.dashboard.view', status: 'active' }],
+      roles: [{ name: 'System Administrator', scope: 'platform', status: 'active' }],
+      activeSchool: { id: 'school-1' },
+      setFeedbackState: vi.fn(),
+    }
+    const guard = createAuthGuard({ store, fallbackRoute: { name: 'adminDashboard' } })
+
+    await expect(
+      guard({
+        name: 'usersList',
+        fullPath: '/admin/users',
+        meta: { requiresAuth: true, requiresSchoolContext: true, permissions: ['users.view'] },
+      }),
+    ).resolves.toBe(true)
+    expect(store.setFeedbackState).not.toHaveBeenCalled()
   })
 })
