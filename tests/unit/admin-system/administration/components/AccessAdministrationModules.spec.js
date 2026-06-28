@@ -10,7 +10,7 @@ describe('access administration components', () => {
   it('uses role-only users, school-fixed roles, read-only permissions', () => {
     const user = mount(UserForm, {
       props: {
-        modelValue: { fullName: '', email: '', roleIds: [] },
+        modelValue: { fullName: '', email: '', status: 'active', roleIds: [] },
         roles: [{ id: 'role', name: 'Role' }],
         lookupMeta: { page: 1, perPage: 1, total: 2 },
       },
@@ -36,22 +36,61 @@ describe('access administration components', () => {
     expect(permissions.text()).not.toContain('Create')
   })
 
-  it('forwards user table sort changes to its parent', async () => {
+  it('shows user edit-only status and forwards table sort/actions to its parent', async () => {
+    const userForm = mount(UserForm, {
+      props: {
+        modelValue: { fullName: '', email: '', status: 'active', roleIds: [] },
+        showStatus: true,
+      },
+      global: { plugins: administrationPlugins() },
+    })
+    expect(userForm.text()).toContain('Status')
+
     const userTable = mount(UserTable, {
-      props: { rows: [] },
+      props: {
+        canManage: true,
+        rows: [{ id: 'user-1', fullName: 'Ada', email: 'ada@example.test', roles: [] }],
+      },
       global: {
         plugins: administrationPlugins(),
         stubs: {
-          AdminDataTable: {
-            emits: ['sort'],
-            template: '<button @click="$emit(\'sort\', { prop: \'email\', order: \'descending\' })">Sort</button>',
+          ElTable: {
+            emits: ['sort-change'],
+            template: `
+              <div>
+                <button
+                  data-test="sort-user"
+                  @click="$emit('sort-change', { prop: 'email', order: 'descending' })"
+                >Sort</button>
+                <slot />
+              </div>
+            `,
+          },
+          ElTableColumn: {
+            template: `
+              <div>
+                <slot
+                  :row="{
+                    id: 'user-1',
+                    fullName: 'Ada',
+                    email: 'ada@example.test',
+                    status: 'active',
+                    roles: []
+                  }"
+                />
+              </div>
+            `,
           },
         },
       },
     })
 
-    await userTable.get('button').trigger('click')
+    await userTable.get('[data-test="sort-user"]').trigger('click')
+    await userTable.get('[data-test="edit-user"]').trigger('click')
+    await userTable.get('[data-test="delete-user"]').trigger('click')
 
     expect(userTable.emitted('sort')).toEqual([[{ prop: 'email', order: 'descending' }]])
+    expect(userTable.emitted('edit')[0][0].id).toBe('user-1')
+    expect(userTable.emitted('delete')[0][0].id).toBe('user-1')
   })
 })

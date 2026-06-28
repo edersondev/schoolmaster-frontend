@@ -16,6 +16,7 @@ export const adminSystemMessages = {
     editSchool: 'Edit school',
     users: 'Users',
     createUser: 'Create user',
+    editUser: 'Edit user',
     roles: 'Roles',
     createRole: 'Create role',
     permissions: 'Permissions',

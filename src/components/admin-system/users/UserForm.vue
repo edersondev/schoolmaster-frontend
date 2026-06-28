@@ -7,6 +7,7 @@ defineProps({
   errors: { type: Object, default: () => ({}) },
   roles: { type: Array, default: () => [] },
   rolesLoading: { type: Boolean, default: false },
+  showStatus: { type: Boolean, default: false },
   lookupMeta: {
     type: Object,
     default: () => ({ page: 1, perPage: 25, total: 0 }),
@@ -28,7 +29,17 @@ const { t } = useI18n()
       <ElInput v-model="model.email" type="email" autocomplete="email" />
     </ElFormItem>
     <ElFormItem
-      class="sm:col-span-2"
+      v-if="showStatus"
+      :label="t('administration.common.status')"
+      :error="errors.status?.[0]"
+    >
+      <ElSelect v-model="model.status" class="w-full">
+        <ElOption :label="t('administration.common.active')" value="active" />
+        <ElOption :label="t('administration.common.inactive')" value="inactive" />
+      </ElSelect>
+    </ElFormItem>
+    <ElFormItem
+      :class="showStatus ? '' : 'sm:col-span-2'"
       :label="t('administration.common.roles')"
       required
       :error="errors.role_ids?.[0]"

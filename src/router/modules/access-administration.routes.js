@@ -17,6 +17,13 @@ export const accessAdministrationRoutes = [
     permissions: ['users.view', 'users.manage', 'roles.view'],
   }),
   createAdministrationRoute({
+    path: 'users/:userId/edit',
+    name: 'userEdit',
+    component: () => import('@/pages/admin-system/users/EditUserPage.vue'),
+    title: 'navigation.editUser',
+    permissions: ['users.view', 'users.manage', 'roles.view'],
+  }),
+  createAdministrationRoute({
     path: 'roles',
     name: 'rolesList',
     component: () => import('@/pages/admin-system/roles/RolesListPage.vue'),
