@@ -18,6 +18,17 @@ describe('useAdminActionEligibility', () => {
     expect(deriveLifecycleActions({ resource: 'permissions', status: 'active' })).toEqual([])
   })
 
+  it('honors wildcard permissions for lifecycle actions', () => {
+    expect(
+      deriveLifecycleActions({
+        resource: 'users',
+        status: 'active',
+        permissions: ['*'],
+        schoolReady: true,
+      }),
+    ).toEqual(['deactivate', 'delete'])
+  })
+
   it('reacts to permission and tenant context changes', () => {
     const status = shallowRef('deleted')
     const permissions = shallowRef(['users.view', 'users.manage'])

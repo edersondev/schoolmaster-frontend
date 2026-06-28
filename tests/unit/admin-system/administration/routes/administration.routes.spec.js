@@ -1,4 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import {
+  createReturnToListLocation,
+  sanitizeAdministrationReturnQuery,
+} from '@/router/modules/administration-route'
 import { administrationRoutes } from '@/router/modules/administration.routes'
 
 describe('administration routes', () => {
@@ -20,5 +24,35 @@ describe('administration routes', () => {
     expect(
       administrationRoutes.find((route) => route.name === 'roleEdit').meta.permissions,
     ).toEqual(['roles.view', 'roles.manage', 'permissions.view'])
+  })
+
+  it('preserves serialized list query keys when returning from detail and edit routes', () => {
+    expect(
+      sanitizeAdministrationReturnQuery({
+        page: '3',
+        per_page: '50',
+        academic_year_id: 'year-1',
+        status: 'active',
+        unsafe: 'drop',
+      }),
+    ).toEqual({
+      page: '3',
+      per_page: '50',
+      academic_year_id: 'year-1',
+      status: 'active',
+    })
+
+    expect(
+      createReturnToListLocation(
+        {
+          meta: { returnListRoute: 'academicPeriodsList' },
+          query: { per_page: '100', academic_year_id: 'year-2' },
+        },
+        'fallback',
+      ),
+    ).toEqual({
+      name: 'academicPeriodsList',
+      query: { per_page: '100', academic_year_id: 'year-2' },
+    })
   })
 })

@@ -40,7 +40,16 @@ export function createAdministrationRoute({
 }
 
 export function sanitizeAdministrationReturnQuery(query = {}) {
-  const allowed = ['page', 'perPage', 'status', 'sort', 'academicYearId', 'search']
+  const allowed = [
+    'page',
+    'per_page',
+    'perPage',
+    'status',
+    'sort',
+    'academic_year_id',
+    'academicYearId',
+    'search',
+  ]
   return Object.fromEntries(
     Object.entries(query).filter(([key, value]) => allowed.includes(key) && value !== ''),
   )

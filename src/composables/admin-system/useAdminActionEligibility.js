@@ -4,12 +4,17 @@ import {
   getStatusCategory,
   LIFECYCLE_ACTIONS,
 } from '@/contracts/admin-system/lifecycle'
+import { AUTH_ALL_PERMISSIONS } from '@/contracts/auth/authSession.contract'
+
+function hasPermission(permissions, permission) {
+  return permissions.includes(AUTH_ALL_PERMISSIONS) || permissions.includes(permission)
+}
 
 export function deriveLifecycleActions({ resource, status, permissions = [], schoolReady = true } = {}) {
   const capability = getLifecycleCapability(resource)
   if (!capability || capability.actions.length === 0) return []
   if (capability.schoolContext && !schoolReady) return []
-  if (!capability.managePermissions.every((permission) => permissions.includes(permission))) return []
+  if (!capability.managePermissions.every((permission) => hasPermission(permissions, permission))) return []
 
   const category = getStatusCategory(status)
   const actions = []
