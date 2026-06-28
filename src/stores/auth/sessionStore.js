@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import {
+  AUTH_ALL_PERMISSIONS,
   AUTH_FEEDBACK_STATES,
   AUTH_SESSION_STATUSES,
   createAuthFeedbackState,
+  hasPrivilegedAccess,
   mapRequestedRoute,
 } from '@/contracts/auth/authSession.contract'
 import { authService, SCHOOL_SELECTION_SOURCE_APPROVED } from '@/services/auth/authService'
@@ -48,12 +50,17 @@ export const useAuthSessionStore = defineStore('auth-session', {
     isAuthenticated: (state) => state.status === AUTH_SESSION_STATUSES.authenticated,
     isProtectedContentReady: (state) => state.status === AUTH_SESSION_STATUSES.authenticated,
     isBootstrapping: (state) => state.status === AUTH_SESSION_STATUSES.bootstrapping,
-    permissionCodes: (state) =>
-      state.permissions
+    permissionCodes: (state) => {
+      const codes = state.permissions
         .filter((permission) => permission.status === 'active')
-        .map((permission) => permission.code),
+        .map((permission) => permission.code)
+
+      return hasPrivilegedAccess(state) ? [AUTH_ALL_PERMISSIONS, ...codes] : codes
+    },
     hasPermission() {
-      return (permissionCode) => this.permissionCodes.includes(permissionCode)
+      return (permissionCode) =>
+        this.permissionCodes.includes(AUTH_ALL_PERMISSIONS) ||
+        this.permissionCodes.includes(permissionCode)
     },
     tenantReady: (state) =>
       state.status === AUTH_SESSION_STATUSES.authenticated &&

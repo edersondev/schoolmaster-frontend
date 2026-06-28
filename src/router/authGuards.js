@@ -1,6 +1,8 @@
 import {
+  AUTH_ALL_PERMISSIONS,
   AUTH_FEEDBACK_STATES,
   AUTH_SESSION_STATUSES,
+  hasPrivilegedAccess,
   mapRequestedRoute,
 } from '@/contracts/auth/authSession.contract'
 import { AUTH_ROUTE_NAMES } from './modules/auth.routes'
@@ -10,9 +12,17 @@ export function captureRequestedRoute(route, createdFrom) {
 }
 
 function permissionCodes(session) {
-  return (session.permissions ?? [])
+  const codes = (session.permissions ?? [])
     .filter((permission) => permission.status === 'active')
     .map((permission) => permission.code)
+
+  return hasPrivilegedAccess(session) ? [AUTH_ALL_PERMISSIONS, ...codes] : codes
+}
+
+function hasPermissions(session, requiredPermissions = []) {
+  const availablePermissions = permissionCodes(session)
+  if (availablePermissions.includes(AUTH_ALL_PERMISSIONS)) return true
+  return requiredPermissions.every((permission) => availablePermissions.includes(permission))
 }
 
 export function resolveRequestedRoute(requestedRoute, session) {
@@ -24,12 +34,7 @@ export function resolveRequestedRoute(requestedRoute, session) {
     return null
   }
 
-  const availablePermissions = permissionCodes(session)
-  if (
-    !requestedRoute.requiredPermissions.every((permission) =>
-      availablePermissions.includes(permission),
-    )
-  ) {
+  if (!hasPermissions(session, requestedRoute.requiredPermissions)) {
     return null
   }
 
@@ -108,8 +113,7 @@ export function createAuthGuard({ store, fallbackRoute }) {
     }
 
     const requiredPermissions = to.meta.permissions ?? to.meta.requiredPermissions ?? []
-    const availablePermissions = permissionCodes(store)
-    if (!requiredPermissions.every((permission) => availablePermissions.includes(permission))) {
+    if (!hasPermissions(store, requiredPermissions)) {
       store.setFeedbackState?.(AUTH_FEEDBACK_STATES.forbidden)
       return { name: AUTH_ROUTE_NAMES.state }
     }

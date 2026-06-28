@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
-import { mapAuthSession } from '@/contracts/auth/authSession.contract'
+import { AUTH_ALL_PERMISSIONS, mapAuthSession } from '@/contracts/auth/authSession.contract'
 import { authService } from '@/services/auth/authService'
 import { authSessionEnvelope, createActivePinia } from './auth.fixtures'
 
@@ -20,6 +20,17 @@ describe('auth session login transitions', () => {
     expect(store.status).toBe('authenticated')
     expect(store.currentUser.fullName).toBe('Avery Stone')
     expect(store.feedbackState).toBeNull()
+  })
+
+  it('treats an active platform System Administrator as privileged', async () => {
+    const store = useAuthSessionStore()
+    const service = { login: vi.fn().mockResolvedValue(mapAuthSession(authSessionEnvelope.data)) }
+
+    await store.login({ email: 'admin@schoolmaster.local', password: 'password123' }, service)
+
+    expect(store.permissionCodes).toContain(AUTH_ALL_PERMISSIONS)
+    expect(store.hasPermission('users.view')).toBe(true)
+    expect(store.hasPermission('users.manage')).toBe(true)
   })
 
   it('restores the persisted school context during login', async () => {

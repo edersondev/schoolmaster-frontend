@@ -3,7 +3,11 @@ import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ADMIN_NAVIGATION_ITEMS, ADMIN_PERMISSIONS } from '@/contracts/admin-system/navigation'
+import {
+  ADMIN_NAVIGATION_ITEMS,
+  ADMIN_PERMISSIONS,
+  ADMIN_ROUTE_NAMES,
+} from '@/contracts/admin-system/navigation'
 import { useAdminShellPermissions } from '@/composables/admin-system/useAdminShellPermissions'
 import { useAdminShellState } from '@/composables/admin-system/useAdminShellState'
 import { AUTH_ROUTE_NAMES } from '@/router/modules/auth.routes'
@@ -45,6 +49,9 @@ const pageContext = computed(() => ({
     label: t(`adminSystem.${item.label}`),
   })),
 }))
+const routeViewProps = computed(() =>
+  route.name === ADMIN_ROUTE_NAMES.dashboard ? { userPermissions: userPermissions.value } : {},
+)
 
 watch(
   () => route.name,
@@ -112,7 +119,7 @@ async function onAccountCommand(command) {
 
       <main class="admin-shell__content" :aria-label="t('adminSystem.shell.contentLabel')">
         <RouterView v-slot="{ Component }">
-          <component :is="Component" :user-permissions="userPermissions" />
+          <component :is="Component" v-bind="routeViewProps" />
         </RouterView>
       </main>
     </section>

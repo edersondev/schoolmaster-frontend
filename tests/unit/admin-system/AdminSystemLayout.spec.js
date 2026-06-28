@@ -2,32 +2,45 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { SHELL_FEEDBACK_STATES } from '@/contracts/admin-system/shell'
+import { ADMIN_ROUTE_NAMES } from '@/contracts/admin-system/navigation'
 import AdminShellHeader from '@/components/admin-system/shell/AdminShellHeader.vue'
 import AdminSystemLayout from '@/layouts/admin-system/AdminSystemLayout.vue'
 import { useAdminShellStore } from '@/stores/admin-system/shell.store'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
-import { adminGlobalPlugins, allowedAdminPermissions, deniedAdminPermissions } from './shell.fixtures'
+import {
+  adminGlobalPlugins,
+  allowedAdminPermissions,
+  deniedAdminPermissions,
+  privilegedAdminPermissions,
+} from './shell.fixtures'
 
-async function mountLayout(userPermissions = allowedAdminPermissions) {
+async function mountLayout(
+  userPermissions = allowedAdminPermissions,
+  {
+    routeName = ADMIN_ROUTE_NAMES.dashboard,
+    routePath = '/admin',
+    routeComponent = {
+      props: {
+        userPermissions: {
+          type: Array,
+          default: () => [],
+        },
+      },
+      template:
+        '<section data-test="route-content">{{ userPermissions.length ? userPermissions.join(",") : "none" }}</section>',
+    },
+  } = {},
+) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
       {
-        path: '/admin',
-        name: 'adminDashboard',
-        component: {
-          props: {
-            userPermissions: {
-              type: Array,
-              default: () => [],
-            },
-          },
-          template:
-            '<section data-test="route-content">{{ userPermissions.length ? userPermissions.join(",") : "none" }}</section>',
-        },
+        path: routePath,
+        name: routeName,
+        component: routeComponent,
         meta: {
           title: 'dashboard.title',
-          breadcrumb: [{ label: 'dashboard.title', routeName: 'adminDashboard' }],
+          breadcrumb: [{ label: 'dashboard.title', routeName }],
         },
       },
       {
@@ -39,7 +52,7 @@ async function mountLayout(userPermissions = allowedAdminPermissions) {
       },
     ],
   })
-  router.push('/admin')
+  router.push(routePath)
   await router.isReady()
 
   const wrapper = mount(AdminSystemLayout, {
@@ -93,6 +106,31 @@ describe('AdminSystemLayout', () => {
 
     await wrapper.setProps({ userPermissions: deniedAdminPermissions })
     expect(wrapper.find('nav').text()).not.toContain('Dashboard')
+  })
+
+  it('shows users navigation for privileged system administrators', async () => {
+    const { wrapper } = await mountLayout(privilegedAdminPermissions)
+
+    expect(wrapper.find('nav').text()).toContain('Users')
+  })
+
+  it('does not pass user-permissions into routed pages that do not declare the prop', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const fragmentRoute = {
+      template:
+        '<section data-test="fragment-a">alpha</section><section data-test="fragment-b">beta</section>',
+    }
+    const { wrapper } = await mountLayout(allowedAdminPermissions, {
+      routeName: 'schoolsList',
+      routePath: '/admin/schools',
+      routeComponent: fragmentRoute,
+    })
+
+    expect(wrapper.find('[data-test="fragment-a"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="fragment-b"]').exists()).toBe(true)
+    expect(warnSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('Extraneous non-props attributes (user-permissions)'),
+    )
   })
 
   it('renders shell-level unauthorized, forbidden, and session-expired states', async () => {

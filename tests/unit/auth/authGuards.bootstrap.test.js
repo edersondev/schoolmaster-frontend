@@ -60,4 +60,25 @@ describe('protected route bootstrap guard', () => {
     finishBootstrap()
     await expect(navigation).resolves.toBe(true)
   })
+
+  it('allows protected routes for active platform System Administrator roles', async () => {
+    const store = {
+      hasBootstrapped: true,
+      status: 'authenticated',
+      permissions: [{ code: 'admin.dashboard.view', status: 'active' }],
+      roles: [{ name: 'System Administrator', scope: 'platform', status: 'active' }],
+      activeSchool: { id: 'school-1' },
+      setFeedbackState: vi.fn(),
+    }
+    const guard = createAuthGuard({ store, fallbackRoute: { name: 'adminDashboard' } })
+
+    await expect(
+      guard({
+        name: 'usersList',
+        fullPath: '/admin/users',
+        meta: { requiresAuth: true, requiresSchoolContext: true, permissions: ['users.view'] },
+      }),
+    ).resolves.toBe(true)
+    expect(store.setFeedbackState).not.toHaveBeenCalled()
+  })
 })

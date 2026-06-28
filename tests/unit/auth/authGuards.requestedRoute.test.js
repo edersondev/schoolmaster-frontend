@@ -29,4 +29,22 @@ describe('requested route recovery', () => {
       }),
     ).toBeNull()
   })
+
+  it('restores privileged system administrator routes without literal permission codes', () => {
+    const requested = captureRequestedRoute(target, 'signed-out')
+    const result = resolveRequestedRoute(requested, {
+      status: 'authenticated',
+      activeSchool: { id: 'school-1' },
+      permissions: [{ code: 'admin.dashboard.view', status: 'active' }],
+      roles: [
+        {
+          name: 'System Administrator',
+          scope: 'platform',
+          status: 'active',
+        },
+      ],
+    })
+
+    expect(result).toEqual({ name: 'reports', params: { id: '1' }, query: { tab: 'summary' } })
+  })
 })

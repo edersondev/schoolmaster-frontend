@@ -34,6 +34,15 @@ export const TENANT_STATUSES = Object.freeze({
   selecting: 'selecting',
 })
 
+export const AUTH_ALL_PERMISSIONS = '*'
+
+const SYSTEM_ADMINISTRATOR_ROLE_NAMES = new Set([
+  'system administrator',
+  'system admin',
+  'super administrator',
+  'super admin',
+])
+
 function mapAddress(address) {
   if (!address) {
     return null
@@ -86,12 +95,33 @@ function mapPermission(permission = {}) {
 function mapRole(role = {}) {
   return {
     id: role.id ?? '',
+    code: role.code ?? role.slug ?? '',
     schoolId: role.school_id ?? null,
     scope: role.scope ?? '',
     name: role.name ?? '',
     status: role.status ?? '',
     permissions: Array.isArray(role.permissions) ? role.permissions.map(mapPermission) : [],
   }
+}
+
+export function isSystemAdministratorRole(role = {}) {
+  return (
+    role.status === 'active' &&
+    role.scope === 'platform' &&
+    SYSTEM_ADMINISTRATOR_ROLE_NAMES.has(String(role.name ?? '').trim().toLowerCase())
+  )
+}
+
+export function hasPrivilegedAccess(session = {}) {
+  const roles = Array.isArray(session.roles) ? session.roles : []
+  const permissions = Array.isArray(session.permissions) ? session.permissions : []
+
+  return (
+    roles.some(isSystemAdministratorRole) ||
+    permissions.some(
+      (permission) => permission.status === 'active' && permission.code === AUTH_ALL_PERMISSIONS,
+    )
+  )
 }
 
 function mapSchool(school) {
