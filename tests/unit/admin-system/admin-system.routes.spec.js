@@ -6,6 +6,7 @@ import {
   ADMIN_ROUTE_NAMES,
   ADMIN_SYSTEM_LAYOUT,
 } from '@/contracts/admin-system/navigation'
+import { getAdminFallbackRoute } from '@/router'
 
 describe('admin-system route metadata', () => {
   it('registers the dashboard route through the application router', () => {
@@ -29,5 +30,21 @@ describe('admin-system route metadata', () => {
       order: 10,
       label: 'navigation.dashboard',
     })
+  })
+
+  it('falls back to schools when dashboard permission is unavailable', () => {
+    expect(
+      getAdminFallbackRoute({
+        hasPermission: (permission) => permission === ADMIN_PERMISSIONS.viewSchools,
+      }),
+    ).toEqual({ name: ADMIN_ROUTE_NAMES.schools })
+  })
+
+  it('falls back to first permitted navigation destination for module-only admins', () => {
+    expect(
+      getAdminFallbackRoute({
+        hasPermission: (permission) => permission === ADMIN_PERMISSIONS.viewRoles,
+      }),
+    ).toEqual({ name: ADMIN_ROUTE_NAMES.roles })
   })
 })

@@ -1,4 +1,5 @@
 import { computed, toValue } from 'vue'
+import { AUTH_ALL_PERMISSIONS } from '@/contracts/auth/authSession.contract'
 
 function normalizePermissions(permissions) {
   return new Set(Array.isArray(permissions) ? permissions : [])
@@ -6,6 +7,7 @@ function normalizePermissions(permissions) {
 
 export function hasRequiredPermissions(requiredPermissions = [], userPermissions = []) {
   const permissionSet = normalizePermissions(userPermissions)
+  if (permissionSet.has(AUTH_ALL_PERMISSIONS)) return true
   return requiredPermissions.every((permission) => permissionSet.has(permission))
 }
 

@@ -4,14 +4,29 @@ export { ADMIN_SYSTEM_LAYOUT }
 
 export const ADMIN_ROUTE_NAMES = Object.freeze({
   dashboard: 'adminDashboard',
+  schools: 'schoolsList',
+  users: 'usersList',
+  roles: 'rolesList',
+  permissions: 'permissionsList',
+  academicYears: 'academicYearsList',
+  academicPeriods: 'academicPeriodsList',
+  guardians: 'guardiansList',
 })
 
 export const ADMIN_PERMISSIONS = Object.freeze({
   viewDashboard: 'admin.dashboard.view',
+  viewSchools: 'schools.view',
+  viewUsers: 'users.view',
+  viewRoles: 'roles.view',
+  viewPermissions: 'permissions.view',
+  viewAcademicYears: 'academic_years.view',
+  viewAcademicPeriods: 'academic_periods.view',
+  viewGuardians: 'guardians.view',
 })
 
 export const ADMIN_NAVIGATION_SECTIONS = Object.freeze({
   workspace: 'workspace',
+  administration: 'administration',
 })
 
 /**
@@ -36,6 +51,76 @@ export const ADMIN_NAVIGATION_ITEMS = Object.freeze([
     order: 10,
     approved: true,
     section: ADMIN_NAVIGATION_SECTIONS.workspace,
+  },
+  {
+    key: ADMIN_ROUTE_NAMES.schools,
+    labelKey: 'navigation.schools',
+    destination: { name: ADMIN_ROUTE_NAMES.schools },
+    icon: 'Management',
+    permissions: [ADMIN_PERMISSIONS.viewSchools],
+    order: 20,
+    approved: true,
+    section: ADMIN_NAVIGATION_SECTIONS.administration,
+  },
+  {
+    key: ADMIN_ROUTE_NAMES.users,
+    labelKey: 'navigation.users',
+    destination: { name: ADMIN_ROUTE_NAMES.users },
+    icon: 'User',
+    permissions: [ADMIN_PERMISSIONS.viewUsers],
+    order: 30,
+    approved: true,
+    section: ADMIN_NAVIGATION_SECTIONS.administration,
+  },
+  {
+    key: ADMIN_ROUTE_NAMES.roles,
+    labelKey: 'navigation.roles',
+    destination: { name: ADMIN_ROUTE_NAMES.roles },
+    icon: 'Key',
+    permissions: [ADMIN_PERMISSIONS.viewRoles],
+    order: 40,
+    approved: true,
+    section: ADMIN_NAVIGATION_SECTIONS.administration,
+  },
+  {
+    key: ADMIN_ROUTE_NAMES.permissions,
+    labelKey: 'navigation.permissions',
+    destination: { name: ADMIN_ROUTE_NAMES.permissions },
+    icon: 'Lock',
+    permissions: [ADMIN_PERMISSIONS.viewPermissions],
+    order: 50,
+    approved: true,
+    section: ADMIN_NAVIGATION_SECTIONS.administration,
+  },
+  {
+    key: ADMIN_ROUTE_NAMES.academicYears,
+    labelKey: 'navigation.academicYears',
+    destination: { name: ADMIN_ROUTE_NAMES.academicYears },
+    icon: 'Calendar',
+    permissions: [ADMIN_PERMISSIONS.viewAcademicYears],
+    order: 60,
+    approved: true,
+    section: ADMIN_NAVIGATION_SECTIONS.administration,
+  },
+  {
+    key: ADMIN_ROUTE_NAMES.academicPeriods,
+    labelKey: 'navigation.academicPeriods',
+    destination: { name: ADMIN_ROUTE_NAMES.academicPeriods },
+    icon: 'Clock',
+    permissions: [ADMIN_PERMISSIONS.viewAcademicPeriods],
+    order: 70,
+    approved: true,
+    section: ADMIN_NAVIGATION_SECTIONS.administration,
+  },
+  {
+    key: ADMIN_ROUTE_NAMES.guardians,
+    labelKey: 'navigation.guardians',
+    destination: { name: ADMIN_ROUTE_NAMES.guardians },
+    icon: 'Avatar',
+    permissions: [ADMIN_PERMISSIONS.viewGuardians],
+    order: 80,
+    approved: true,
+    section: ADMIN_NAVIGATION_SECTIONS.administration,
   },
 ])
 

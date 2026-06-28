@@ -32,6 +32,10 @@ export function createAuthService(client) {
       accessToken = null
     },
 
+    getAccessToken() {
+      return accessToken
+    },
+
     async login(credentials) {
       try {
         const response = await client.post(AUTH_ENDPOINTS.login, mapLoginRequest(credentials))
