@@ -8,6 +8,7 @@ import App from './App.vue'
 import router from './router'
 import { adminSystemMessages } from './locales/admin-system'
 import { administrationMessages } from './locales/administration'
+import { administrationLifecycleMessages } from './locales/administration-lifecycle'
 import { authMessages } from './locales/auth'
 import globalComponents from './plugins/global-components'
 import './assets/styles/main.css'
@@ -21,6 +22,7 @@ const i18n = createI18n({
     en: {
       adminSystem: adminSystemMessages,
       administration: administrationMessages,
+      administrationLifecycle: administrationLifecycleMessages,
       auth: authMessages,
     },
   },

@@ -1,7 +1,8 @@
 import { isPresent, isValidEmail, mapCommonRecord } from './administration'
+import { projectUpdatePayload } from './lifecycle'
 
 export function createUserForm() {
-  return { fullName: '', email: '', status: 'active', roleIds: [] }
+  return { fullName: '', email: '', roleIds: [] }
 }
 
 export function createUserDeleteForm(now = new Date()) {
@@ -67,12 +68,11 @@ export function mapUserCreateRequest(form) {
 }
 
 export function mapUserUpdateRequest(form) {
-  return {
+  return projectUpdatePayload({
     full_name: form.fullName,
     email: form.email,
-    status: form.status,
     role_ids: [...form.roleIds],
-  }
+  }, 'users')
 }
 
 export function mapUserDeleteRequest(form) {

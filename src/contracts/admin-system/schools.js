@@ -1,4 +1,5 @@
 import { compactPayload, isPresent, isValidEmail, mapCommonRecord } from './administration'
+import { projectUpdatePayload } from './lifecycle'
 
 const requiredAddressMessages = Object.freeze({
   zipCode: 'ZIP code is required.',
@@ -125,7 +126,6 @@ export function mapSchoolCreateRequest(form) {
 export function mapSchoolUpdateRequest(form) {
   const payload = compactPayload({
     name: form.name,
-    status: form.status,
     contact_email: form.contactEmail,
     contact_phone: String(form.contactPhone ?? '').replace(/\D/g, ''),
   })
@@ -139,7 +139,7 @@ export function mapSchoolUpdateRequest(form) {
     }
   }
 
-  return payload
+  return projectUpdatePayload(payload, 'schools')
 }
 
 export function mapSchoolDeleteRequest(form) {

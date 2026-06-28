@@ -1,4 +1,5 @@
 import { isPresent, mapCommonRecord } from './administration'
+import { projectUpdatePayload } from './lifecycle'
 
 export function createRoleForm() {
   return { name: '', permissionIds: [] }
@@ -31,6 +32,23 @@ export function mapRole(record) {
 
 export function mapRoleCreateRequest(form) {
   return { scope: 'school', name: form.name, permission_ids: [...form.permissionIds] }
+}
+
+export function mapRoleForm(record = {}) {
+  return {
+    ...createRoleForm(),
+    name: record.name ?? '',
+    permissionIds: Array.isArray(record.permissions)
+      ? record.permissions.map((permission) => permission.id).filter(Boolean)
+      : [],
+  }
+}
+
+export function mapRoleUpdateRequest(form) {
+  return projectUpdatePayload(
+    { name: form.name, permission_ids: [...(form.permissionIds ?? [])] },
+    'roles',
+  )
 }
 
 export function isSchoolPermission(permission) {

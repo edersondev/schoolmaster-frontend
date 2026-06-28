@@ -20,9 +20,13 @@ describe('schools service', () => {
       }),
     )
     await service.getSchool('school-id')
-    expect(client.get).toHaveBeenCalledWith('/api/v1/schools/school-id', {
-      headers: { Authorization: 'Bearer test-token' },
-    })
+    expect(client.get).toHaveBeenLastCalledWith(
+      '/api/v1/schools/school-id',
+      expect.objectContaining({
+        params: {},
+        headers: { Authorization: 'Bearer test-token' },
+      }),
+    )
     await service.createSchool({ name: 'N', code: 'N' })
     expect(client.post).toHaveBeenCalledWith(
       '/api/v1/schools',

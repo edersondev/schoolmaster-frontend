@@ -1,0 +1,43 @@
+import { computed, toValue } from 'vue'
+import {
+  getLifecycleCapability,
+  getStatusCategory,
+  LIFECYCLE_ACTIONS,
+} from '@/contracts/admin-system/lifecycle'
+
+export function deriveLifecycleActions({ resource, status, permissions = [], schoolReady = true } = {}) {
+  const capability = getLifecycleCapability(resource)
+  if (!capability || capability.actions.length === 0) return []
+  if (capability.schoolContext && !schoolReady) return []
+  if (!capability.managePermissions.every((permission) => permissions.includes(permission))) return []
+
+  const category = getStatusCategory(status)
+  const actions = []
+  if (category !== 'active' && category !== 'deleted') actions.push(LIFECYCLE_ACTIONS.activate)
+  if (category === 'active') actions.push(LIFECYCLE_ACTIONS.deactivate)
+  if (category !== 'deleted') actions.push(LIFECYCLE_ACTIONS.delete)
+  if (category === 'deleted') actions.push(LIFECYCLE_ACTIONS.restore)
+
+  return actions.filter((action) => capability.actions.includes(action))
+}
+
+export function useAdminActionEligibility(options = {}) {
+  const actions = computed(() =>
+    deriveLifecycleActions({
+      resource: toValue(options.resource),
+      status: toValue(options.status),
+      permissions: toValue(options.permissions) ?? [],
+      schoolReady: toValue(options.schoolReady) ?? true,
+    }),
+  )
+  const canBulk = computed(() => {
+    const capability = getLifecycleCapability(toValue(options.resource))
+    return Boolean(capability?.bulk && actions.value.length > 0)
+  })
+
+  return {
+    actions,
+    canBulk,
+    can: (action) => actions.value.includes(action),
+  }
+}

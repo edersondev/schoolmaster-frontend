@@ -1,11 +1,14 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
+import AdminRowActions from '@/components/ui/admin/AdminRowActions.vue'
+import AdminStatusTag from '@/components/ui/admin/AdminStatusTag.vue'
 
 defineProps({
   rows: { type: Array, default: () => [] },
   canManage: { type: Boolean, default: false },
+  actionResolver: { type: Function, default: () => [] },
 })
-const emit = defineEmits(['edit', 'delete'])
+const emit = defineEmits(['view', 'edit', 'lifecycle'])
 const { t } = useI18n()
 </script>
 
@@ -17,7 +20,9 @@ const { t } = useI18n()
       :min-width="220"
     >
       <template #default="{ row }">
-        <span class="font-medium text-sm-text">{{ row.name ?? '—' }}</span>
+        <button class="font-medium text-sm-brand hover:underline" type="button" @click="emit('view', row)">
+          {{ row.name ?? '—' }}
+        </button>
       </template>
     </ElTableColumn>
     <ElTableColumn prop="code" :label="t('administration.common.code')">
@@ -27,7 +32,7 @@ const { t } = useI18n()
     </ElTableColumn>
     <ElTableColumn prop="status" :label="t('administration.common.status')">
       <template #default="{ row }">
-        <span class="text-sm-muted">{{ row.status ?? '—' }}</span>
+        <AdminStatusTag :status="row.status" compact />
       </template>
     </ElTableColumn>
     <ElTableColumn
@@ -54,14 +59,7 @@ const { t } = useI18n()
           >
             {{ t('administration.common.edit') }}
           </ElButton>
-          <ElButton
-            link
-            type="danger"
-            data-test="delete-school"
-            @click="emit('delete', row)"
-          >
-            {{ t('administration.common.delete') }}
-          </ElButton>
+          <AdminRowActions :actions="actionResolver(row)" @action="emit('lifecycle', { row, action: $event })" />
         </div>
       </template>
     </ElTableColumn>

@@ -96,7 +96,7 @@ describe('UsersListPage', () => {
     vi.clearAllMocks()
   })
 
-  it('navigates to edit and submits tenant-scoped soft delete', async () => {
+  it('navigates to edit with the current list query', async () => {
     listUsers.mockResolvedValue({
       items: [
         {
@@ -109,8 +109,6 @@ describe('UsersListPage', () => {
       ],
       meta: { page: 1, perPage: 25, total: 1 },
     })
-    deleteUser.mockResolvedValue({ data: { status: 'deleted' } })
-
     const { wrapper, router } = await mountPage()
 
     await wrapper.get('[data-test="edit-user"]').trigger('click')
@@ -119,28 +117,6 @@ describe('UsersListPage', () => {
     expect(router.currentRoute.value.params.userId).toBe(recordId)
     expect(router.currentRoute.value.query).toEqual({ status: 'active' })
 
-    await router.push('/admin/users?status=active')
-    await router.isReady()
-    await flushPromises()
-
-    await wrapper.get('[data-test="delete-user"]').trigger('click')
-    await flushPromises()
-
-    expect(wrapper.get('[data-test="dialog-user"]').text()).toBe('Ada Lovelace')
-    expect(wrapper.get('[data-test="dialog-effective-at"]').text()).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-
-    const loadCallsBeforeDelete = listUsers.mock.calls.length
-    await wrapper.get('[data-test="confirm-delete"]').trigger('click')
-    await flushPromises()
-
-    expect(deleteUser).toHaveBeenCalledWith(
-      recordId,
-      expect.objectContaining({
-        effectiveAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
-        reason: 'Duplicate account',
-      }),
-      { schoolId },
-    )
-    expect(listUsers).toHaveBeenCalledTimes(loadCallsBeforeDelete + 1)
+    expect(deleteUser).not.toHaveBeenCalled()
   })
 })

@@ -4,6 +4,7 @@ import {
   isValidEmail,
   mapCommonRecord,
 } from './administration'
+import { projectUpdatePayload } from './lifecycle'
 
 export function createGuardianForm() {
   return {
@@ -53,4 +54,25 @@ export function mapGuardianCreateRequest(form) {
     contact_phone: form.contactPhone,
     student_profile_ids: form.studentProfileIds?.length ? [...form.studentProfileIds] : undefined,
   })
+}
+
+export function mapGuardianForm(record = {}) {
+  return {
+    fullName: record.fullName ?? '',
+    relationshipType: record.relationshipType ?? '',
+    contactEmail: record.contactEmail ?? '',
+    contactPhone: record.contactPhone ?? '',
+  }
+}
+
+export function mapGuardianUpdateRequest(form) {
+  return projectUpdatePayload(
+    compactPayload({
+      full_name: form.fullName,
+      relationship_type: form.relationshipType,
+      contact_email: form.contactEmail,
+      contact_phone: form.contactPhone,
+    }),
+    'guardians',
+  )
 }

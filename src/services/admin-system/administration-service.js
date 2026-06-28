@@ -1,5 +1,10 @@
 import axios from 'axios'
 import { mapPaginatedEnvelope } from '@/contracts/admin-system/administration'
+import {
+  mapBulkLifecycleRequest,
+  mapLifecycleActionRequest,
+  mapLifecycleOutcome,
+} from '@/contracts/admin-system/lifecycle'
 import { authService } from '@/services/auth/authService'
 import { normalizeAdministrationError } from './administration-error-mapper'
 
@@ -21,7 +26,13 @@ export function mapListParams(query = {}) {
   )
 }
 
-function requestConfig(query, schoolId, signal, accessToken) {
+export function createAdministrationRequestConfig({
+  query = {},
+  schoolId = null,
+  signal = null,
+  accessToken = null,
+  data,
+} = {}) {
   return {
     params: mapListParams(query),
     headers: {
@@ -29,6 +40,7 @@ function requestConfig(query, schoolId, signal, accessToken) {
       ...(schoolId ? { 'X-School-Id': schoolId } : {}),
     },
     ...(signal ? { signal } : {}),
+    ...(data !== undefined ? { data } : {}),
   }
 }
 
@@ -46,12 +58,12 @@ export function createAdministrationService({
     try {
       const response = await client.get(
         endpoint,
-        requestConfig(
-          { ...query, ...fixedListQuery },
-          options.schoolId,
-          options.signal,
-          getAccessToken(),
-        ),
+        createAdministrationRequestConfig({
+          query: { ...query, ...fixedListQuery },
+          schoolId: options.schoolId,
+          signal: options.signal,
+          accessToken: getAccessToken(),
+        }),
       )
       const envelope = response.data ?? response
       const mapped = mapPaginatedEnvelope(envelope)
@@ -66,11 +78,11 @@ export function createAdministrationService({
     try {
       const accessToken = getAccessToken()
       const config = {
-        headers: {
-          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-          ...(options.schoolId ? { 'X-School-Id': options.schoolId } : {}),
-        },
-        ...(options.signal ? { signal: options.signal } : {}),
+        ...createAdministrationRequestConfig({
+          schoolId: options.schoolId,
+          signal: options.signal,
+          accessToken,
+        }),
       }
       const response = await client.post(endpoint, mapCreateRequest(form), config)
       const envelope = response.data ?? response
@@ -81,4 +93,86 @@ export function createAdministrationService({
   }
 
   return { list, create }
+}
+
+export function createAdministrationResourceOperations({
+  client = administrationHttpClient,
+  endpoint,
+  mapRecord,
+  mapUpdateRequest,
+  operations,
+  getAccessToken = () => authService.getAccessToken(),
+}) {
+  function config(options = {}, data) {
+    return createAdministrationRequestConfig({
+      schoolId: options.schoolId,
+      signal: options.signal,
+      accessToken: getAccessToken?.(),
+      data,
+    })
+  }
+
+  async function getOne(id, options = {}) {
+    try {
+      const response = await client.get(`${endpoint}/${id}`, config(options))
+      const envelope = response.data ?? response
+      return mapRecord(envelope.data ?? envelope)
+    } catch (error) {
+      throw normalizeAdministrationError(error, { operationId: operations.detail })
+    }
+  }
+
+  async function updateOne(id, form, options = {}) {
+    try {
+      const response = await client.patch(
+        `${endpoint}/${id}`,
+        mapUpdateRequest(form),
+        config(options),
+      )
+      const envelope = response.data ?? response
+      return mapRecord(envelope.data ?? envelope)
+    } catch (error) {
+      throw normalizeAdministrationError(error, { operationId: operations.update })
+    }
+  }
+
+  async function lifecycle(id, action, form, options = {}) {
+    try {
+      const path = action === 'delete' ? `${endpoint}/${id}` : `${endpoint}/${id}/${action}`
+      const payload = mapLifecycleActionRequest(form)
+      const response =
+        action === 'delete'
+          ? await client.delete(path, config(options, payload))
+          : await client.post(path, payload, config(options))
+      return mapLifecycleOutcome(response.data ?? response)
+    } catch (error) {
+      throw normalizeAdministrationError(error, { operationId: operations[action] })
+    }
+  }
+
+  async function bulkLifecycle(input, options = {}) {
+    if (!operations.bulk) {
+      throw new Error(`Bulk lifecycle unsupported for ${endpoint}`)
+    }
+    try {
+      const response = await client.post(
+        `${endpoint}/bulk-lifecycle`,
+        mapBulkLifecycleRequest(input),
+        config(options),
+      )
+      return mapLifecycleOutcome(response.data ?? response)
+    } catch (error) {
+      throw normalizeAdministrationError(error, { operationId: operations.bulk })
+    }
+  }
+
+  return {
+    getOne,
+    updateOne,
+    activate: (id, form, options) => lifecycle(id, 'activate', form, options),
+    deactivate: (id, form, options) => lifecycle(id, 'deactivate', form, options),
+    deleteOne: (id, form, options) => lifecycle(id, 'delete', form, options),
+    restore: (id, form, options) => lifecycle(id, 'restore', form, options),
+    bulkLifecycle,
+  }
 }

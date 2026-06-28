@@ -12,6 +12,10 @@ const CODE_TYPES = Object.freeze({
   validation_failed: 'validation',
   unavailable: 'unavailable',
   service_unavailable: 'unavailable',
+  stale_record: 'conflict',
+  dependency_conflict: 'conflict',
+  ineligible_transition: 'conflict',
+  batch_conflict: 'conflict',
 })
 
 const TYPE_MESSAGES = Object.freeze({
@@ -75,6 +79,7 @@ export function normalizeAdministrationError(error, context = {}) {
     messageKey: TYPE_MESSAGES[type] ?? TYPE_MESSAGES.unknown,
     recoveryAction: TYPE_RECOVERY[type] ?? ADMIN_RECOVERY_ACTIONS.none,
     fieldErrors,
+    conflictKind: mapConflictKind(code),
     operationId: context.operationId ?? null,
     routeName: context.routeName ?? null,
     requestId:
@@ -82,4 +87,12 @@ export function normalizeAdministrationError(error, context = {}) {
       error?.response?.headers?.['X-Request-Id'] ??
       null,
   }
+}
+
+function mapConflictKind(code) {
+  if (code === 'stale_record') return 'stale'
+  if (code === 'dependency_conflict') return 'dependency'
+  if (code === 'ineligible_transition') return 'ineligible'
+  if (code === 'batch_conflict') return 'batch'
+  return null
 }

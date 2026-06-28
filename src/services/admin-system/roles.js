@@ -1,5 +1,12 @@
-import { mapRole, mapRoleCreateRequest } from '@/contracts/admin-system/access'
-import { createAdministrationService } from './administration-service'
+import {
+  mapRole,
+  mapRoleCreateRequest,
+  mapRoleUpdateRequest,
+} from '@/contracts/admin-system/access'
+import {
+  createAdministrationResourceOperations,
+  createAdministrationService,
+} from './administration-service'
 
 export function createRolesService(client) {
   const service = createAdministrationService({
@@ -10,7 +17,42 @@ export function createRolesService(client) {
     mapRecord: mapRole,
     mapCreateRequest: mapRoleCreateRequest,
   })
-  return { listRoles: service.list, createRole: service.create }
+  const operations = createAdministrationResourceOperations({
+    client,
+    endpoint: '/api/v1/roles',
+    mapRecord: mapRole,
+    mapUpdateRequest: mapRoleUpdateRequest,
+    operations: {
+      detail: 'getRole',
+      update: 'updateRole',
+      activate: 'activateRole',
+      deactivate: 'deactivateRole',
+      delete: 'deleteRole',
+      restore: 'restoreRole',
+      bulk: 'bulkLifecycleRoles',
+    },
+  })
+  return {
+    listRoles: service.list,
+    createRole: service.create,
+    getRole: operations.getOne,
+    updateRole: operations.updateOne,
+    activateRole: operations.activate,
+    deactivateRole: operations.deactivate,
+    deleteRole: operations.deleteOne,
+    restoreRole: operations.restore,
+    bulkLifecycleRoles: operations.bulkLifecycle,
+  }
 }
 
-export const { listRoles, createRole } = createRolesService()
+export const {
+  listRoles,
+  createRole,
+  getRole,
+  updateRole,
+  activateRole,
+  deactivateRole,
+  deleteRole,
+  restoreRole,
+  bulkLifecycleRoles,
+} = createRolesService()
