@@ -7,7 +7,11 @@ import {
 } from '@/contracts/auth/account-lifecycle'
 import { authAccountLifecycleService } from '@/services/auth/accountLifecycle'
 
-export function useInvitationSetup({ token, service = authAccountLifecycleService } = {}) {
+export function useInvitationSetup({
+  token,
+  service = authAccountLifecycleService,
+  onSuccess = null,
+} = {}) {
   const pending = shallowRef(false)
   const fieldErrors = shallowRef({})
   const feedback = shallowRef(null)
@@ -65,6 +69,7 @@ export function useInvitationSetup({ token, service = authAccountLifecycleServic
       if (currentRequest !== requestId) return null
       result.value = response
       feedback.value = createAccountLifecycleFeedbackState(ACCOUNT_LIFECYCLE_FEEDBACK_STATES.success)
+      onSuccess?.()
       return response
     } catch (error) {
       if (currentRequest !== requestId) return null
@@ -89,4 +94,3 @@ export function useInvitationSetup({ token, service = authAccountLifecycleServic
     submit,
   }
 }
-

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import { useInvitationSetup } from '@/composables/auth/useInvitationSetup'
 import PasswordSetupForm from '@/components/auth/PasswordSetupForm.vue'
 import AccountLifecycleTokenState from '@/components/auth/AccountLifecycleTokenState.vue'
@@ -9,9 +10,13 @@ import AccountLifecycleSuccessState from '@/components/auth/AccountLifecycleSucc
 
 const route = useRoute()
 const router = useRouter()
+const store = useAuthSessionStore()
 const { t } = useI18n()
 const token = computed(() => route.params.invitationToken ?? route.query.token ?? '')
-const setup = useInvitationSetup({ token })
+const setup = useInvitationSetup({
+  token,
+  onSuccess: () => store.clearLifecycleSessionAssumptions(),
+})
 
 function recover(action) {
   if (action === 'sign-in' || action === 'request-reset') {
@@ -53,4 +58,3 @@ function recover(action) {
     </template>
   </article>
 </template>
-
