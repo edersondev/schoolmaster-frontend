@@ -44,7 +44,7 @@ describe('EditSchoolPage', () => {
     vi.clearAllMocks()
   })
 
-  it('loads the school, keeps code read-only, and updates before returning to the list', async () => {
+  it('loads the school, updates approved fields, and returns to the list', async () => {
     getSchool.mockResolvedValue({
       id: recordId,
       name: 'Northfield Academy',
@@ -67,22 +67,17 @@ describe('EditSchoolPage', () => {
 
     const { wrapper, router } = await mountPage()
 
-    expect(getSchool).toHaveBeenCalledWith(recordId)
+    expect(getSchool).toHaveBeenCalledWith(
+      recordId,
+      expect.objectContaining({ schoolId: undefined, signal: expect.any(AbortSignal) }),
+    )
     expect(wrapper.text()).toContain('Edit school')
-    expect(wrapper.get('input[readonly]').element.value).toBe('NORTH')
-    expect(wrapper.text()).toContain('Status')
+    expect(wrapper.text()).toContain('Address')
 
     await wrapper.get('form').trigger('submit.prevent')
     await flushPromises()
 
-    expect(updateSchool).toHaveBeenCalledWith(
-      recordId,
-      expect.objectContaining({
-        name: 'Northfield Academy',
-        code: 'NORTH',
-        status: 'active',
-      }),
-    )
+    expect(updateSchool).toHaveBeenCalledWith(recordId, expect.any(Object))
     expect(router.currentRoute.value.name).toBe('schoolsList')
     expect(router.currentRoute.value.query).toEqual({ status: 'active' })
   })

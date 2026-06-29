@@ -1,4 +1,4 @@
-import { onBeforeUnmount, onMounted, toValue } from 'vue'
+import { computed, onBeforeUnmount, onMounted, toValue } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { administrationMessages } from '@/locales/administration'
@@ -30,16 +30,17 @@ export function createUnsavedChangesGuard(options = {}) {
   }
 }
 
-export function useUnsavedChangesGuard({ isDirty, submitted, confirm }) {
+export function useUnsavedChangesGuard({ isDirty, submitted, confirm, isDialogOpen }) {
   const guard = createUnsavedChangesGuard({ confirm })
+  const shouldBlock = computed(() => Boolean(toValue(isDirty) || toValue(isDialogOpen)))
   const beforeUnload = (event) => {
-    if (!toValue(isDirty) || toValue(submitted)) return
+    if (!shouldBlock.value || toValue(submitted)) return
     event.preventDefault()
     event.returnValue = ''
   }
 
   onBeforeRouteLeave(() =>
-    guard.canLeave({ dirty: toValue(isDirty), submitted: toValue(submitted) }),
+    guard.canLeave({ dirty: shouldBlock.value, submitted: toValue(submitted) }),
   )
   onMounted(() => window.addEventListener('beforeunload', beforeUnload))
   onBeforeUnmount(() => window.removeEventListener('beforeunload', beforeUnload))

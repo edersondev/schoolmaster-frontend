@@ -1,4 +1,5 @@
 import { isDateRangeOrdered, isPresent, mapCommonRecord } from './administration'
+import { projectUpdatePayload } from './lifecycle'
 
 export function createAcademicYearForm() {
   return { name: '', startDate: '', endDate: '' }
@@ -68,6 +69,22 @@ export function mapAcademicYearCreateRequest(form) {
   return { name: form.name, start_date: form.startDate, end_date: form.endDate }
 }
 
+export function mapAcademicYearForm(record = {}) {
+  return {
+    ...createAcademicYearForm(),
+    name: record.name ?? '',
+    startDate: record.startDate ?? '',
+    endDate: record.endDate ?? '',
+  }
+}
+
+export function mapAcademicYearUpdateRequest(form) {
+  return projectUpdatePayload(
+    { name: form.name, start_date: form.startDate, end_date: form.endDate },
+    'academicYears',
+  )
+}
+
 export function mapAcademicPeriodCreateRequest(form) {
   return {
     academic_year_id: form.academicYearId,
@@ -76,4 +93,27 @@ export function mapAcademicPeriodCreateRequest(form) {
     start_date: form.startDate,
     end_date: form.endDate,
   }
+}
+
+export function mapAcademicPeriodForm(record = {}) {
+  return {
+    ...createAcademicPeriodForm(),
+    academicYearId: record.academicYearId ?? '',
+    name: record.name ?? '',
+    sequence: record.sequence ?? 1,
+    startDate: record.startDate ?? '',
+    endDate: record.endDate ?? '',
+  }
+}
+
+export function mapAcademicPeriodUpdateRequest(form) {
+  return projectUpdatePayload(
+    {
+      name: form.name,
+      sequence: Number(form.sequence),
+      start_date: form.startDate,
+      end_date: form.endDate,
+    },
+    'academicPeriods',
+  )
 }

@@ -15,6 +15,9 @@ describe('school page flows', () => {
     })
     expect(schoolRoutes[0].meta.permissions).toEqual(['schools.view'])
     expect(schoolRoutes[1].meta.permissions).toEqual(['schools.view', 'schools.manage'])
-    expect(schoolRoutes[2].meta.permissions).toEqual(['schools.view', 'schools.manage'])
+    expect(schoolRoutes.find((route) => route.name === 'schoolEdit').meta.permissions).toEqual([
+      'schools.view',
+      'schools.manage',
+    ])
   })
 })

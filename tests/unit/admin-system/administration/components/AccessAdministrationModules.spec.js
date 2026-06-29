@@ -4,6 +4,7 @@ import UserForm from '@/components/admin-system/users/UserForm.vue'
 import UserTable from '@/components/admin-system/users/UserTable.vue'
 import RoleForm from '@/components/admin-system/roles/RoleForm.vue'
 import PermissionTable from '@/components/admin-system/permissions/PermissionTable.vue'
+import AdminRowActions from '@/components/ui/admin/AdminRowActions.vue'
 import { administrationPlugins } from '../administration.fixtures'
 
 describe('access administration components', () => {
@@ -49,6 +50,7 @@ describe('access administration components', () => {
     const userTable = mount(UserTable, {
       props: {
         canManage: true,
+        actionResolver: () => ['delete'],
         rows: [{ id: 'user-1', fullName: 'Ada', email: 'ada@example.test', roles: [] }],
       },
       global: {
@@ -87,10 +89,13 @@ describe('access administration components', () => {
 
     await userTable.get('[data-test="sort-user"]').trigger('click')
     await userTable.get('[data-test="edit-user"]').trigger('click')
-    await userTable.get('[data-test="delete-user"]').trigger('click')
+    userTable.findComponent(AdminRowActions).vm.$emit('action', 'delete')
 
     expect(userTable.emitted('sort')).toEqual([[{ prop: 'email', order: 'descending' }]])
     expect(userTable.emitted('edit')[0][0].id).toBe('user-1')
-    expect(userTable.emitted('delete')[0][0].id).toBe('user-1')
+    expect(userTable.emitted('lifecycle')[0][0]).toMatchObject({
+      row: expect.objectContaining({ id: 'user-1' }),
+      action: 'delete',
+    })
   })
 })

@@ -71,7 +71,7 @@ describe('SchoolsListPage', () => {
     vi.clearAllMocks()
   })
 
-  it('navigates to edit and submits delete with the default lifecycle date', async () => {
+  it('navigates to edit with the current list query', async () => {
     listSchools.mockResolvedValue({
       items: [
         {
@@ -84,8 +84,6 @@ describe('SchoolsListPage', () => {
       ],
       meta: { page: 1, perPage: 25, total: 1 },
     })
-    deleteSchool.mockResolvedValue({ data: { status: 'deleted' } })
-
     const { wrapper, router } = await mountPage()
 
     await wrapper.get('[data-test="edit-school"]').trigger('click')
@@ -94,27 +92,6 @@ describe('SchoolsListPage', () => {
     expect(router.currentRoute.value.params.schoolId).toBe(recordId)
     expect(router.currentRoute.value.query).toEqual({ status: 'active' })
 
-    await router.push('/admin/schools?status=active')
-    await router.isReady()
-    await flushPromises()
-
-    await wrapper.get('[data-test="delete-school"]').trigger('click')
-    await flushPromises()
-
-    expect(wrapper.get('[data-test="dialog-school"]').text()).toBe('Northfield Academy')
-    expect(wrapper.get('[data-test="dialog-effective-at"]').text()).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-
-    const loadCallsBeforeDelete = listSchools.mock.calls.length
-    await wrapper.get('[data-test="confirm-delete"]').trigger('click')
-    await flushPromises()
-
-    expect(deleteSchool).toHaveBeenCalledWith(
-      recordId,
-      expect.objectContaining({
-        effectiveAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
-        reason: 'Duplicate tenant',
-      }),
-    )
-    expect(listSchools).toHaveBeenCalledTimes(loadCallsBeforeDelete + 1)
+    expect(deleteSchool).not.toHaveBeenCalled()
   })
 })

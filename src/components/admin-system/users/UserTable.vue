@@ -1,11 +1,16 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
+import AdminRowActions from '@/components/ui/admin/AdminRowActions.vue'
+import AdminStatusTag from '@/components/ui/admin/AdminStatusTag.vue'
 
 defineProps({
   rows: { type: Array, default: () => [] },
   canManage: { type: Boolean, default: false },
+  actionResolver: { type: Function, default: () => [] },
+  selectedIds: { type: Array, default: () => [] },
+  bulkEnabled: { type: Boolean, default: false },
 })
-const emit = defineEmits(['sort', 'edit', 'delete'])
+const emit = defineEmits(['sort', 'view', 'edit', 'lifecycle', 'toggle-selection'])
 const { t } = useI18n()
 </script>
 
@@ -16,6 +21,15 @@ const { t } = useI18n()
     table-layout="auto"
     @sort-change="emit('sort', $event)"
   >
+    <ElTableColumn v-if="bulkEnabled" :min-width="48">
+      <template #default="{ row }">
+        <ElCheckbox
+          :model-value="selectedIds.includes(row.id)"
+          :aria-label="`Select ${row.fullName ?? row.id}`"
+          @update:model-value="emit('toggle-selection', { row, checked: $event })"
+        />
+      </template>
+    </ElTableColumn>
     <ElTableColumn
       prop="fullName"
       :label="t('administration.common.fullName')"
@@ -23,7 +37,9 @@ const { t } = useI18n()
       :min-width="220"
     >
       <template #default="{ row }">
-        <span class="font-medium text-sm-text">{{ row.fullName ?? '—' }}</span>
+        <button class="font-medium text-sm-brand hover:underline" type="button" @click="emit('view', row)">
+          {{ row.fullName ?? '—' }}
+        </button>
       </template>
     </ElTableColumn>
     <ElTableColumn
@@ -42,7 +58,7 @@ const { t } = useI18n()
       sortable="custom"
     >
       <template #default="{ row }">
-        <span class="text-sm-muted">{{ row.status ?? '—' }}</span>
+        <AdminStatusTag :status="row.status" compact />
       </template>
     </ElTableColumn>
     <ElTableColumn :label="t('administration.common.roles')" :min-width="200">
@@ -67,14 +83,7 @@ const { t } = useI18n()
           >
             {{ t('administration.common.edit') }}
           </ElButton>
-          <ElButton
-            link
-            type="danger"
-            data-test="delete-user"
-            @click="emit('delete', row)"
-          >
-            {{ t('administration.common.delete') }}
-          </ElButton>
+          <AdminRowActions :actions="actionResolver(row)" @action="emit('lifecycle', { row, action: $event })" />
         </div>
       </template>
     </ElTableColumn>

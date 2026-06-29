@@ -8,6 +8,9 @@ export function createAdministrationRoute({
   permissions,
   schoolContext = true,
   order,
+  returnListRoute = null,
+  mode = 'list',
+  resource = null,
 }) {
   const route = {
     path,
@@ -20,6 +23,9 @@ export function createAdministrationRoute({
       title,
       breadcrumb: [{ label: title, routeName: name }],
       permissions,
+      mode,
+      resource,
+      returnListRoute,
     },
   }
   if (order) {
@@ -31,4 +37,27 @@ export function createAdministrationRoute({
     }
   }
   return route
+}
+
+export function sanitizeAdministrationReturnQuery(query = {}) {
+  const allowed = [
+    'page',
+    'per_page',
+    'perPage',
+    'status',
+    'sort',
+    'academic_year_id',
+    'academicYearId',
+    'search',
+  ]
+  return Object.fromEntries(
+    Object.entries(query).filter(([key, value]) => allowed.includes(key) && value !== ''),
+  )
+}
+
+export function createReturnToListLocation(route, fallbackName) {
+  return {
+    name: route?.meta?.returnListRoute ?? fallbackName,
+    query: sanitizeAdministrationReturnQuery(route?.query ?? {}),
+  }
 }

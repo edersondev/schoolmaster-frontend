@@ -31,9 +31,13 @@ describe('users service', () => {
     const service = createUsersService(client, () => 'test-token')
 
     await service.getUser('1', { schoolId })
-    expect(client.get).toHaveBeenCalledWith('/api/v1/users/1', {
-      headers: { Authorization: 'Bearer test-token', 'X-School-Id': schoolId },
-    })
+    expect(client.get).toHaveBeenCalledWith(
+      '/api/v1/users/1',
+      expect.objectContaining({
+        params: {},
+        headers: { Authorization: 'Bearer test-token', 'X-School-Id': schoolId },
+      }),
+    )
 
     await service.updateUser(
       '1',
@@ -50,16 +54,21 @@ describe('users service', () => {
       {
         full_name: 'A',
         email: 'a@b.test',
-        status: 'inactive',
         role_ids: ['r'],
       },
-      { headers: { Authorization: 'Bearer test-token', 'X-School-Id': schoolId } },
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer test-token', 'X-School-Id': schoolId },
+      }),
     )
 
     await service.deleteUser('1', { effectiveAt: '2026-06-27', reason: 'Left' }, { schoolId })
-    expect(client.delete).toHaveBeenCalledWith('/api/v1/users/1', {
-      headers: { Authorization: 'Bearer test-token', 'X-School-Id': schoolId },
-      data: { effective_at: '2026-06-27', reason: 'Left' },
-    })
+    expect(client.delete).toHaveBeenCalledWith(
+      '/api/v1/users/1',
+      expect.objectContaining({
+        params: {},
+        headers: { Authorization: 'Bearer test-token', 'X-School-Id': schoolId },
+        data: { effective_at: '2026-06-27', reason: 'Left' },
+      }),
+    )
   })
 })

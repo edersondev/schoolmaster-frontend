@@ -1,24 +1,29 @@
 <script setup>
-import { computed, shallowRef } from 'vue'
+import { computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { deriveLifecycleActions } from '@/composables/admin-system/useAdminActionEligibility'
+import { useAdminLifecycleAction } from '@/composables/admin-system/useAdminLifecycleAction'
+import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import {
-  createSchoolDeleteForm,
-  validateSchoolDeleteForm,
-} from '@/contracts/admin-system/schools'
-import { deleteSchool, listSchools } from '@/services/admin-system/schools'
-import { useAdminCreateForm } from '@/composables/admin-system/useAdminCreateForm'
+  activateSchool,
+  deactivateSchool,
+  deleteSchool,
+  listSchools,
+  restoreSchool,
+} from '@/services/admin-system/schools'
 import { useAdministrationResourceList } from '@/composables/admin-system/useAdministrationResourceList'
 import AdminListPage from '@/components/ui/admin/AdminListPage.vue'
+import AdminLifecycleDialog from '@/components/ui/admin/AdminLifecycleDialog.vue'
 import AdminPagination from '@/components/ui/admin/AdminPagination.vue'
 import SchoolFilters from '@/components/admin-system/schools/SchoolFilters.vue'
-import SchoolDeleteDialog from '@/components/admin-system/schools/SchoolDeleteDialog.vue'
 import SchoolTable from '@/components/admin-system/schools/SchoolTable.vue'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const sessionStore = useAuthSessionStore()
 const list = useAdministrationResourceList({
   resource: 'schools',
   loader: listSchools,
@@ -26,15 +31,21 @@ const list = useAdministrationResourceList({
   tenantOwned: false,
 })
 const canManage = computed(() => list.can(['schools.view', 'schools.manage']))
-const deleteDialogOpen = shallowRef(false)
-const selectedSchool = shallowRef(null)
-const deleteForm = useAdminCreateForm({
-  initialValues: createSchoolDeleteForm(),
-  operationId: 'deleteSchool',
+const lifecycle = useAdminLifecycleAction({
   routeName: route.name,
-  validate: validateSchoolDeleteForm,
-  submitter: (values) => deleteSchool(selectedSchool.value.id, values),
+  submitter: ({ target, action, values }) => {
+    const services = { activate: activateSchool, deactivate: deactivateSchool, delete: deleteSchool, restore: restoreSchool }
+    return services[action](target.id, values)
+  },
+  onSuccess: async () => {
+    ElMessage.success(t('administration.common.updateSuccess'))
+    await list.load(list.query.value)
+  },
 })
+
+function onView(row) {
+  router.push({ name: 'schoolDetail', params: { schoolId: row.id }, query: route.query })
+}
 
 function onEdit(row) {
   router.push({
@@ -44,27 +55,23 @@ function onEdit(row) {
   })
 }
 
-function onOpenDelete(row) {
-  selectedSchool.value = row
-  deleteForm.reset(createSchoolDeleteForm())
-  deleteDialogOpen.value = true
+function lifecycleActions(row) {
+  return deriveLifecycleActions({
+    resource: 'schools',
+    status: row.status,
+    permissions: sessionStore.permissionCodes,
+    schoolReady: true,
+  })
 }
 
-function closeDeleteDialog() {
-  deleteDialogOpen.value = false
-  selectedSchool.value = null
-  deleteForm.reset(createSchoolDeleteForm())
+function onLifecycle({ row, action }) {
+  lifecycle.launch(row, action)
 }
 
-async function submitDelete() {
+async function submitLifecycle() {
   try {
-    await deleteForm.submit()
-    ElMessage.success(t('administration.common.deleteSuccess'))
-    closeDeleteDialog()
-    await list.load(list.query.value)
-  } catch {
-    // Delete form owns normalized feedback.
-  }
+    await lifecycle.submit()
+  } catch {}
 }
 </script>
 <template>
@@ -87,8 +94,10 @@ async function submitDelete() {
     <SchoolTable
       :rows="list.items.value"
       :can-manage="canManage"
+      :action-resolver="lifecycleActions"
+      @view="onView"
       @edit="onEdit"
-      @delete="onOpenDelete"
+      @lifecycle="onLifecycle"
     />
     <template #pagination>
       <AdminPagination
@@ -100,14 +109,17 @@ async function submitDelete() {
       />
     </template>
   </AdminListPage>
-  <SchoolDeleteDialog
-    v-model:open="deleteDialogOpen"
-    v-model:values="deleteForm.values"
-    :school-name="selectedSchool?.name ?? ''"
-    :pending="deleteForm.pending.value"
-    :field-errors="deleteForm.fieldErrors.value"
-    :form-error="deleteForm.formError.value"
-    @submit="submitDelete"
-    @cancel="closeDeleteDialog"
+  <AdminLifecycleDialog
+    v-model:open="lifecycle.open.value"
+    v-model:values="lifecycle.form"
+    :action="lifecycle.action.value"
+    :resource-label="lifecycle.target.value?.name ?? ''"
+    resource-type="schools"
+    :current-status="lifecycle.target.value?.status ?? ''"
+    :pending="lifecycle.pending.value"
+    :field-errors="lifecycle.fieldErrors.value"
+    :form-error="lifecycle.formError.value"
+    @submit="submitLifecycle"
+    @cancel="lifecycle.close"
   />
 </template>

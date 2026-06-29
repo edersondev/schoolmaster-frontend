@@ -46,7 +46,6 @@ describe('access contracts', () => {
     expect(mapUserUpdateRequest(mapUserForm(record))).toEqual({
       full_name: 'Ada Lovelace',
       email: 'ada@example.test',
-      status: 'inactive',
       role_ids: ['role-admin'],
     })
     expect(mapUserDeleteRequest({ effectiveAt: '2026-06-27', reason: ' Duplicate ' })).toEqual({
