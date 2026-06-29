@@ -10,6 +10,8 @@ describe('AuthFeedbackState', () => {
     ['inactive-user', 'This account cannot access'],
     ['inactive-school', 'This school is not available'],
     ['tenant-mismatch', 'The requested school context'],
+    ['invalid-token', 'This link cannot be used'],
+    ['success', 'Account lifecycle action completed'],
   ])('renders %s safely', (state, text) => {
     const wrapper = mount(AuthFeedbackState, {
       props: { feedback: { state, messageKey: `feedback.${state}` } },

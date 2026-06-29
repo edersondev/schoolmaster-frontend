@@ -16,7 +16,6 @@ describe('lifecycle scope absence', () => {
   it('keeps out-of-scope lifecycle behaviors absent from lifecycle pages', () => {
     const files = [
       'src/pages/admin-system/users/UsersListPage.vue',
-      'src/pages/admin-system/users/UserDetailPage.vue',
       'src/pages/admin-system/guardians/GuardiansListPage.vue',
       'src/pages/admin-system/guardians/GuardianDetailPage.vue',
     ]

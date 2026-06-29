@@ -58,6 +58,10 @@ export function getPostAuthRoute(store, fallbackRoute) {
 
 export function createAuthGuard({ store, fallbackRoute }) {
   return async function authGuard(to) {
+    if (to.meta.guestLifecycle) {
+      return true
+    }
+
     if (to.meta.guestOnly && !store.hasBootstrapped) {
       try {
         await store.bootstrap()

@@ -18,8 +18,12 @@ const actionLabel = computed(() => {
     'choose-school': 'recovery.chooseSchool',
     'allowed-workspace': 'recovery.allowedWorkspace',
     retry: 'recovery.retry',
+    'request-reset': 'recovery.requestReset',
   }
-  return labels[props.action] ? t(`auth.${labels[props.action]}`) : null
+  if (!labels[props.action]) return null
+  const authKey = `auth.${labels[props.action]}`
+  const lifecycleKey = `accountLifecycle.${labels[props.action]}`
+  return props.action === 'request-reset' ? t(lifecycleKey) : t(authKey)
 })
 </script>
 
