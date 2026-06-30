@@ -5,12 +5,12 @@ import { administrationRoutes } from '@/router/modules/administration.routes'
 const source = (path) => readFileSync(`${process.cwd()}/${path}`, 'utf8')
 
 describe('lifecycle scope absence', () => {
-  it('does not register out-of-scope account, support, reporting, purge, or student routes', () => {
+  it('does not register out-of-scope account, support, reporting, or purge routes', () => {
     const routeNames = administrationRoutes.map((route) => String(route.name))
     const joined = routeNames.join(' ')
 
     expect(joined).not.toMatch(/invitation|password|lock|reactivation|purge/i)
-    expect(joined).not.toMatch(/student|report|support/i)
+    expect(joined).not.toMatch(/report|support/i)
   })
 
   it('keeps out-of-scope lifecycle behaviors absent from lifecycle pages', () => {

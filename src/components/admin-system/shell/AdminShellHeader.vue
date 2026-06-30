@@ -157,7 +157,7 @@ function onAccountCommand(command) {
   font-size: 0.75rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
   .admin-header {
     align-items: flex-start;
   }
