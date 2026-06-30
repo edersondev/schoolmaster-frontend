@@ -3,6 +3,7 @@ import ElementPlus from 'element-plus'
 import { createPinia, setActivePinia } from 'pinia'
 import { vi } from 'vitest'
 import { authMessages } from '@/locales/auth'
+import { accountLifecycleMessages } from '@/locales/account-lifecycle'
 
 export const school = Object.freeze({
   id: '20000000-0000-4000-8000-000000000001',
@@ -74,7 +75,7 @@ export function createAuthTestI18n() {
   return createI18n({
     legacy: false,
     locale: 'en',
-    messages: { en: { auth: authMessages } },
+    messages: { en: { auth: authMessages, accountLifecycle: accountLifecycleMessages } },
   })
 }
 

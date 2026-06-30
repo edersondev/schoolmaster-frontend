@@ -29,6 +29,9 @@ const messageKeys = {
   'tenant-mismatch': 'feedback.tenantMismatch',
   'temporary-unavailable': 'feedback.temporaryUnavailable',
   'neutral-confirmation': 'feedback.neutralConfirmation',
+  'invalid-token': 'feedback.invalidToken',
+  success: 'feedback.success',
+  loading: 'feedback.loading',
 }
 
 const alertType = computed(() => {
@@ -42,7 +45,9 @@ const alertType = computed(() => {
 })
 
 const message = computed(() =>
-  t(`auth.${messageKeys[props.feedback.state] ?? 'feedback.temporaryUnavailable'}`),
+  ['invalid-token', 'success', 'loading'].includes(props.feedback.state)
+    ? t(`accountLifecycle.${messageKeys[props.feedback.state]}`)
+    : t(`auth.${messageKeys[props.feedback.state] ?? 'feedback.temporaryUnavailable'}`),
 )
 </script>
 

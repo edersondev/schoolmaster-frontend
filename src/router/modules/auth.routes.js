@@ -3,6 +3,8 @@ import AuthLayout from '@/layouts/auth/AuthLayout.vue'
 export const AUTH_ROUTE_NAMES = Object.freeze({
   login: 'authLogin',
   forgotPassword: 'authForgotPassword',
+  invitationSetup: 'authInvitationSetup',
+  passwordResetCompletion: 'authPasswordResetCompletion',
   schoolSelection: 'authSchoolSelection',
   state: 'authState',
 })
@@ -31,10 +33,28 @@ export const authRoutes = [
       {
         path: 'forgot-password',
         name: AUTH_ROUTE_NAMES.forgotPassword,
-        component: () => import('@/pages/auth/ForgotPasswordPage.vue'),
+        component: () => import('@/pages/auth/PasswordResetRequestPage.vue'),
         meta: {
           layout: 'auth',
           guestOnly: true,
+        },
+      },
+      {
+        path: 'account-invitations/:invitationToken/setup',
+        name: AUTH_ROUTE_NAMES.invitationSetup,
+        component: () => import('@/pages/auth/InvitationSetupPage.vue'),
+        meta: {
+          layout: 'auth',
+          guestLifecycle: true,
+        },
+      },
+      {
+        path: 'password-resets/:token',
+        name: AUTH_ROUTE_NAMES.passwordResetCompletion,
+        component: () => import('@/pages/auth/PasswordResetCompletionPage.vue'),
+        meta: {
+          layout: 'auth',
+          guestLifecycle: true,
         },
       },
       {

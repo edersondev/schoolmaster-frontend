@@ -186,6 +186,14 @@ export const useAuthSessionStore = defineStore('auth-session', {
       }
     },
 
+    clearLifecycleSessionAssumptions() {
+      authService.clearAccessToken()
+      this.clearIdentity()
+      this.status = AUTH_SESSION_STATUSES.signedOut
+      this.feedbackState = null
+      this.hasBootstrapped = true
+    },
+
     captureRequestedRoute(route, createdFrom) {
       this.requestedRoute = mapRequestedRoute(route, createdFrom)
     },

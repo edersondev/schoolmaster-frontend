@@ -9,6 +9,7 @@ import router from './router'
 import { adminSystemMessages } from './locales/admin-system'
 import { administrationMessages } from './locales/administration'
 import { administrationLifecycleMessages } from './locales/administration-lifecycle'
+import { accountLifecycleMessages } from './locales/account-lifecycle'
 import { authMessages } from './locales/auth'
 import globalComponents from './plugins/global-components'
 import './assets/styles/main.css'
@@ -21,6 +22,7 @@ const i18n = createI18n({
   messages: {
     en: {
       adminSystem: adminSystemMessages,
+      accountLifecycle: accountLifecycleMessages,
       administration: administrationMessages,
       administrationLifecycle: administrationLifecycleMessages,
       auth: authMessages,
