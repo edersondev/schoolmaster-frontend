@@ -35,6 +35,16 @@ export function mapTeacherContentCreateRequest(form = {}) {
   return body
 }
 
+export function createMultipartOptions(options = {}) {
+  return {
+    ...options,
+    headers: {
+      ...(options.headers ?? {}),
+      'Content-Type': false,
+    },
+  }
+}
+
 export function validateTeacherContentUploadDraft(form = {}) {
   const errors = {}
   if (!form.title) errors.title = ['Title is required.']
@@ -79,7 +89,7 @@ export function createTeacherContentService(http = teacherWorkflowHttp) {
       }),
     create: (form, options = {}) =>
       http.post(ENDPOINT, mapTeacherContentCreateRequest(form), {
-        options,
+        options: createMultipartOptions(options),
         operationId: TEACHER_WORKFLOW_OPERATIONS.createTeacherContent,
         map: (response) => mapTeacherContent(unwrapData(response)),
       }),

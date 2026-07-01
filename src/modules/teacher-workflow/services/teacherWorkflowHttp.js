@@ -23,6 +23,7 @@ export function createTeacherWorkflowConfig(options = {}, params = {}, getAccess
     headers: {
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(options.schoolId ? { 'X-School-Id': options.schoolId } : {}),
+      ...(options.headers ?? {}),
     },
     ...(options.signal ? { signal: options.signal } : {}),
   }

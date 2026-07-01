@@ -16,4 +16,28 @@ describe('useTeacherContent', () => {
     await composable.upload()
     expect(composable.state.feedback.type).toBe('validation')
   })
+
+  it('starts clean-file downloads after fetching the signed URL', async () => {
+    const started = []
+    const service = {
+      download: async () => ({ url: 'https://example.test/download/content-1', fileName: 'content.pdf' }),
+    }
+    const composable = useTeacherContent({
+      service,
+      startDownload: (download) => {
+        started.push(download.url)
+        return true
+      },
+    })
+    composable.state.detail = {
+      id: 'content-1',
+      status: 'active',
+      scanStatus: 'clean',
+      downloadAvailable: true,
+    }
+
+    await composable.downloadDetail()
+
+    expect(started).toEqual(['https://example.test/download/content-1'])
+  })
 })

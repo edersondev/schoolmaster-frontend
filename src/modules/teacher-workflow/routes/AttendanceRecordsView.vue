@@ -61,6 +61,7 @@ const { state, loadList, create, correct } = useAttendance({ options: { schoolId
       v-model:draft="state.correctionDraft"
       :current-value="state.detail.currentValue"
       :original-value="state.detail.originalValue"
+      value-type="attendance"
       :pending="state.pending"
       @submit="correct"
     />

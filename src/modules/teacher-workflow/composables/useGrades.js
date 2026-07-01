@@ -10,6 +10,20 @@ export function validateCorrectionReason(reason) {
   return ''
 }
 
+export function validateGradeCorrectionDraft(draft = {}) {
+  const errors = {}
+  const value = Number(draft.gradeValue)
+  if (draft.gradeValue === null || draft.gradeValue === '' || Number.isNaN(value)) {
+    errors.gradeValue = ['Corrected grade is required.']
+  } else if (value < 0 || value > 100) {
+    errors.gradeValue = ['Use a grade from 0 to 100.']
+  }
+
+  const reasonError = validateCorrectionReason(draft.correctionReason)
+  if (reasonError) errors.correctionReason = [reasonError]
+  return errors
+}
+
 export function useGrades({ service = gradeService, options = {} } = {}) {
   const staleGuard = useTeacherWorkflowStaleGuard()
   const state = reactive({
@@ -69,9 +83,9 @@ export function useGrades({ service = gradeService, options = {} } = {}) {
   }
 
   async function correct() {
-    const reasonError = validateCorrectionReason(state.correctionDraft.correctionReason)
-    if (reasonError) {
-      state.feedback = { type: 'validation', fields: { correctionReason: [reasonError] } }
+    const fields = validateGradeCorrectionDraft(state.correctionDraft)
+    if (Object.keys(fields).length) {
+      state.feedback = { type: 'validation', fields }
       return null
     }
     state.pending = true

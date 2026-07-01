@@ -2,6 +2,18 @@ import { reactive } from 'vue'
 import { TEACHER_WORKFLOW_CONTRACT_GATES } from '../services/teacherWorkflowContract'
 import { attendanceService } from '../services/attendanceService'
 import { validateCorrectionReason } from './useGrades'
+import { ATTENDANCE_STATUSES } from '../services/attendanceService'
+
+export function validateAttendanceCorrectionDraft(draft = {}) {
+  const errors = {}
+  if (!ATTENDANCE_STATUSES.includes(draft.attendanceStatus)) {
+    errors.attendanceStatus = ['Choose a corrected attendance status.']
+  }
+
+  const reasonError = validateCorrectionReason(draft.correctionReason)
+  if (reasonError) errors.correctionReason = [reasonError]
+  return errors
+}
 
 export function useAttendance({ service = attendanceService, options = {} } = {}) {
   const state = reactive({
@@ -59,9 +71,9 @@ export function useAttendance({ service = attendanceService, options = {} } = {}
   }
 
   async function correct() {
-    const reasonError = validateCorrectionReason(state.correctionDraft.correctionReason)
-    if (reasonError) {
-      state.feedback = { type: 'validation', fields: { correctionReason: [reasonError] } }
+    const fields = validateAttendanceCorrectionDraft(state.correctionDraft)
+    if (Object.keys(fields).length) {
+      state.feedback = { type: 'validation', fields }
       return null
     }
     state.pending = true

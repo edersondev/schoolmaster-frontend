@@ -3,7 +3,25 @@ import { teacherContentService, validateTeacherContentUploadDraft } from '../ser
 import { canDownloadContent } from '../services/teacherWorkflowStatus'
 import { useTeacherWorkflowStaleGuard } from './useTeacherWorkflowStaleGuard'
 
-export function useTeacherContent({ service = teacherContentService, options = {} } = {}) {
+export function startTeacherContentDownload(download, documentRef = globalThis.document) {
+  if (!download?.url || !documentRef?.createElement) return false
+
+  const link = documentRef.createElement('a')
+  link.href = download.url
+  link.rel = 'noopener'
+  link.target = '_blank'
+  if (download.fileName) link.download = download.fileName
+  documentRef.body?.appendChild(link)
+  link.click()
+  link.remove()
+  return true
+}
+
+export function useTeacherContent({
+  service = teacherContentService,
+  options = {},
+  startDownload = startTeacherContentDownload,
+} = {}) {
   const staleGuard = useTeacherWorkflowStaleGuard()
   const state = reactive({
     loading: false,
@@ -104,6 +122,10 @@ export function useTeacherContent({ service = teacherContentService, options = {
     }
     try {
       state.download = await service.download(state.detail.id, options)
+      if (!startDownload(state.download)) {
+        state.feedback = { type: 'download-denied' }
+        return null
+      }
       return state.download
     } catch (error) {
       state.feedback = error

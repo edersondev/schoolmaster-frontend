@@ -1,3 +1,5 @@
+import { AUTH_ALL_PERMISSIONS, hasPrivilegedAccess } from '@/contracts/auth/authSession.contract'
+
 export const TEACHER_WORKFLOW_OPERATIONS = Object.freeze({
   listAcademicPeriods: 'listAcademicPeriods',
   listClassSections: 'listClassSections',
@@ -74,9 +76,12 @@ export function assertContractGate(gate, message) {
 }
 
 export function hasCapability(session, capability) {
+  if (hasPrivilegedAccess(session)) return true
+
   const permissions = session?.permissions ?? []
   return permissions.some((permission) => {
-    if (typeof permission === 'string') return permission === capability
+    if (typeof permission === 'string') return permission === capability || permission === AUTH_ALL_PERMISSIONS
+    if (permission?.code === AUTH_ALL_PERMISSIONS && (permission?.status ?? 'active') === 'active') return true
     return permission?.code === capability && (permission?.status ?? 'active') === 'active'
   })
 }

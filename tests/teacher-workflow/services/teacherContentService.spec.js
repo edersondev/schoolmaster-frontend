@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   MAX_TEACHER_CONTENT_FILE_BYTES,
+  createTeacherContentService,
   mapTeacherContent,
   mapTeacherContentUpdateRequest,
   validateTeacherContentUploadDraft,
@@ -43,5 +44,19 @@ describe('teacherContentService mappers', () => {
     })
     expect(errors.contentType).toBeTruthy()
     expect(errors.file).toBeTruthy()
+  })
+
+  it('clears the inherited JSON content type for multipart uploads', async () => {
+    const calls = []
+    const service = createTeacherContentService({
+      post: async (...args) => {
+        calls.push(args)
+        return { data: { id: 'content-1', title: 'Guide' } }
+      },
+    })
+
+    await service.create({ title: 'Guide', contentType: 'pdf', file: new File(['x'], 'guide.pdf') })
+
+    expect(calls[0][2].options.headers['Content-Type']).toBe(false)
   })
 })
