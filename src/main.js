@@ -12,6 +12,7 @@ import { administrationLifecycleMessages } from './locales/administration-lifecy
 import { accountLifecycleMessages } from './locales/account-lifecycle'
 import { authMessages } from './locales/auth'
 import { studentEnrollmentRosterMessages } from './locales/student-enrollment-roster'
+import { teacherWorkflowMessages } from './i18n/modules/teacherWorkflow'
 import globalComponents from './plugins/global-components'
 import './assets/styles/main.css'
 
@@ -31,6 +32,7 @@ const i18n = createI18n({
       administrationLifecycle: administrationLifecycleMessages,
       auth: authMessages,
       studentEnrollmentRoster: studentEnrollmentRosterMessages,
+      teacherWorkflow: teacherWorkflowMessages,
     },
   },
 })
