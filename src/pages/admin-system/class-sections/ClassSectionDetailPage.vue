@@ -3,6 +3,7 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useClassSections } from '@/composables/admin-system/useClassSections'
 import { useRosterMemberships } from '@/composables/admin-system/useRosterMemberships'
+import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import ClassSectionSummaryPanel from '@/components/admin-system/class-sections/ClassSectionSummaryPanel.vue'
 import ClassSectionForm from '@/components/admin-system/class-sections/ClassSectionForm.vue'
 import RosterMembershipTable from '@/components/admin-system/class-sections/RosterMembershipTable.vue'
@@ -10,8 +11,11 @@ import RosterMembershipBatchPanel from '@/components/admin-system/class-sections
 import AdminSafeFeedbackState from '@/components/admin-system/shared/AdminSafeFeedbackState.vue'
 
 const route = useRoute()
+const sessionStore = useAuthSessionStore()
 const sections = useClassSections({ autoLoad: false })
-const memberships = useRosterMemberships()
+const memberships = useRosterMemberships({
+  serviceOptions: () => ({ schoolId: sessionStore.activeSchool?.id }),
+})
 const classSectionId = computed(() => route.params.classSectionId)
 const showFeedback = computed(() => !['ready'].includes(sections.status.value))
 

@@ -1,5 +1,5 @@
 <script setup>
-const model = defineModel('values', { type: Object, default: () => ({ effectiveAt: '', reason: '' }) })
+const model = defineModel('values', { type: Object, default: () => ({ effectiveEndDate: '', reason: '' }) })
 defineProps({
   open: { type: Boolean, default: false },
   title: { type: String, default: 'Confirm status change' },
@@ -19,7 +19,7 @@ const emit = defineEmits(['update:open', 'submit', 'cancel'])
     @closed="emit('cancel')"
   >
     <div class="grid gap-4">
-      <ElDatePicker v-model="model.effectiveAt" class="w-full" type="date" value-format="YYYY-MM-DD" placeholder="Effective date" />
+      <ElDatePicker v-model="model.effectiveEndDate" class="w-full" type="date" value-format="YYYY-MM-DD" placeholder="Effective date" />
       <ElInput v-model="model.reason" type="textarea" :rows="3" placeholder="Reason" />
       <ElAlert v-if="formError" :title="formError.code || 'Conflict'" type="warning" :closable="false" show-icon />
       <ElAlert v-for="(messages, field) in fieldErrors" :key="field" :title="messages.join(' ')" type="warning" :closable="false" />
