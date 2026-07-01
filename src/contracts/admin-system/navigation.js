@@ -11,6 +11,9 @@ export const ADMIN_ROUTE_NAMES = Object.freeze({
   academicYears: 'academicYearsList',
   academicPeriods: 'academicPeriodsList',
   guardians: 'guardiansList',
+  studentProfiles: 'studentProfilesList',
+  classSections: 'classSectionsList',
+  teacherAssignments: 'teacherAssignmentsList',
 })
 
 export const ADMIN_PERMISSIONS = Object.freeze({
@@ -22,6 +25,9 @@ export const ADMIN_PERMISSIONS = Object.freeze({
   viewAcademicYears: 'academic_years.view',
   viewAcademicPeriods: 'academic_periods.view',
   viewGuardians: 'guardians.view',
+  viewStudentProfiles: 'student_profiles.view',
+  viewClassSections: 'class_sections.view',
+  viewTeacherAssignments: 'teacher_assignments.view',
 })
 
 export const ADMIN_NAVIGATION_SECTIONS = Object.freeze({
@@ -119,6 +125,36 @@ export const ADMIN_NAVIGATION_ITEMS = Object.freeze([
     icon: 'Avatar',
     permissions: [ADMIN_PERMISSIONS.viewGuardians],
     order: 80,
+    approved: true,
+    section: ADMIN_NAVIGATION_SECTIONS.administration,
+  },
+  {
+    key: ADMIN_ROUTE_NAMES.studentProfiles,
+    labelKey: 'navigation.studentProfiles',
+    destination: { name: ADMIN_ROUTE_NAMES.studentProfiles },
+    icon: 'User',
+    permissions: [ADMIN_PERMISSIONS.viewStudentProfiles],
+    order: 90,
+    approved: true,
+    section: ADMIN_NAVIGATION_SECTIONS.administration,
+  },
+  {
+    key: ADMIN_ROUTE_NAMES.classSections,
+    labelKey: 'navigation.classSections',
+    destination: { name: ADMIN_ROUTE_NAMES.classSections },
+    icon: 'Management',
+    permissions: [ADMIN_PERMISSIONS.viewClassSections],
+    order: 100,
+    approved: true,
+    section: ADMIN_NAVIGATION_SECTIONS.administration,
+  },
+  {
+    key: ADMIN_ROUTE_NAMES.teacherAssignments,
+    labelKey: 'navigation.teacherAssignments',
+    destination: { name: ADMIN_ROUTE_NAMES.teacherAssignments },
+    icon: 'Avatar',
+    permissions: [ADMIN_PERMISSIONS.viewTeacherAssignments],
+    order: 110,
     approved: true,
     section: ADMIN_NAVIGATION_SECTIONS.administration,
   },

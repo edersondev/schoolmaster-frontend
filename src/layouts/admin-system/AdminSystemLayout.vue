@@ -140,6 +140,8 @@ async function onAccountCommand(command) {
 }
 
 .admin-shell__content {
+  min-width: 0;
+  overflow-x: hidden;
   padding: 1.25rem;
 }
 

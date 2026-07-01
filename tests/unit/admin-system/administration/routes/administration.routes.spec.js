@@ -7,7 +7,7 @@ import { administrationRoutes } from '@/router/modules/administration.routes'
 
 describe('administration routes', () => {
   it('defines protected routes with exact metadata', () => {
-    expect(administrationRoutes).toHaveLength(25)
+    expect(administrationRoutes).toHaveLength(33)
     expect(administrationRoutes.every((route) => route.meta.requiresAuth)).toBe(true)
     expect(
       administrationRoutes.find((route) => route.name === 'schoolCreate').meta.permissions,
@@ -33,12 +33,14 @@ describe('administration routes', () => {
         per_page: '50',
         academic_year_id: 'year-1',
         status: 'active',
+        academicPeriodId: 'period-1',
         unsafe: 'drop',
       }),
     ).toEqual({
       page: '3',
       per_page: '50',
       academic_year_id: 'year-1',
+      academicPeriodId: 'period-1',
       status: 'active',
     })
 

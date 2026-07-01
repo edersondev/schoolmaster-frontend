@@ -11,6 +11,7 @@ import { administrationMessages } from './locales/administration'
 import { administrationLifecycleMessages } from './locales/administration-lifecycle'
 import { accountLifecycleMessages } from './locales/account-lifecycle'
 import { authMessages } from './locales/auth'
+import { studentEnrollmentRosterMessages } from './locales/student-enrollment-roster'
 import globalComponents from './plugins/global-components'
 import './assets/styles/main.css'
 
@@ -21,11 +22,15 @@ const i18n = createI18n({
   fallbackLocale: 'en',
   messages: {
     en: {
-      adminSystem: adminSystemMessages,
+      adminSystem: {
+        ...adminSystemMessages,
+        studentEnrollmentRoster: studentEnrollmentRosterMessages,
+      },
       accountLifecycle: accountLifecycleMessages,
       administration: administrationMessages,
       administrationLifecycle: administrationLifecycleMessages,
       auth: authMessages,
+      studentEnrollmentRoster: studentEnrollmentRosterMessages,
     },
   },
 })

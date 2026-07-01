@@ -48,6 +48,7 @@ export function sanitizeAdministrationReturnQuery(query = {}) {
     'sort',
     'academic_year_id',
     'academicYearId',
+    'academicPeriodId',
     'search',
   ]
   return Object.fromEntries(
