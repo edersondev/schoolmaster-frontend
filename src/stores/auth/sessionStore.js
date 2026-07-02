@@ -38,6 +38,8 @@ export const useAuthSessionStore = defineStore('auth-session', {
     roles: [],
     permissions: [],
     activeSchool: null,
+    activeStudentProfile: null,
+    currentAcademicPeriod: null,
     lastApprovedSchoolId: readLastApprovedSchoolId(),
     requestedRoute: null,
     feedbackState: null,
@@ -74,6 +76,8 @@ export const useAuthSessionStore = defineStore('auth-session', {
       this.roles = []
       this.permissions = []
       this.activeSchool = null
+      this.activeStudentProfile = null
+      this.currentAcademicPeriod = null
       this.authorizedSchools = []
     },
 
@@ -92,6 +96,8 @@ export const useAuthSessionStore = defineStore('auth-session', {
       this.roles = session.roles
       this.permissions = session.permissions
       this.activeSchool = session.activeSchool
+      this.activeStudentProfile = session.activeStudentProfile ?? null
+      this.currentAcademicPeriod = session.currentAcademicPeriod ?? null
       this.feedbackState = null
 
       if (session.activeSchool) {
