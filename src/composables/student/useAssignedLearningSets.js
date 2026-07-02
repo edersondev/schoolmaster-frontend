@@ -6,18 +6,31 @@ import { useStudentWorkspaceContext } from './useStudentWorkspaceContext'
 
 const loadedLearningSets = reactive(new Map())
 
-function cacheLearningSets(items = []) {
+function scopedLearningSetKey(context = {}, id) {
+  if (!context?.schoolId || !context?.studentProfileId || !context?.academicPeriodId || !id) return null
+  return [
+    context.schoolId,
+    context.studentProfileId,
+    context.academicPeriodId,
+    id,
+  ].join(':')
+}
+
+function cacheLearningSets(context, items = []) {
   items.forEach((item) => {
-    if (item?.id) loadedLearningSets.set(item.id, item)
+    const key = scopedLearningSetKey(context, item?.id)
+    if (key) loadedLearningSets.set(key, item)
   })
 }
 
-export function findLoadedLearningSet(learningSetId) {
-  return loadedLearningSets.get(learningSetId) ?? null
+export function findLoadedLearningSet(learningSetId, context = {}) {
+  const key = scopedLearningSetKey(context, learningSetId)
+  return key ? (loadedLearningSets.get(key) ?? null) : null
 }
 
-export function useLoadedLearningSetDetail(route = {}) {
-  const learningSet = computed(() => findLoadedLearningSet(route?.params?.learningSetId))
+export function useLoadedLearningSetDetail(route = {}, context = null) {
+  const workspace = context ?? useStudentWorkspaceContext()
+  const learningSet = computed(() => findLoadedLearningSet(route?.params?.learningSetId, workspace))
   const feedback = computed(() =>
     learningSet.value ? null : { type: STUDENT_FEEDBACK_STATES.notFound },
   )
@@ -75,7 +88,7 @@ export function useAssignedLearningSets({
       if (!staleGuard.isCurrent(captured, requestParts())) return
       state.items = result.items ?? []
       state.meta = result.meta ?? state.meta
-      cacheLearningSets(state.items)
+      cacheLearningSets(workspace, state.items)
       state.feedback = state.items.length === 0 ? { type: STUDENT_FEEDBACK_STATES.empty } : null
     } catch (error) {
       state.feedback = error

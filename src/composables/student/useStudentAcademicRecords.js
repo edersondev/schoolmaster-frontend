@@ -9,19 +9,32 @@ const recordCaches = {
   attendance: reactive(new Map()),
 }
 
-function cacheRecords(type, items = []) {
+function scopedRecordKey(context = {}, id) {
+  if (!context?.schoolId || !context?.studentProfileId || !context?.academicPeriodId || !id) return null
+  return [
+    context.schoolId,
+    context.studentProfileId,
+    context.academicPeriodId,
+    id,
+  ].join(':')
+}
+
+function cacheRecords(type, context, items = []) {
   items.forEach((item) => {
-    if (item?.id) recordCaches[type].set(item.id, item)
+    const key = scopedRecordKey(context, item?.id)
+    if (key) recordCaches[type].set(key, item)
   })
 }
 
-export function findLoadedAcademicRecord(type, id) {
-  return recordCaches[type]?.get(id) ?? null
+export function findLoadedAcademicRecord(type, id, context = {}) {
+  const key = scopedRecordKey(context, id)
+  return key ? (recordCaches[type]?.get(key) ?? null) : null
 }
 
-export function useLoadedAcademicRecordDetail(type, route = {}) {
+export function useLoadedAcademicRecordDetail(type, route = {}, context = null) {
+  const workspace = context ?? useStudentWorkspaceContext()
   const key = type === 'grades' ? 'gradeId' : 'attendanceId'
-  const record = computed(() => findLoadedAcademicRecord(type, route?.params?.[key]))
+  const record = computed(() => findLoadedAcademicRecord(type, route?.params?.[key], workspace))
   const feedback = computed(() =>
     record.value ? null : { type: STUDENT_FEEDBACK_STATES.notFound },
   )
@@ -82,7 +95,7 @@ export function useStudentAcademicRecords({
       if (!staleGuard.isCurrent(captured, requestParts())) return
       state.items = result.items ?? []
       state.meta = result.meta ?? state.meta
-      cacheRecords(type, state.items)
+      cacheRecords(type, workspace, state.items)
       state.feedback = state.items.length === 0 ? { type: STUDENT_FEEDBACK_STATES.empty } : null
     } catch (error) {
       state.feedback = error

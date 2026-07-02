@@ -19,7 +19,13 @@ describe('useAssignedLearningSets', () => {
       { academicPeriodId: 'period-1', page: 1, perPage: 25 },
       { schoolId: 'school-1' },
     )
-    expect(findLoadedLearningSet('set-1')).toMatchObject({ title: 'Set' })
+    expect(findLoadedLearningSet('set-1', activeStudentContext)).toMatchObject({ title: 'Set' })
+    expect(
+      findLoadedLearningSet('set-1', {
+        ...activeStudentContext,
+        studentProfileId: 'student-2',
+      }),
+    ).toBeNull()
   })
 
   it('shows empty, no-current-period, and no-student-profile states', async () => {

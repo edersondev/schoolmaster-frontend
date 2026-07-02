@@ -19,7 +19,13 @@ describe('useStudentAcademicRecords', () => {
       { academicPeriodId: 'period-1', page: 1, perPage: 25 },
       { schoolId: 'school-1' },
     )
-    expect(findLoadedAcademicRecord('grades', 'grade-1')).toMatchObject({ gradeValue: 91 })
+    expect(findLoadedAcademicRecord('grades', 'grade-1', activeStudentContext)).toMatchObject({ gradeValue: 91 })
+    expect(
+      findLoadedAcademicRecord('grades', 'grade-1', {
+        ...activeStudentContext,
+        studentProfileId: 'student-2',
+      }),
+    ).toBeNull()
   })
 
   it('blocks attendance request without current period', async () => {

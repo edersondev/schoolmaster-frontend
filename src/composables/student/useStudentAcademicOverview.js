@@ -67,6 +67,10 @@ export function useStudentAcademicOverview({
     return null
   }
 
+  function requestParts() {
+    return [workspace.schoolId, workspace.studentProfileId, workspace.academicPeriodId]
+  }
+
   async function load() {
     const blocked = gateFeedback()
     if (blocked) {
@@ -76,8 +80,7 @@ export function useStudentAcademicOverview({
 
     state.loading = true
     state.feedback = { type: STUDENT_FEEDBACK_STATES.loading }
-    const parts = [workspace.schoolId, workspace.studentProfileId, workspace.academicPeriodId]
-    const captured = staleGuard.capture(parts)
+    const captured = staleGuard.capture(requestParts())
     try {
       const [learningSets, grades, attendance] = await Promise.all([
         service.listAssignedLearningSets(
@@ -93,7 +96,7 @@ export function useStudentAcademicOverview({
           { schoolId: workspace.schoolId },
         ),
       ])
-      if (!staleGuard.isCurrent(captured, parts)) return
+      if (!staleGuard.isCurrent(captured, requestParts())) return
       state.learningSets = learningSets.items ?? []
       state.grades = grades.items ?? []
       state.attendance = attendance.items ?? []
@@ -104,7 +107,7 @@ export function useStudentAcademicOverview({
     } catch (error) {
       state.feedback = error
     } finally {
-      if (staleGuard.isCurrent(captured, parts)) state.loading = false
+      if (staleGuard.isCurrent(captured, requestParts())) state.loading = false
     }
   }
 
