@@ -151,6 +151,29 @@ function mapCurrentUser(user = {}) {
   }
 }
 
+function mapStudentProfile(profile) {
+  if (!profile) return null
+
+  return {
+    id: profile.id ?? profile.student_profile_id ?? '',
+    fullName: profile.full_name ?? profile.name ?? '',
+    status: profile.status ?? '',
+    schoolId: profile.school_id ?? null,
+  }
+}
+
+function mapAcademicPeriod(period) {
+  if (!period) return null
+
+  return {
+    id: period.id ?? period.academic_period_id ?? '',
+    name: period.name ?? period.title ?? '',
+    status: period.status ?? '',
+    startDate: period.start_date ?? null,
+    endDate: period.end_date ?? null,
+  }
+}
+
 export function mapLoginRequest(input = {}) {
   const request = {
     email: String(input.email ?? '').trim(),
@@ -184,6 +207,12 @@ export function mapAuthSession(data = {}) {
   const roles = Array.isArray(data.roles) ? data.roles.map(mapRole) : []
   const permissions = Array.isArray(data.permissions) ? data.permissions.map(mapPermission) : []
   const activeSchool = mapSchool(data.resolved_school)
+  const activeStudentProfile = mapStudentProfile(
+    data.active_student_profile ?? data.student_profile ?? data.linked_student_profile,
+  )
+  const currentAcademicPeriod = mapAcademicPeriod(
+    data.current_academic_period ?? data.active_academic_period ?? data.academic_period,
+  )
   const requiresSchoolSelection =
     !activeSchool && roles.some((role) => role.status === 'active' && role.scope === 'school')
 
@@ -194,8 +223,12 @@ export function mapAuthSession(data = {}) {
     roles,
     permissions,
     activeSchool,
+    activeStudentProfile,
+    currentAcademicPeriod,
     tenantContext: {
       activeSchool,
+      activeStudentProfile,
+      currentAcademicPeriod,
       requestedSchoolId: null,
       requiresSchoolSelection,
       schoolSelectionSource: null,
