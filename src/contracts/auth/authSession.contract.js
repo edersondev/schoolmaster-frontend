@@ -148,7 +148,8 @@ function mapCurrentUser(user = {}) {
     email: user.email ?? '',
     status: user.status ?? '',
     roles: Array.isArray(user.roles) ? user.roles.map(mapRole) : [],
-    guardianAccessState: user.guardian_access_state ?? user.guardianAccessState ?? null,
+    guardianAccessState:
+      user.guardian_access_state ?? user.guardian_self_service_access ?? user.guardianAccessState ?? null,
   }
 }
 
