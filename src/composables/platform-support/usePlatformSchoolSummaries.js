@@ -1,6 +1,7 @@
 import { computed, reactive, readonly } from 'vue'
 import { platformSupportService } from '@/services/platform-support/platformSupportService'
 import { PLATFORM_SUPPORT_FEEDBACK_STATES } from '@/contracts/platform-support/platformSupportContract'
+import { hasPlatformSupportAccessFlag } from './usePlatformSupportAccess'
 import { usePlatformSupportRequestGuards } from './usePlatformSupportRequestGuards'
 
 export function usePlatformSchoolSummaries({ service = platformSupportService, access = null } = {}) {
@@ -30,7 +31,7 @@ export function usePlatformSchoolSummaries({ service = platformSupportService, a
   }
 
   async function load() {
-    if (access && !access.hasOperationalOversightAccess?.value) {
+    if (!hasPlatformSupportAccessFlag(access, 'hasOperationalOversightAccess')) {
       state.feedback = { type: PLATFORM_SUPPORT_FEEDBACK_STATES.forbidden }
       return null
     }
@@ -48,14 +49,16 @@ export function usePlatformSchoolSummaries({ service = platformSupportService, a
       state.meta = result.meta
       return result
     } catch (error) {
+      if (guards.ignoreIfStale(requestKey)) return null
       state.feedback = error.feedback ?? { type: PLATFORM_SUPPORT_FEEDBACK_STATES.temporaryUnavailable }
       return null
     } finally {
-      guards.clearRequest(requestKey)
-      state.loading = false
+      if (guards.isCurrentRequest(requestKey)) {
+        guards.clearRequest(requestKey)
+        state.loading = false
+      }
     }
   }
 
   return { state, emptyState, guards, load, setPage, setFilters, readonlyState: readonly(state) }
 }
-

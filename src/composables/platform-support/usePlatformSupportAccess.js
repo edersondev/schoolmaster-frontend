@@ -87,9 +87,14 @@ export function createPlatformSupportAccessState(session = {}) {
   }
 }
 
+export function hasPlatformSupportAccessFlag(access, key) {
+  if (!access) return true
+  const flag = access[key]
+  return Boolean(flag?.value ?? flag)
+}
+
 export function usePlatformSupportAccess({ session = null } = {}) {
   const store = session ?? useAuthSessionStore()
   const state = reactive(createPlatformSupportAccessState(store))
   return readonly(state)
 }
-

@@ -1,6 +1,7 @@
 import { computed, reactive, readonly } from 'vue'
 import { platformSupportService } from '@/services/platform-support/platformSupportService'
 import { PLATFORM_SUPPORT_FEEDBACK_STATES } from '@/contracts/platform-support/platformSupportContract'
+import { hasPlatformSupportAccessFlag } from './usePlatformSupportAccess'
 
 export function useSupportApprovalActions({ service = platformSupportService, access = null, onDecision = () => {} } = {}) {
   const state = reactive({
@@ -8,8 +9,8 @@ export function useSupportApprovalActions({ service = platformSupportService, ac
     feedback: null,
     pendingAction: '',
   })
-  const canApprove = computed(() => Boolean(!access || access.hasSupportApprovalAccess?.value))
-  const canRevoke = computed(() => Boolean(!access || access.hasSupportRevocationAccess?.value))
+  const canApprove = computed(() => hasPlatformSupportAccessFlag(access, 'hasSupportApprovalAccess'))
+  const canRevoke = computed(() => hasPlatformSupportAccessFlag(access, 'hasSupportRevocationAccess'))
 
   function setReasonCode(reasonCode) {
     state.reasonCode = reasonCode
@@ -52,4 +53,3 @@ export function useSupportApprovalActions({ service = platformSupportService, ac
     readonlyState: readonly(state),
   }
 }
-

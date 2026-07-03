@@ -1,6 +1,7 @@
 import { computed, reactive, readonly } from 'vue'
 import { platformSupportService } from '@/services/platform-support/platformSupportService'
 import { PLATFORM_SUPPORT_FEEDBACK_STATES } from '@/contracts/platform-support/platformSupportContract'
+import { hasPlatformSupportAccessFlag } from './usePlatformSupportAccess'
 import { usePlatformSupportRequestGuards } from './usePlatformSupportRequestGuards'
 
 export function useSupportDiagnostics({ service = platformSupportService, access = null } = {}) {
@@ -21,7 +22,7 @@ export function useSupportDiagnostics({ service = platformSupportService, access
       decision?.id &&
       decision?.targetSchoolId === schoolId &&
       decision?.diagnosticsAvailable &&
-      (!access || access.hasSupportDrillDownAccess?.value),
+      hasPlatformSupportAccessFlag(access, 'hasSupportDrillDownAccess'),
     )
   }
 
@@ -55,4 +56,3 @@ export function useSupportDiagnostics({ service = platformSupportService, access
 
   return { state, redactionState, guards, canLoad, load, clear, readonlyState: readonly(state) }
 }
-

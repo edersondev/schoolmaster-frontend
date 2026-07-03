@@ -1,6 +1,7 @@
 import { computed, reactive, readonly } from 'vue'
 import { platformSupportService } from '@/services/platform-support/platformSupportService'
 import { PLATFORM_SUPPORT_FEEDBACK_STATES } from '@/contracts/platform-support/platformSupportContract'
+import { hasPlatformSupportAccessFlag } from './usePlatformSupportAccess'
 import { usePlatformSupportRequestGuards } from './usePlatformSupportRequestGuards'
 
 export function usePlatformReportingOverview({ service = platformSupportService, access = null } = {}) {
@@ -19,7 +20,7 @@ export function usePlatformReportingOverview({ service = platformSupportService,
   })
 
   async function load(query = {}) {
-    if (access && !access.hasReportingOverviewAccess?.value) {
+    if (!hasPlatformSupportAccessFlag(access, 'hasReportingOverviewAccess')) {
       state.feedback = { type: PLATFORM_SUPPORT_FEEDBACK_STATES.forbidden }
       return null
     }
@@ -42,4 +43,3 @@ export function usePlatformReportingOverview({ service = platformSupportService,
 
   return { state, summaryGroups, guards, load, readonlyState: readonly(state) }
 }
-

@@ -4,6 +4,7 @@ import {
   PLATFORM_SUPPORT_FEEDBACK_STATES,
   SUPPORT_ACCESS_DECISION_STATES,
 } from '@/contracts/platform-support/platformSupportContract'
+import { hasPlatformSupportAccessFlag } from './usePlatformSupportAccess'
 import { usePlatformSupportRequestGuards } from './usePlatformSupportRequestGuards'
 
 export function useSupportAccessDecision({ service = platformSupportService, access = null } = {}) {
@@ -21,7 +22,7 @@ export function useSupportAccessDecision({ service = platformSupportService, acc
       state.draft.reasonCode &&
       state.draft.purpose &&
       state.draft.correlationId &&
-      (!access || access.hasSupportAccess?.value),
+      hasPlatformSupportAccessFlag(access, 'hasSupportAccess'),
     ),
   )
   const diagnosticsBlocked = computed(() => !state.decision?.diagnosticsAvailable)
@@ -85,4 +86,3 @@ export function useSupportAccessDecision({ service = platformSupportService, acc
     readonlyState: readonly(state),
   }
 }
-

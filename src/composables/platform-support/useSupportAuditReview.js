@@ -1,6 +1,7 @@
 import { computed, reactive, readonly } from 'vue'
 import { platformSupportService } from '@/services/platform-support/platformSupportService'
 import { PLATFORM_SUPPORT_FEEDBACK_STATES } from '@/contracts/platform-support/platformSupportContract'
+import { hasPlatformSupportAccessFlag } from './usePlatformSupportAccess'
 import { usePlatformSupportRequestGuards } from './usePlatformSupportRequestGuards'
 
 export function useSupportAuditReview({ service = platformSupportService, access = null } = {}) {
@@ -30,7 +31,7 @@ export function useSupportAuditReview({ service = platformSupportService, access
   }
 
   async function load() {
-    if (access && !access.hasSupportAuditReviewAccess?.value) {
+    if (!hasPlatformSupportAccessFlag(access, 'hasSupportAuditReviewAccess')) {
       state.feedback = { type: PLATFORM_SUPPORT_FEEDBACK_STATES.forbidden }
       return null
     }
@@ -58,4 +59,3 @@ export function useSupportAuditReview({ service = platformSupportService, access
 
   return { state, emptyState, guards, load, setFilters, setPage, readonlyState: readonly(state) }
 }
-
