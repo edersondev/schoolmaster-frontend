@@ -134,6 +134,8 @@ function mapSchool(school) {
     name: school.name ?? '',
     code: school.code ?? '',
     status: school.status ?? '',
+    timezone: school.timezone ?? school.time_zone ?? null,
+    timeZone: school.timezone ?? school.time_zone ?? null,
     contactEmail: school.contact_email ?? null,
     contactPhone: school.contact_phone ?? null,
     address: mapAddress(school.address),
