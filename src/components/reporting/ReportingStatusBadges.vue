@@ -10,7 +10,7 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
-const value = computed(() => props.status || props.availability || props.lifecycleState || (props.deletedAt ? 'deleted' : 'unknown'))
+const value = computed(() => (props.deletedAt ? 'deleted' : props.status || props.availability || props.lifecycleState || 'unknown'))
 const tagType = computed(() => {
   if (['generated', 'available', 'active'].includes(value.value)) return 'success'
   if (['requested', 'generating', 'pending', 'draft'].includes(value.value)) return 'info'

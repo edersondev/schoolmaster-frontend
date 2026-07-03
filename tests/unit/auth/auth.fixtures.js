@@ -10,6 +10,7 @@ export const school = Object.freeze({
   name: 'Northfield Academy',
   code: 'NORTH',
   status: 'active',
+  time_zone: 'America/Sao_Paulo',
 })
 
 export const permission = Object.freeze({

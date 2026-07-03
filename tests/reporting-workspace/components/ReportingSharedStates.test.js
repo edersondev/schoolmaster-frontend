@@ -16,6 +16,7 @@ describe('reporting shared states', () => {
     }
     expect(mount(ReportingFeedbackState, { props: { feedback: { type: 'forbidden' } }, global }).text()).toContain('Reporting is unavailable')
     expect(mount(ReportingStatusBadges, { props: { status: 'generated' }, global }).text()).toContain('Generated')
+    expect(mount(ReportingStatusBadges, { props: { status: 'generated', deletedAt: '2026-07-03T10:00:00Z' }, global }).text()).toContain('Deleted')
     expect(mount(ReportingAnnouncementRegion, { props: { message: 'Report ready' } }).attributes('aria-live')).toBe('polite')
   })
 })

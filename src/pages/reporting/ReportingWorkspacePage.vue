@@ -74,7 +74,12 @@ async function loadSurface() {
   if ([REPORTING_ROUTE_NAMES.definitions, REPORTING_ROUTE_NAMES.definitionDetail].includes(activeSurface.value)) {
     await catalog.load({ forDefinitions: true })
     await definitions.load()
-    if (route.params.reportDefinitionId) definitions.selectDefinition(route.params.reportDefinitionId)
+    if (route.params.reportDefinitionId) {
+      definitions.selectDefinition(route.params.reportDefinitionId)
+      if (!definitions.selectedDefinition.value) {
+        await definitions.loadDefinition(route.params.reportDefinitionId)
+      }
+    }
   }
 }
 

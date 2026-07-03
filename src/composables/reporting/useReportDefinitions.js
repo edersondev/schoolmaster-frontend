@@ -63,6 +63,38 @@ export function useReportDefinitions({ access, service = reportingService } = {}
     }
   }
 
+  async function loadDefinition(reportDefinitionId) {
+    const schoolId = access?.schoolId?.value ?? access?.schoolId
+    if (!schoolId) {
+      state.feedback = { type: REPORTING_FEEDBACK_STATES.noActiveSchool }
+      return null
+    }
+    if (!(access?.hasDefinitionAccess?.value ?? access?.hasDefinitionAccess)) {
+      state.feedback = { type: REPORTING_FEEDBACK_STATES.forbidden }
+      return null
+    }
+    if (!reportDefinitionId) return null
+
+    const key = guards.beginRequest(['definition', schoolId, reportDefinitionId])
+    state.loading = true
+    state.feedback = { type: REPORTING_FEEDBACK_STATES.loading }
+    try {
+      const definition = await service.getReportDefinition({ reportDefinitionId }, { schoolId })
+      if (guards.ignoreIfStale(key)) return null
+      applyDefinition(definition)
+      state.feedback = null
+      return definition
+    } catch (error) {
+      if (!guards.ignoreIfStale(key)) state.feedback = error
+      return null
+    } finally {
+      if (guards.isCurrentRequest(key)) {
+        state.loading = false
+        guards.clearRequest(key)
+      }
+    }
+  }
+
   function selectDefinition(reportDefinitionId) {
     state.selectedDefinitionId = reportDefinitionId
   }
@@ -73,6 +105,7 @@ export function useReportDefinitions({ access, service = reportingService } = {}
     selectedDefinition,
     emptyState,
     load,
+    loadDefinition,
     selectDefinition,
     applyDefinition,
   }

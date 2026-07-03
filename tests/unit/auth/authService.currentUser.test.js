@@ -16,6 +16,7 @@ describe('authService.getCurrentUser', () => {
       headers: { 'X-School-Id': authSessionEnvelope.data.resolved_school.id },
     })
     expect(session.activeSchool.name).toBe('Northfield Academy')
+    expect(session.activeSchool.timezone).toBe('America/Sao_Paulo')
     expect(session.roles[0].name).toBe('System Administrator')
     expect(performance.now() - startedAt).toBeLessThan(30_000)
   })
