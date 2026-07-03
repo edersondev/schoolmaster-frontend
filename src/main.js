@@ -13,6 +13,7 @@ import { accountLifecycleMessages } from './locales/account-lifecycle'
 import { authMessages } from './locales/auth'
 import { studentEnrollmentRosterMessages } from './locales/student-enrollment-roster'
 import { guardianSelfServiceMessages } from './i18n/modules/guardianSelfService'
+import { reportingMessages } from './i18n/modules/reporting'
 import { studentSelfServiceMessages } from './i18n/modules/studentSelfService'
 import { teacherWorkflowMessages } from './i18n/modules/teacherWorkflow'
 import globalComponents from './plugins/global-components'
@@ -34,6 +35,7 @@ const i18n = createI18n({
       administrationLifecycle: administrationLifecycleMessages,
       auth: authMessages,
       guardianSelfService: guardianSelfServiceMessages,
+      reporting: reportingMessages,
       studentEnrollmentRoster: studentEnrollmentRosterMessages,
       studentSelfService: studentSelfServiceMessages,
       teacherWorkflow: teacherWorkflowMessages,
