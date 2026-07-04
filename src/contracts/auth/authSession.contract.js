@@ -184,10 +184,6 @@ export function mapLoginRequest(input = {}) {
     password: String(input.password ?? ''),
   }
 
-  if (input.schoolId) {
-    request.school_id = input.schoolId
-  }
-
   return request
 }
 

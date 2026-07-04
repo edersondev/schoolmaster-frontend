@@ -33,7 +33,7 @@ describe('auth session login transitions', () => {
     expect(store.hasPermission('users.manage')).toBe(true)
   })
 
-  it('restores the persisted school context during login', async () => {
+  it('does not send persisted school context during login', async () => {
     window.localStorage.setItem('schoolmaster.auth.lastApprovedSchoolId', 'school-1')
     createActivePinia()
     const store = useAuthSessionStore()
@@ -44,7 +44,6 @@ describe('auth session login transitions', () => {
     expect(service.login).toHaveBeenCalledWith({
       email: 'avery@example.com',
       password: 'password123',
-      schoolId: 'school-1',
     })
   })
 

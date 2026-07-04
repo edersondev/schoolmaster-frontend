@@ -133,10 +133,7 @@ export const useAuthSessionStore = defineStore('auth-session', {
       this.status = AUTH_SESSION_STATUSES.bootstrapping
       this.feedbackState = null
       try {
-        const session = await service.login({
-          ...credentials,
-          schoolId: this.lastApprovedSchoolId ?? undefined,
-        })
+        const session = await service.login(credentials)
         this.applySession(session, {
           requiresSchoolContext: session.tenantContext.requiresSchoolSelection,
         })

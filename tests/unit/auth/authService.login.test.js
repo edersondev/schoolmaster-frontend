@@ -17,6 +17,22 @@ describe('authService.login', () => {
     expect(performance.now() - startedAt).toBeLessThan(30_000)
   })
 
+  it('omits school_id from login payload even when schoolId is present', async () => {
+    const client = createAuthClient({ post: vi.fn().mockResolvedValue(authSessionEnvelope) })
+    const service = createAuthService(client)
+
+    await service.login({
+      email: ' avery@example.com ',
+      password: 'password123',
+      schoolId: 'school-1',
+    })
+
+    expect(client.post).toHaveBeenCalledWith('/api/v1/auth/login', {
+      email: 'avery@example.com',
+      password: 'password123',
+    })
+  })
+
   it.each([
     ['validation_failed', 422, 'validation'],
     ['invalid_credentials', 401, 'invalid-credentials'],
