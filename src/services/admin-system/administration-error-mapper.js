@@ -61,16 +61,8 @@ export function normalizeAdministrationError(error, context = {}) {
     else type = 'unknown'
   }
 
-  const errors = payload.details?.errors
-  const fieldErrors =
-    errors && typeof errors === 'object'
-      ? Object.fromEntries(
-          Object.entries(errors).map(([field, messages]) => [
-            field,
-            Array.isArray(messages) ? messages.map(String) : [String(messages)],
-          ]),
-        )
-      : {}
+  const errors = payload.details?.fields ?? payload.details?.errors
+  const fieldErrors = normalizeFieldErrors(errors)
 
   return {
     type,
@@ -87,6 +79,17 @@ export function normalizeAdministrationError(error, context = {}) {
       error?.response?.headers?.['X-Request-Id'] ??
       null,
   }
+}
+
+function normalizeFieldErrors(errors) {
+  if (!errors || typeof errors !== 'object') return {}
+
+  return Object.fromEntries(
+    Object.entries(errors).map(([field, messages]) => [
+      field,
+      Array.isArray(messages) ? messages.map(String) : [String(messages)],
+    ]),
+  )
 }
 
 function mapConflictKind(code) {

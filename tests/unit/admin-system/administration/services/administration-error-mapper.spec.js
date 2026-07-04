@@ -14,6 +14,27 @@ describe('administration error mapper', () => {
     )
   })
 
+  it('maps backend validation fields into field errors', () => {
+    expect(
+      normalizeAdministrationError({
+        response: {
+          status: 422,
+          data: {
+            error: {
+              code: 'validation_failed',
+              details: { fields: { cnpj: ['The cnpj has already been taken.'] } },
+            },
+          },
+        },
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        type: 'validation',
+        fieldErrors: { cnpj: ['The cnpj has already been taken.'] },
+      }),
+    )
+  })
+
   it.each([
     [401, 'token_expired', 'unauthorized'],
     [403, 'forbidden', 'forbidden'],

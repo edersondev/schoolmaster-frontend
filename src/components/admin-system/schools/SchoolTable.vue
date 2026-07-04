@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import AdminRowActions from '@/components/ui/admin/AdminRowActions.vue'
 import AdminStatusTag from '@/components/ui/admin/AdminStatusTag.vue'
+import { formatCnpj } from '@/utils/cnpj'
 
 defineProps({
   rows: { type: Array, default: () => [] },
@@ -25,9 +26,9 @@ const { t } = useI18n()
         </button>
       </template>
     </ElTableColumn>
-    <ElTableColumn prop="code" :label="t('administration.common.code')">
+    <ElTableColumn prop="cnpj" :label="t('administration.common.cnpj')" :min-width="170">
       <template #default="{ row }">
-        <span class="text-sm-muted">{{ row.code ?? '—' }}</span>
+        <span class="text-sm-muted">{{ formatCnpj(row.cnpj) || '—' }}</span>
       </template>
     </ElTableColumn>
     <ElTableColumn prop="status" :label="t('administration.common.status')">

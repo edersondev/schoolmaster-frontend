@@ -11,6 +11,9 @@ const { t } = useI18n()
     <ElFormItem :label="t('administration.common.name')" required :error="errors.name?.[0]">
       <ElInput v-model="model.name" autocomplete="organization" />
     </ElFormItem>
+    <ElFormItem :label="t('administration.common.cnpj')" :error="errors.cnpj?.[0]">
+      <CnpjField v-model="model.cnpj" readonly />
+    </ElFormItem>
     <ElFormItem :label="t('administration.common.email')" :error="errors.contact_email?.[0]">
       <ElInput v-model="model.contactEmail" type="email" autocomplete="email" />
     </ElFormItem>

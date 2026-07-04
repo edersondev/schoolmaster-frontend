@@ -27,10 +27,10 @@ describe('schools service', () => {
         headers: { Authorization: 'Bearer test-token' },
       }),
     )
-    await service.createSchool({ name: 'N', code: 'N' })
+    await service.createSchool({ name: 'N', cnpj: '56.563.930/0001-08' })
     expect(client.post).toHaveBeenCalledWith(
       '/api/v1/schools',
-      { name: 'N', code: 'N' },
+      { name: 'N', cnpj: '56563930000108' },
       expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } }),
     )
     await service.updateSchool('school-id', { removeAddress: true })

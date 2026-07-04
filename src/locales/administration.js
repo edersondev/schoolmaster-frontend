@@ -40,6 +40,7 @@ export const administrationMessages = {
     deleteSuccess: 'Record deleted successfully.',
     name: 'Name',
     code: 'Code',
+    cnpj: 'CNPJ',
     email: 'Email',
     phone: 'Phone',
     address: 'Address',

@@ -48,7 +48,7 @@ describe('EditSchoolPage', () => {
     getSchool.mockResolvedValue({
       id: recordId,
       name: 'Northfield Academy',
-      code: 'NORTH',
+      cnpj: '56563930000108',
       status: 'active',
       contactEmail: 'office@northfield.test',
       contactPhone: '11999999999',
@@ -72,7 +72,9 @@ describe('EditSchoolPage', () => {
       expect.objectContaining({ schoolId: undefined, signal: expect.any(AbortSignal) }),
     )
     expect(wrapper.text()).toContain('Edit school')
+    expect(wrapper.text()).toContain('CNPJ')
     expect(wrapper.text()).toContain('Address')
+    expect(wrapper.get('input[placeholder="00.000.000/0000-00"]').attributes('readonly')).toBeDefined()
 
     await wrapper.get('form').trigger('submit.prevent')
     await flushPromises()

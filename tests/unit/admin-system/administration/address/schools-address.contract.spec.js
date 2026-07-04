@@ -30,7 +30,7 @@ describe('school address contract', () => {
     const form = {
       ...createSchoolForm(),
       name: 'Northfield',
-      code: 'NORTH',
+      cnpj: '56.563.930/0001-08',
       address: {
         street: 'Main Street',
         number: '123',
@@ -45,7 +45,7 @@ describe('school address contract', () => {
 
     expect(mapSchoolCreateRequest(form)).toEqual({
       name: 'Northfield',
-      code: 'NORTH',
+      cnpj: '56563930000108',
       address: {
         street: 'Main Street',
         number: '123',

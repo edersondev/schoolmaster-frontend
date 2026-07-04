@@ -1,5 +1,6 @@
 import { compactPayload, isPresent, isValidEmail, mapCommonRecord } from './administration'
 import { projectUpdatePayload } from './lifecycle'
+import { isValidCnpj, normalizeCnpj } from '@/utils/cnpj'
 
 const requiredAddressMessages = Object.freeze({
   zipCode: 'ZIP code is required.',
@@ -27,7 +28,7 @@ export function createAddressForm() {
 export function createSchoolForm() {
   return {
     name: '',
-    code: '',
+    cnpj: '',
     contactEmail: '',
     contactPhone: '',
     address: createAddressForm(),
@@ -49,8 +50,10 @@ export function validateSchoolForm(form = {}) {
     errors.name = ['School name is required.']
   }
 
-  if (!isPresent(form.code)) {
-    errors.code = ['School code is required.']
+  if (!isPresent(form.cnpj)) {
+    errors.cnpj = ['CNPJ is required.']
+  } else if (!isValidCnpj(form.cnpj)) {
+    errors.cnpj = ['Enter a valid CNPJ.']
   }
 
   if (isPresent(form.contactEmail) && !isValidEmail(form.contactEmail)) {
@@ -101,7 +104,7 @@ export function mapSchoolForm(record = {}) {
   return {
     ...createSchoolForm(),
     name: record.name ?? '',
-    code: record.code ?? '',
+    cnpj: normalizeCnpj(record.cnpj),
     status: record.status ?? 'active',
     contactEmail: record.contactEmail ?? '',
     contactPhone: record.contactPhone ?? '',
@@ -116,7 +119,7 @@ export function mapSchoolForm(record = {}) {
 export function mapSchoolCreateRequest(form) {
   return compactPayload({
     name: form.name,
-    code: form.code,
+    cnpj: normalizeCnpj(form.cnpj),
     contact_email: form.contactEmail,
     contact_phone: String(form.contactPhone ?? '').replace(/\D/g, ''),
     address: mapAddressInput(form.address),

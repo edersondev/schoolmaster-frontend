@@ -11,7 +11,7 @@ export const schoolId = '20000000-0000-4000-8000-000000000001'
 export const recordId = '30000000-0000-4000-8000-000000000001'
 
 export const paginatedEnvelope = Object.freeze({
-  data: [{ id: recordId, name: 'Northfield Academy', code: 'NORTH', status: 'active' }],
+  data: [{ id: recordId, name: 'Northfield Academy', cnpj: '56563930000108', status: 'active' }],
   meta: { page: 1, per_page: 25, total: 1 },
 })
 

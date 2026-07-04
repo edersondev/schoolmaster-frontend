@@ -14,7 +14,7 @@ export const lifecycleRecords = Object.freeze({
   school: {
     id: 'school-001',
     name: 'North Campus',
-    code: 'NORTH',
+    cnpj: '56563930000108',
     status: 'active',
     contact_email: 'office@example.test',
     contact_phone: '5551002000',

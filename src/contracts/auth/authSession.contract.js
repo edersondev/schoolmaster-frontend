@@ -132,7 +132,8 @@ function mapSchool(school) {
   return {
     id: school.id ?? '',
     name: school.name ?? '',
-    code: school.code ?? '',
+    code: school.code ?? school.cnpj ?? '',
+    cnpj: school.cnpj ?? school.code ?? '',
     status: school.status ?? '',
     timezone: school.timezone ?? school.time_zone ?? null,
     timeZone: school.timezone ?? school.time_zone ?? null,

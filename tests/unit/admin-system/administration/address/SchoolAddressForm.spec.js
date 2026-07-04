@@ -37,7 +37,7 @@ describe('school address form', () => {
         modelValue: model,
         allowRemoveAddress: true,
         showStatus: true,
-        readonlyCode: true,
+        readonlyCnpj: true,
       },
       global: { plugins: administrationPlugins() },
     })

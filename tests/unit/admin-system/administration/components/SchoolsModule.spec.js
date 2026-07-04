@@ -16,7 +16,7 @@ describe('schools module', () => {
       props: {
         modelValue: {
           name: '',
-          code: '',
+          cnpj: '',
           contactEmail: '',
           contactPhone: '',
           address: {
@@ -34,9 +34,10 @@ describe('schools module', () => {
       global: { plugins: administrationPlugins() },
     })
     expect(form.text()).toContain('Name')
-    expect(form.text()).toContain('Code')
+    expect(form.text()).toContain('CNPJ')
     expect(form.text()).toContain('Street')
     expect(form.text()).toContain('ZIP code')
+    expect(form.find('input[placeholder="00.000.000/0000-00"]').exists()).toBe(true)
     expect(form.find('input[placeholder="(00) 00000-0000"]').exists()).toBe(true)
   })
 
@@ -48,7 +49,7 @@ describe('schools module', () => {
           {
             id: 'school-1',
             name: 'Northfield Academy',
-            code: 'NORTH',
+            cnpj: '56563930000108',
             status: 'active',
             contactEmail: 'office@northfield.test',
             addressLabel: 'Main Street 123',

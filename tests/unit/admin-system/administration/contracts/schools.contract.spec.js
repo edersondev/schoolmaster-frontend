@@ -10,11 +10,13 @@ import {
   validateSchoolDeleteForm,
   validateSchoolForm,
 } from '@/contracts/admin-system/schools'
+import { formatCnpj, isValidCnpj, normalizeCnpj } from '@/utils/cnpj'
 
 describe('school contracts', () => {
   it('maps records and documented create payload only', () => {
     const school = mapSchool({
       id: '1',
+      cnpj: '56563930000108',
       contact_email: 'a@b.test',
       address: {
         id: 'addr-1',
@@ -26,6 +28,7 @@ describe('school contracts', () => {
         zip_code: '12345678',
       },
     })
+    expect(school.cnpj).toBe('56563930000108')
     expect(school.contactEmail).toBe('a@b.test')
     expect(school.address.zipCode).toBe('12345678')
     expect(school.addressLabel).toBe('Main Street 123, Central, Sao Paulo, SP, 12345678')
@@ -33,7 +36,7 @@ describe('school contracts', () => {
       mapSchoolCreateRequest({
         ...createSchoolForm(),
         name: 'N',
-        code: 'N',
+        cnpj: '56.563.930/0001-08',
         contactPhone: '(11) 98765-4321',
         address: {
           street: 'Main Street',
@@ -48,7 +51,7 @@ describe('school contracts', () => {
       }),
     ).toEqual({
       name: 'N',
-      code: 'N',
+      cnpj: '56563930000108',
       contact_phone: '11987654321',
       address: {
         street: 'Main Street',
@@ -63,27 +66,27 @@ describe('school contracts', () => {
   })
 
   it('maps omitted address as no-op and explicit removal as null', () => {
-    expect(mapSchoolCreateRequest({ ...createSchoolForm(), name: 'N', code: 'N' })).toEqual({
+    expect(mapSchoolCreateRequest({ ...createSchoolForm(), name: 'N', cnpj: '56563930000108' })).toEqual({
       name: 'N',
-      code: 'N',
+      cnpj: '56563930000108',
     })
     expect(
       mapSchoolForm({
         name: 'Northfield',
-        code: 'NORTH',
+        cnpj: '56.563.930/0001-08',
         status: 'inactive',
         contactEmail: 'office@northfield.test',
         address: { street: 'Main Street', number: '123' },
       }),
     ).toMatchObject({
       name: 'Northfield',
-      code: 'NORTH',
+      cnpj: '56563930000108',
       status: 'inactive',
       contactEmail: 'office@northfield.test',
       address: { street: 'Main Street', number: '123' },
       removeAddress: false,
     })
-    expect(mapSchoolUpdateRequest({ name: 'N' })).toEqual({ name: 'N' })
+    expect(mapSchoolUpdateRequest({ name: 'N', cnpj: '56563930000108' })).toEqual({ name: 'N' })
     expect(mapSchoolUpdateRequest({ removeAddress: true })).toEqual({ address: null })
     expect(
       mapSchoolDeleteRequest({ effectiveAt: '2026-06-27', reason: 'Duplicate tenant' }),
@@ -93,10 +96,17 @@ describe('school contracts', () => {
     })
   })
 
+  it('validates CNPJ and formats the masked display value', () => {
+    expect(normalizeCnpj('56.563.930/0001-08')).toBe('56563930000108')
+    expect(formatCnpj('56563930000108')).toBe('56.563.930/0001-08')
+    expect(isValidCnpj('56.563.930/0001-08')).toBe(true)
+    expect(isValidCnpj('11.111.111/1111-11')).toBe(false)
+  })
+
   it('validates required fields and optional email format before submit', () => {
     expect(validateSchoolForm(createSchoolForm())).toEqual({
       name: ['School name is required.'],
-      code: ['School code is required.'],
+      cnpj: ['CNPJ is required.'],
       'address.zip_code': ['ZIP code is required.'],
       'address.street': ['Street is required.'],
       'address.number': ['Number is required.'],
@@ -109,7 +119,7 @@ describe('school contracts', () => {
       validateSchoolForm({
         ...createSchoolForm(),
         name: 'Northfield Academy',
-        code: 'NORTH',
+        cnpj: '11.111.111/1111-11',
         contactEmail: 'invalid-email',
         address: {
           ...createSchoolForm().address,
@@ -118,6 +128,7 @@ describe('school contracts', () => {
         },
       }),
     ).toEqual({
+      cnpj: ['Enter a valid CNPJ.'],
       contact_email: ['Enter a valid email address.'],
       'address.zip_code': ['Use numbers only.'],
       'address.street': ['Street is required.'],

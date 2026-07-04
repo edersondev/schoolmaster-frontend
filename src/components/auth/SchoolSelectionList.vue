@@ -1,5 +1,6 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
+import { formatCnpj } from '@/utils/cnpj'
 
 defineProps({
   schools: {
@@ -30,7 +31,7 @@ const { t } = useI18n()
       >
         <span class="grid gap-[0.2rem]">
           <strong>{{ school.name }}</strong>
-          <small class="text-sm-muted">{{ school.code }}</small>
+          <small class="text-sm-muted">{{ formatCnpj(school.cnpj) || school.code }}</small>
         </span>
         <span>{{ t('auth.schoolSelection.select') }}</span>
       </button>

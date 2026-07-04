@@ -13,7 +13,7 @@ describe('school address service', () => {
 
     await service.createSchool({
       name: 'Northfield',
-      code: 'NORTH',
+      cnpj: '56.563.930/0001-08',
       address: {
         street: 'Main Street',
         number: '123',
@@ -28,6 +28,7 @@ describe('school address service', () => {
     expect(client.post).toHaveBeenCalledWith(
       '/api/v1/schools',
       expect.objectContaining({
+        cnpj: '56563930000108',
         address: expect.objectContaining({ zip_code: '12345678' }),
       }),
       expect.any(Object),

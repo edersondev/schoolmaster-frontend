@@ -7,7 +7,7 @@ import { administrationPlugins } from '../../administration/administration.fixtu
 describe('resource lifecycle detail/edit sections', () => {
   it('renders display-only status in details and no status edit control in user edit fields', () => {
     const detail = mount(SchoolDetailSections, {
-      props: { record: { name: 'North', code: 'N', status: 'active', addressLabel: null } },
+      props: { record: { name: 'North', cnpj: '56563930000108', status: 'active', addressLabel: null } },
       global: { plugins: administrationPlugins() },
     })
     expect(detail.text()).toContain('Active')

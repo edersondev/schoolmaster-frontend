@@ -8,7 +8,7 @@ import { accountLifecycleMessages } from '@/locales/account-lifecycle'
 export const school = Object.freeze({
   id: '20000000-0000-4000-8000-000000000001',
   name: 'Northfield Academy',
-  code: 'NORTH',
+  cnpj: '56563930000108',
   status: 'active',
   time_zone: 'America/Sao_Paulo',
 })

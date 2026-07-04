@@ -77,7 +77,7 @@ describe('SchoolsListPage', () => {
         {
           id: recordId,
           name: 'Northfield Academy',
-          code: 'NORTH',
+          cnpj: '56563930000108',
           status: 'active',
           contactEmail: 'office@northfield.test',
         },
