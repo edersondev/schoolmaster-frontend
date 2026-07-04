@@ -5,6 +5,9 @@ export { buildStudentResponsePayload, validateFileSelection, validateLongTextAns
 
 export function createStudentResponseSubmissionService(service = advancedAssessmentService) {
   return {
+    get(questionnaireId, options) {
+      return service.getQuestionnaire({ questionnaireId }, options)
+    },
     submit(input, options) {
       return service.submitStudentQuestionnaireResponse(buildStudentResponsePayload(input), options)
     },

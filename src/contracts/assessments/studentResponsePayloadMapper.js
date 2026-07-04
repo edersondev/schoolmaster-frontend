@@ -2,9 +2,10 @@ import { ADVANCED_MAX_FILE_SIZE_BYTES, ADVANCED_FILE_CATEGORIES } from './advanc
 
 const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/
 
-export function validateLongTextAnswer(value = '', { maxLength = 10000 } = {}) {
+export function validateLongTextAnswer(value = '', { minLength = 1, maxLength = 10000 } = {}) {
   const text = String(value)
   if (!text.trim()) return { valid: false, reason: 'blank' }
+  if (text.trim().length < minLength) return { valid: false, reason: 'too-short' }
   if (text.length > maxLength) return { valid: false, reason: 'too-long' }
   if (CONTROL_CHARS.test(text)) return { valid: false, reason: 'unsafe-control-character' }
   return { valid: true, reason: null }

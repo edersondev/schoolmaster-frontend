@@ -288,6 +288,7 @@ export function mapReportRequestPayload(input = {}) {
   return compactReportingParams({
     report_type: input.reportType,
     report_definition_id: input.reportDefinitionId,
+    fields: input.fields,
     filters: input.filters,
     output_formats: input.outputFormats,
   })
