@@ -5,6 +5,7 @@ import { guardianRoutes } from './modules/guardian'
 import { reportingRoutes } from './modules/reporting'
 import { platformSupportRoutes } from './modules/platform-support'
 import { studentRoutes } from './modules/student'
+import { assessmentRoutes } from './modules/assessments'
 import { teacherWorkflowRoutes } from '@/modules/teacher-workflow/routes'
 import { createAuthGuard } from './authGuards'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
@@ -19,6 +20,7 @@ const router = createRouter({
     ...adminSystemRoutes,
     ...teacherWorkflowRoutes,
     ...studentRoutes,
+    ...assessmentRoutes,
     ...guardianRoutes,
     ...reportingRoutes,
     ...platformSupportRoutes,

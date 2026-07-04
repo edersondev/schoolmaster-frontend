@@ -15,6 +15,7 @@ import { studentEnrollmentRosterMessages } from './locales/student-enrollment-ro
 import { guardianSelfServiceMessages } from './i18n/modules/guardianSelfService'
 import { reportingMessages } from './i18n/modules/reporting'
 import { platformSupportMessages } from './i18n/modules/platform-support'
+import { advancedAssessmentMessages } from './i18n/modules/advanced-assessment'
 import { studentSelfServiceMessages } from './i18n/modules/studentSelfService'
 import { teacherWorkflowMessages } from './i18n/modules/teacherWorkflow'
 import globalComponents from './plugins/global-components'
@@ -36,6 +37,7 @@ const i18n = createI18n({
       administrationLifecycle: administrationLifecycleMessages,
       auth: authMessages,
       guardianSelfService: guardianSelfServiceMessages,
+      advancedAssessment: advancedAssessmentMessages,
       platformSupport: platformSupportMessages,
       reporting: reportingMessages,
       studentEnrollmentRoster: studentEnrollmentRosterMessages,
