@@ -3,6 +3,7 @@ import { adminSystemRoutes } from './modules/admin-system.routes'
 import { authRoutes } from './modules/auth.routes'
 import { guardianRoutes } from './modules/guardian'
 import { reportingRoutes } from './modules/reporting'
+import { platformSupportRoutes } from './modules/platform-support'
 import { studentRoutes } from './modules/student'
 import { teacherWorkflowRoutes } from '@/modules/teacher-workflow/routes'
 import { createAuthGuard } from './authGuards'
@@ -20,6 +21,7 @@ const router = createRouter({
     ...studentRoutes,
     ...guardianRoutes,
     ...reportingRoutes,
+    ...platformSupportRoutes,
   ],
 })
 
