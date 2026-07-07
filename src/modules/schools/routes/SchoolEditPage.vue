@@ -16,9 +16,16 @@ const { t } = useI18n()
 const schoolId = computed(() => String(route.params.schoolId ?? ''))
 const form = useSchoolForm({ mode: 'edit' })
 const blockingState = computed(() =>
-  ['loading', 'forbidden', 'not-found', 'tenant-mismatch', 'inactive-context', 'unauthorized'].includes(
-    form.status.value,
-  )
+  [
+    'loading',
+    'forbidden',
+    'not-found',
+    'tenant-mismatch',
+    'inactive-context',
+    'unauthorized',
+    'unavailable',
+    'unknown',
+  ].includes(form.status.value)
     ? form.status.value
     : null,
 )

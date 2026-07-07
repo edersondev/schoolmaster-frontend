@@ -97,6 +97,11 @@ describe('SchoolCreateForm', () => {
     const service = {
       createSchool: vi.fn(),
       listAdministrativeTypes: vi.fn().mockRejectedValue(new Error('offline')),
+      listLegalNatures: vi.fn().mockResolvedValue([]),
+      listManagementTypes: vi.fn().mockResolvedValue([]),
+      listPedagogicalApproaches: vi.fn().mockResolvedValue([]),
+      listEducationLevels: vi.fn().mockResolvedValue([]),
+      listModalities: vi.fn().mockResolvedValue([]),
     }
     const form = useSchoolForm({ mode: 'create', service })
     await form.loadLookups()
@@ -111,7 +116,41 @@ describe('SchoolCreateForm', () => {
     })
 
     await expect(form.submit()).rejects.toMatchObject({ type: 'unavailable' })
+    expect(service.listAdministrativeTypes).toHaveBeenCalledTimes(2)
     expect(service.createSchool).not.toHaveBeenCalled()
+  })
+
+  it('reloads unavailable institutional lookups before submitting', async () => {
+    const lookupOptions = [{ id: 1, label: 'Recovered' }]
+    const service = {
+      createSchool: vi.fn().mockResolvedValue({ id: 'school-id' }),
+      listAdministrativeTypes: vi
+        .fn()
+        .mockRejectedValueOnce(new Error('offline'))
+        .mockResolvedValueOnce(lookupOptions),
+      listLegalNatures: vi.fn().mockResolvedValue(lookupOptions),
+      listManagementTypes: vi.fn().mockResolvedValue(lookupOptions),
+      listPedagogicalApproaches: vi.fn().mockResolvedValue(lookupOptions),
+      listEducationLevels: vi.fn().mockResolvedValue(lookupOptions),
+      listModalities: vi.fn().mockResolvedValue(lookupOptions),
+    }
+    const form = useSchoolForm({ mode: 'create', service })
+    await form.loadLookups()
+    fillValidCreate(form.values)
+    Object.assign(form.values.address, {
+      street: 'Main Street',
+      number: '123',
+      neighborhood: 'Central',
+      city: 'Sao Paulo',
+      state: 'SP',
+      zipCode: '12345678',
+    })
+
+    await expect(form.submit()).resolves.toMatchObject({ id: 'school-id' })
+
+    expect(service.listAdministrativeTypes).toHaveBeenCalledTimes(2)
+    expect(service.createSchool).toHaveBeenCalledTimes(1)
+    expect(form.lookupStatus.value).toBe('ready')
   })
 
   it('keeps newest lookup response when an older lookup request resolves late', async () => {

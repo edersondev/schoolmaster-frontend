@@ -279,17 +279,30 @@ export function useSchoolForm(options = {}) {
     if (pending.value) return null
 
     const localErrors = validateSchoolFormValues(values, { mode })
-    if (Object.keys(localErrors).length > 0 || lookupStatus.value === 'unavailable') {
+    if (Object.keys(localErrors).length > 0) {
       fieldErrors.value = localErrors
       formError.value = {
-        type: lookupStatus.value === 'unavailable' ? 'unavailable' : 'validation',
-        messageKey:
-          lookupStatus.value === 'unavailable'
-            ? 'common.unavailable'
-            : 'common.validationSummary',
+        type: 'validation',
+        messageKey: 'common.validationSummary',
         fieldErrors: localErrors,
       }
       activeTab.value = firstErroredTab(localErrors)
+      status.value = formError.value.type
+      throw formError.value
+    }
+
+    if (lookupStatus.value === 'unavailable') {
+      await loadLookups()
+    }
+
+    if (lookupStatus.value === 'unavailable') {
+      fieldErrors.value = {}
+      formError.value = {
+        type: 'unavailable',
+        messageKey: 'common.unavailable',
+        fieldErrors: {},
+      }
+      activeTab.value = 'institutional'
       status.value = formError.value.type
       throw formError.value
     }
