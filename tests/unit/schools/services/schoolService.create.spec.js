@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { reactive } from 'vue'
 import {
   compactSchoolPayload,
   createSchoolModuleService,
@@ -88,15 +89,32 @@ describe('school module create service', () => {
   })
 
   it('uses multipart form data when a logo file is present', () => {
-    const logo = new Blob(['logo'], { type: 'image/png' })
+    const logo = new File(['logo'], 'logo.png', { type: 'image/png' })
     const { data, headers } = toSchoolRequestBody({ ...fullPayload, logo_file: logo })
 
-    expect(headers).toEqual({})
+    expect(headers).toEqual({ 'Content-Type': 'multipart/form-data' })
     expect(data).toBeInstanceOf(FormData)
     expect(data.get('document')).toBe('56563930000108')
     expect(data.get('address[number]')).toBe('123')
     expect(data.getAll('education_level_ids[]')).toEqual(['5', '6'])
     expect(data.getAll('modality_ids[]')).toEqual(['7'])
-    expect(data.get('logo_file')).toMatchObject({ size: logo.size, type: 'image/png' })
+    expect(data.get('logo_file')).toMatchObject({ name: 'logo.png', size: logo.size, type: 'image/png' })
+  })
+
+  it('uses multipart form data when a selected logo is stored in reactive form state', () => {
+    const logo = new File(['logo'], 'logo.png', { type: 'image/png' })
+    const form = reactive({ ...fullPayload, logo_file: logo })
+    const { data } = toSchoolRequestBody(form)
+
+    expect(data).toBeInstanceOf(FormData)
+    expect(data.get('logo_file')).toMatchObject({ name: 'logo.png', size: logo.size, type: 'image/png' })
+  })
+
+  it('omits empty object logo placeholders from create requests', () => {
+    const { data, headers } = toSchoolRequestBody({ ...fullPayload, logo_file: {} })
+
+    expect(headers).toEqual({})
+    expect(data).not.toBeInstanceOf(FormData)
+    expect(data.logo_file).toBeUndefined()
   })
 })

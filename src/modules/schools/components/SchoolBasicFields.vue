@@ -1,15 +1,24 @@
 <script setup>
+import { computed } from 'vue'
+
 const model = defineModel({ type: Object, required: true })
 defineProps({
   errors: { type: Object, default: () => ({}) },
   readonlyDocument: { type: Boolean, default: false },
+})
+
+const inepCode = computed({
+  get: () => String(model.value?.inep_code ?? ''),
+  set: (value) => {
+    model.value.inep_code = String(value ?? '').replace(/\D/g, '').slice(0, 8)
+  },
 })
 </script>
 
 <template>
   <div class="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
     <ElFormItem label="INEP code" required :error="errors.inep_code?.[0]">
-      <ElInput v-model="model.inep_code" inputmode="numeric" maxlength="8" autocomplete="off" />
+      <ElInput v-model="inepCode" inputmode="numeric" maxlength="8" autocomplete="off" />
     </ElFormItem>
 
     <ElFormItem label="Status" required :error="errors.status?.[0]">
@@ -23,7 +32,7 @@ defineProps({
       <ElInput v-model="model.name" autocomplete="organization" />
     </ElFormItem>
 
-    <ElFormItem label="Document" required :error="errors.document?.[0]">
+    <ElFormItem label="CNPJ" required :error="errors.document?.[0]">
       <CnpjField v-model="model.document" :readonly="readonlyDocument" />
     </ElFormItem>
 

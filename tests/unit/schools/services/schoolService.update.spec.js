@@ -45,6 +45,7 @@ describe('school module update service', () => {
   it('patches update requests with mapped payload and authorization header', async () => {
     const client = {
       patch: vi.fn().mockResolvedValue({ data: { data: { id: 'school-id', status: 0 } } }),
+      post: vi.fn(),
     }
     const service = createSchoolModuleService(client, () => 'test-token')
 
@@ -61,11 +62,44 @@ describe('school module update service', () => {
       expect.not.objectContaining({ document: expect.anything() }),
       { headers: { Authorization: 'Bearer test-token' } },
     )
+    expect(client.post).not.toHaveBeenCalled()
+  })
+
+  it('posts multipart update requests with Laravel method spoofing for logo files', async () => {
+    const logo = new File(['logo'], 'logo.png', { type: 'image/png' })
+    const client = {
+      patch: vi.fn(),
+      post: vi.fn().mockResolvedValue({ data: { data: { id: 'school-id', logo_path: 'logos/logo.png' } } }),
+    }
+    const service = createSchoolModuleService(client, () => 'test-token')
+
+    await expect(
+      service.updateSchool('school-id', {
+        name: 'Updated School',
+        logo_file: logo,
+      }),
+    ).resolves.toEqual({ id: 'school-id', logo_path: 'logos/logo.png' })
+
+    expect(client.patch).not.toHaveBeenCalled()
+    expect(client.post).toHaveBeenCalledWith(
+      '/api/v1/schools/school-id',
+      expect.any(FormData),
+      {
+        headers: {
+          Authorization: 'Bearer test-token',
+          'Content-Type': 'multipart/form-data',
+          'X-HTTP-Method-Override': 'PATCH',
+        },
+      },
+    )
+    const form = client.post.mock.calls[0][1]
+    expect(form.get('_method')).toBeNull()
+    expect(form.get('logo_file')).toMatchObject({ name: 'logo.png', size: logo.size, type: 'image/png' })
   })
 
   it('omits document from multipart update requests with logo file', () => {
-    const logo = new Blob(['logo'], { type: 'image/png' })
-    const { data } = toSchoolRequestBody(
+    const logo = new File(['logo'], 'logo.png', { type: 'image/png' })
+    const { data, headers } = toSchoolRequestBody(
       {
         name: 'Updated School',
         document: '56.563.930/0001-08',
@@ -74,8 +108,9 @@ describe('school module update service', () => {
       { omitDocument: true },
     )
 
+    expect(headers).toEqual({ 'Content-Type': 'multipart/form-data' })
     expect(data.get('name')).toBe('Updated School')
-    expect(data.get('logo_file')).toMatchObject({ size: logo.size, type: 'image/png' })
+    expect(data.get('logo_file')).toMatchObject({ name: 'logo.png', size: logo.size, type: 'image/png' })
     expect(Array.from(data.keys())).not.toContain('document')
     expect(Array.from(data.keys())).not.toContain('status')
   })

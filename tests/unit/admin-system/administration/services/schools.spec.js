@@ -48,4 +48,34 @@ describe('schools service', () => {
       }),
     )
   })
+
+  it('maps school API list fields into table fields', async () => {
+    const client = createAdminClient({
+      get: vi.fn().mockResolvedValue({
+        data: {
+          data: [
+            {
+              id: 'school-id',
+              name: 'Northfield Academy',
+              document: '56563930000108',
+              status: 1,
+              email: 'office@northfield.test',
+            },
+          ],
+          meta: { page: 1, per_page: 25, total: 1 },
+        },
+      }),
+    })
+    const service = createSchoolsService(client, () => 'test-token')
+
+    await expect(service.listSchools()).resolves.toMatchObject({
+      items: [
+        {
+          cnpj: '56563930000108',
+          status: 'active',
+          contactEmail: 'office@northfield.test',
+        },
+      ],
+    })
+  })
 })

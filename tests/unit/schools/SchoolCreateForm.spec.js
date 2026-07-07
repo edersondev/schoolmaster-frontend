@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import SchoolProfileForm from '@/modules/schools/components/SchoolProfileForm.vue'
-import { useSchoolForm } from '@/modules/schools/composables/useSchoolForm'
+import { useSchoolForm, validateSchoolFormValues } from '@/modules/schools/composables/useSchoolForm'
 import { mapSchoolTabErrors } from '@/modules/schools/utils/schoolTabErrors'
 import { administrationPlugins } from '../admin-system/administration/administration.fixtures'
 
@@ -51,7 +51,7 @@ describe('SchoolCreateForm', () => {
     expect(wrapper.text()).toContain('Institutional')
     expect(wrapper.text()).toContain('Branding')
     expect(wrapper.text()).toContain('INEP code')
-    expect(wrapper.text()).toContain('Document')
+    expect(wrapper.text()).toContain('CNPJ')
 
     await wrapper.setProps({ activeTab: 'institutional' })
     expect(wrapper.text()).toContain('Administrative type')
@@ -73,6 +73,24 @@ describe('SchoolCreateForm', () => {
     expect(form.activeTab.value).toBe('address')
     expect(form.values.name).toBe('Preserved School')
     expect(mapSchoolTabErrors(form.fieldErrors.value)).toMatchObject({ address: true })
+    expect(form.fieldErrors.value['address.street']).toEqual(['Street is required.'])
+  })
+
+  it('uses field-specific required messages for address and institutional tabs', async () => {
+    const form = useSchoolForm({ mode: 'create', service: { createSchool: vi.fn() } })
+
+    await expect(form.submit()).rejects.toMatchObject({ type: 'validation' })
+
+    expect(form.fieldErrors.value['address.zip_code']).toEqual(['ZIP code is required.'])
+    expect(form.fieldErrors.value['address.number']).toEqual(['Number is required.'])
+    expect(form.fieldErrors.value.administrative_type_id).toEqual([
+      'Administrative type is required.',
+    ])
+    expect(form.fieldErrors.value.legal_nature_id).toEqual(['Legal nature is required.'])
+    expect(form.fieldErrors.value.management_type_id).toEqual(['Management type is required.'])
+    expect(form.fieldErrors.value.pedagogical_approach_id).toEqual([
+      'Pedagogical approach is required.',
+    ])
   })
 
   it('blocks submit while institutional lookups are unavailable', async () => {
@@ -141,6 +159,16 @@ describe('SchoolCreateForm', () => {
     expect(form.activeTab.value).toBe('branding')
     expect(form.values.name).toBe('North School')
     expect(form.fieldErrors.value.logo_file).toEqual(['Logo must be PNG, JPEG, or WebP.'])
+  })
+
+  it('ignores empty object logo placeholders during validation', () => {
+    const form = useSchoolForm({ mode: 'create', service: { createSchool: vi.fn() } })
+    form.values.logo_file = {}
+
+    const errors = validateSchoolFormValues(form.values, { mode: 'create' })
+
+    expect(errors.logo_file).toBeUndefined()
+    expect(form.isDirty.value).toBe(false)
   })
 })
 

@@ -1,4 +1,4 @@
-import { computed, reactive, readonly, shallowRef } from 'vue'
+import { computed, reactive, readonly, shallowRef, toRaw } from 'vue'
 import { normalizeAdministrationError } from '@/services/admin-system/administration-error-mapper'
 import { isValidCnpj } from '@/utils/cnpj'
 import { mapSchoolTabErrors } from '../utils/schoolTabErrors'
@@ -16,6 +16,20 @@ const LOOKUP_LOADERS = [
   ['educationLevels', 'listEducationLevels'],
   ['modalities', 'listModalities'],
 ]
+const ADDRESS_REQUIRED_MESSAGES = {
+  street: 'Street is required.',
+  number: 'Number is required.',
+  neighborhood: 'Neighborhood is required.',
+  city: 'City is required.',
+  state: 'State is required.',
+  zipCode: 'ZIP code is required.',
+}
+const INSTITUTIONAL_REQUIRED_MESSAGES = {
+  administrative_type_id: 'Administrative type is required.',
+  legal_nature_id: 'Legal nature is required.',
+  management_type_id: 'Management type is required.',
+  pedagogical_approach_id: 'Pedagogical approach is required.',
+}
 
 export function createSchoolFormValues() {
   return {
@@ -129,7 +143,9 @@ export function validateSchoolFormValues(values = {}, { mode = 'create' } = {}) 
   const address = values.address ?? {}
   for (const field of ['street', 'number', 'neighborhood', 'city', 'state', 'zipCode']) {
     if (!present(address[field])) {
-      errors[`address.${field === 'zipCode' ? 'zip_code' : field}`] = ['Required.']
+      errors[`address.${field === 'zipCode' ? 'zip_code' : field}`] = [
+        ADDRESS_REQUIRED_MESSAGES[field],
+      ]
     }
   }
   if (present(address.number) && !/^\d+$/.test(digits(address.number))) {
@@ -145,7 +161,7 @@ export function validateSchoolFormValues(values = {}, { mode = 'create' } = {}) 
     'management_type_id',
     'pedagogical_approach_id',
   ]) {
-    if (!present(values[field])) errors[field] = ['Required.']
+    if (!present(values[field])) errors[field] = [INSTITUTIONAL_REQUIRED_MESSAGES[field]]
   }
   if (!Array.isArray(values.education_level_ids) || values.education_level_ids.length === 0) {
     errors.education_level_ids = ['Select at least one education level.']
@@ -160,10 +176,11 @@ export function validateSchoolFormValues(values = {}, { mode = 'create' } = {}) 
     }
   }
 
-  if (values.logo_file) {
-    if (!ALLOWED_LOGO_TYPES.includes(values.logo_file.type)) {
+  const logoFile = getLogoFile(values.logo_file)
+  if (logoFile) {
+    if (!ALLOWED_LOGO_TYPES.includes(logoFile.type)) {
       errors.logo_file = ['Logo must be PNG, JPEG, or WebP.']
-    } else if (values.logo_file.size > MAX_LOGO_BYTES) {
+    } else if (logoFile.size > MAX_LOGO_BYTES) {
       errors.logo_file = ['Logo must be 2 MB or smaller.']
     }
   }
@@ -357,12 +374,22 @@ function cloneForm(value) {
 }
 
 function snapshot(value) {
-  const logoFile = value.logo_file
+  const upload = getLogoFile(value.logo_file)
+  const logoFile = upload
     ? {
-        name: value.logo_file.name,
-        size: value.logo_file.size,
-        type: value.logo_file.type,
+        name: upload.name,
+        size: upload.size,
+        type: upload.type,
       }
     : null
   return JSON.stringify({ ...cloneForm(value), logo_file: logoFile })
+}
+
+function getLogoFile(value) {
+  const raw = toRaw(value)
+  return isLogoFile(raw) ? raw : null
+}
+
+function isLogoFile(value) {
+  return typeof Blob !== 'undefined' && value instanceof Blob
 }

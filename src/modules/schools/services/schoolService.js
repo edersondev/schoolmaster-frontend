@@ -1,3 +1,4 @@
+import { toRaw } from 'vue'
 import { authService } from '@/services/auth/authService'
 import { administrationHttpClient } from '@/services/admin-system/administration-service'
 
@@ -29,8 +30,10 @@ export function createSchoolModuleService(
 
     async updateSchool(id, payload) {
       const body = toSchoolRequestBody(payload, { omitDocument: true })
-      const response = await client.patch(`${SCHOOL_ENDPOINT}/${id}`, body.data, {
-        headers: headers(body.headers),
+      const method = isMultipartBody(body.data) ? 'post' : 'patch'
+      const methodHeaders = method === 'post' ? { 'X-HTTP-Method-Override': 'PATCH' } : {}
+      const response = await client[method](`${SCHOOL_ENDPOINT}/${id}`, body.data, {
+        headers: headers({ ...body.headers, ...methodHeaders }),
       })
       return response.data?.data ?? response.data
     },
@@ -68,16 +71,17 @@ export function createSchoolModuleService(
 
 export function toSchoolRequestBody(payload = {}, options = {}) {
   const normalized = compactSchoolPayload(payload, options)
+  const logoFile = getUploadFile(payload.logo_file)
 
-  if (!payload.logo_file) {
+  if (!logoFile) {
     return { data: normalized, headers: {} }
   }
 
   const form = new FormData()
   appendFormData(form, normalized)
-  form.append('logo_file', payload.logo_file)
+  form.append('logo_file', logoFile, logoFile.name || 'logo')
 
-  return { data: form, headers: {} }
+  return { data: form, headers: { 'Content-Type': 'multipart/form-data' } }
 }
 
 export function compactSchoolPayload(payload = {}, { omitDocument = false } = {}) {
@@ -155,6 +159,19 @@ function numberOrUndefined(value) {
 function toNumberArray(value) {
   if (!Array.isArray(value)) return []
   return value.map(Number)
+}
+
+function getUploadFile(value) {
+  const raw = toRaw(value)
+  return isUploadFile(raw) ? raw : null
+}
+
+function isUploadFile(value) {
+  return typeof Blob !== 'undefined' && value instanceof Blob
+}
+
+function isMultipartBody(value) {
+  return typeof FormData !== 'undefined' && value instanceof FormData
 }
 
 export const schoolModuleService = createSchoolModuleService()
