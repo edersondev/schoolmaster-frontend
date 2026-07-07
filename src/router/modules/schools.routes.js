@@ -13,7 +13,7 @@ export const schoolRoutes = [
   createAdministrationRoute({
     path: 'schools/create',
     name: 'schoolCreate',
-    component: () => import('@/pages/admin-system/schools/CreateSchoolPage.vue'),
+    component: () => import('@/modules/schools/routes/SchoolCreatePage.vue'),
     title: 'navigation.createSchool',
     permissions: ['schools.view', 'schools.manage'],
     schoolContext: false,
@@ -32,7 +32,7 @@ export const schoolRoutes = [
   createAdministrationRoute({
     path: 'schools/:schoolId/edit',
     name: 'schoolEdit',
-    component: () => import('@/pages/admin-system/schools/EditSchoolPage.vue'),
+    component: () => import('@/modules/schools/routes/SchoolEditPage.vue'),
     title: 'navigation.editSchool',
     permissions: ['schools.view', 'schools.manage'],
     schoolContext: false,

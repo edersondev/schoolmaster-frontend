@@ -97,7 +97,15 @@ export function validateSchoolDeleteForm(form = {}) {
 }
 
 export function mapSchool(record) {
-  return mapCommonRecord(record)
+  const mapped = mapCommonRecord(record)
+
+  return {
+    ...mapped,
+    cnpj: normalizeCnpj(record.cnpj ?? record.document),
+    status: mapSchoolStatus(record.status),
+    contactEmail: mapped.contactEmail ?? record.email ?? null,
+    contactPhone: mapped.contactPhone ?? record.phone ?? null,
+  }
 }
 
 export function mapSchoolForm(record = {}) {
@@ -181,4 +189,10 @@ function formatDateInput(value) {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+function mapSchoolStatus(status) {
+  if (status === 1 || status === '1') return 'active'
+  if (status === 0 || status === '0') return 'inactive'
+  return status ?? ''
 }

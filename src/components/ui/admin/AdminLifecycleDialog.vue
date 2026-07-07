@@ -23,28 +23,33 @@ const props = defineProps({
 
 const emit = defineEmits(['submit', 'cancel'])
 const { t } = useI18n()
-const title = computed(() =>
-  props.bulk
+const actionLabel = computed(() =>
+  props.action ? t(`administrationLifecycle.actions.${props.action}`) : '',
+)
+const title = computed(() => {
+  if (!actionLabel.value) return ''
+  return props.bulk
     ? t('administrationLifecycle.confirmation.bulkTitle', {
-        action: t(`administrationLifecycle.actions.${props.action}`),
+        action: actionLabel.value,
         resource: props.resourceType,
       })
     : t('administrationLifecycle.confirmation.title', {
-        action: t(`administrationLifecycle.actions.${props.action}`),
+        action: actionLabel.value,
         resource: props.resourceLabel,
-      }),
-)
-const message = computed(() =>
-  props.bulk
+      })
+})
+const message = computed(() => {
+  if (!actionLabel.value) return ''
+  return props.bulk
     ? t('administrationLifecycle.confirmation.bulkMessage', {
         count: props.selectedCount,
         resource: props.resourceType,
       })
     : t('administrationLifecycle.confirmation.message', {
-        action: t(`administrationLifecycle.actions.${props.action}`).toLowerCase(),
+        action: actionLabel.value.toLowerCase(),
         resource: props.resourceLabel,
-      }),
-)
+      })
+})
 </script>
 
 <template>

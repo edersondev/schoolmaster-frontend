@@ -16,8 +16,10 @@ describe('school contracts', () => {
   it('maps records and documented create payload only', () => {
     const school = mapSchool({
       id: '1',
-      cnpj: '56563930000108',
-      contact_email: 'a@b.test',
+      document: '56563930000108',
+      status: 1,
+      email: 'a@b.test',
+      phone: '11999990000',
       address: {
         id: 'addr-1',
         street: 'Main Street',
@@ -29,7 +31,9 @@ describe('school contracts', () => {
       },
     })
     expect(school.cnpj).toBe('56563930000108')
+    expect(school.status).toBe('active')
     expect(school.contactEmail).toBe('a@b.test')
+    expect(school.contactPhone).toBe('11999990000')
     expect(school.address.zipCode).toBe('12345678')
     expect(school.addressLabel).toBe('Main Street 123, Central, Sao Paulo, SP, 12345678')
     expect(
