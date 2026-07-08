@@ -1,5 +1,5 @@
 <script setup>
-import { computed, markRaw, shallowRef } from 'vue'
+import { computed, markRaw, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { Upload } from '@element-plus/icons-vue'
 
 const model = defineModel({ type: Object, required: true })
@@ -8,7 +8,9 @@ defineProps({
 })
 
 const uploadFiles = shallowRef([])
-const logoName = computed(() => model.value.logo_file?.name ?? model.value.logo_path ?? 'No logo selected')
+const selectedLogoPreviewUrl = shallowRef(null)
+const logoPreviewUrl = computed(() => selectedLogoPreviewUrl.value ?? model.value.logo_url ?? model.value.logo_path)
+const hasLogoPreview = computed(() => Boolean(logoPreviewUrl.value))
 
 function setLogoFile(file) {
   model.value.logo_file = file ? markRaw(file) : null
@@ -29,6 +31,26 @@ function onLogoExceed(files) {
   uploadFiles.value = file ? [{ name: file.name, raw: file }] : []
   setLogoFile(file ?? null)
 }
+
+watch(
+  () => model.value.logo_file,
+  (file) => {
+    revokeSelectedLogoPreview()
+    selectedLogoPreviewUrl.value = file instanceof Blob ? URL.createObjectURL(file) : null
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  revokeSelectedLogoPreview()
+})
+
+function revokeSelectedLogoPreview() {
+  if (!selectedLogoPreviewUrl.value) return
+  URL.revokeObjectURL(selectedLogoPreviewUrl.value)
+  selectedLogoPreviewUrl.value = null
+}
+
 </script>
 
 <template>
@@ -48,8 +70,14 @@ function onLogoExceed(files) {
           <ElButton :icon="Upload">Select logo</ElButton>
         </ElUpload>
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <span class="min-w-0 truncate text-sm text-sm-muted">
-            {{ logoName }}
+          <img
+            v-if="hasLogoPreview"
+            :src="logoPreviewUrl"
+            alt="School logo"
+            class="h-16 w-16 rounded border border-panel object-contain"
+          >
+          <span v-else class="min-w-0 truncate text-sm text-sm-muted">
+            No logo selected
           </span>
         </div>
       </div>

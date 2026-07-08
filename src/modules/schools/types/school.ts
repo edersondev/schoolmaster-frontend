@@ -42,6 +42,7 @@ export interface SchoolProfile {
   timezone: string
   language: string
   logo_path?: string | null
+  logo_url?: string | null
   primary_color: string
   secondary_color: string
 }
