@@ -156,6 +156,9 @@ export function validateSchoolFormValues(values = {}, { mode = 'create' } = {}) 
   if (present(address.zipCode) && !/^\d+$/.test(digits(address.zipCode))) {
     errors['address.zip_code'] = ['Use numbers only.']
   }
+  if (present(address.complement) && String(address.complement).length > 255) {
+    errors['address.complement'] = ['Complement must be 255 characters or fewer.']
+  }
 
   for (const field of [
     'administrative_type_id',

@@ -42,6 +42,15 @@ describe('SchoolAddressFields', () => {
     expect(lookupAddress).not.toHaveBeenCalled()
   })
 
+  it('limits complement input to 255 characters', () => {
+    const wrapper = mount(SchoolAddressFields, {
+      props: { modelValue: createModel(), lookupAddress: vi.fn() },
+      global: { plugins: administrationPlugins() },
+    })
+
+    expect(wrapper.get('input[autocomplete="address-line2"]').attributes('maxlength')).toBe('255')
+  })
+
   it('looks up and fills readonly address fields when ZIP mask is complete', async () => {
     const model = createModel()
     const lookupAddress = vi.fn().mockResolvedValue({

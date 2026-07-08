@@ -93,6 +93,28 @@ describe('SchoolCreateForm', () => {
     ])
   })
 
+  it('validates address complement length before submit', async () => {
+    const service = { createSchool: vi.fn() }
+    const form = useSchoolForm({ mode: 'create', service })
+    fillValidCreate(form.values)
+    Object.assign(form.values.address, {
+      street: 'Main Street',
+      number: '123',
+      complement: 'A'.repeat(256),
+      neighborhood: 'Central',
+      city: 'Sao Paulo',
+      state: 'SP',
+      zipCode: '12345678',
+    })
+
+    await expect(form.submit()).rejects.toMatchObject({ type: 'validation' })
+
+    expect(form.fieldErrors.value['address.complement']).toEqual([
+      'Complement must be 255 characters or fewer.',
+    ])
+    expect(service.createSchool).not.toHaveBeenCalled()
+  })
+
   it('blocks submit while institutional lookups are unavailable', async () => {
     const service = {
       createSchool: vi.fn(),

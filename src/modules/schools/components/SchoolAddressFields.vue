@@ -145,7 +145,7 @@ watch(zipDigitsValue, syncMaskedZipCode, { immediate: true })
     </ElFormItem>
 
     <ElFormItem label="Complement" :error="errors['address.complement']?.[0]">
-      <ElInput v-model="model.address.complement" autocomplete="address-line2" />
+      <ElInput v-model="model.address.complement" maxlength="255" autocomplete="address-line2" />
     </ElFormItem>
 
     <ElFormItem label="Neighborhood" required :error="errors['address.neighborhood']?.[0]">
