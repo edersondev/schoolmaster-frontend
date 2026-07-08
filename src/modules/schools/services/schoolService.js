@@ -4,6 +4,7 @@ import { administrationHttpClient } from '@/services/admin-system/administration
 
 export const SCHOOL_ENDPOINT = '/api/v1/schools'
 export const SCHOOL_LOOKUP_ENDPOINT = '/api/v1/school-lookups'
+export const ADDRESS_LOOKUP_ENDPOINT = '/api/v1/address-lookups'
 
 export function createSchoolModuleService(
   client = administrationHttpClient,
@@ -43,6 +44,15 @@ export function createSchoolModuleService(
       return response.data?.data ?? []
     },
 
+    async lookupAddressByZipCode(zipCode) {
+      const normalizedZipCode = digits(zipCode)
+      const response = await client.get(`${ADDRESS_LOOKUP_ENDPOINT}/${normalizedZipCode}`, {
+        headers: headers(),
+      })
+
+      return mapAddressLookupResponse(response.data?.data ?? response.data)
+    },
+
     listAdministrativeTypes() {
       return this.listLookup('administrative-types')
     },
@@ -66,6 +76,16 @@ export function createSchoolModuleService(
     listModalities() {
       return this.listLookup('modalities')
     },
+  }
+}
+
+export function mapAddressLookupResponse(address = {}) {
+  return {
+    street: address.street ?? address.logradouro ?? '',
+    neighborhood: address.neighborhood ?? address.bairro ?? '',
+    city: address.city ?? address.localidade ?? '',
+    state: address.state ?? address.uf ?? '',
+    country: 'Brazil',
   }
 }
 

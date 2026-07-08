@@ -3,6 +3,7 @@ import { reactive } from 'vue'
 import {
   compactSchoolPayload,
   createSchoolModuleService,
+  mapAddressLookupResponse,
   toSchoolRequestBody,
 } from '@/modules/schools/services/schoolService'
 
@@ -86,6 +87,52 @@ describe('school module create service', () => {
       }),
       { headers: { Authorization: 'Bearer test-token' } },
     )
+  })
+
+  it('looks up ZIP code addresses with bearer authorization and maps the response', async () => {
+    const client = {
+      get: vi.fn().mockResolvedValue({
+        data: {
+          data: {
+            street: 'Praça da Sé',
+            neighborhood: 'Sé',
+            city: 'São Paulo',
+            state: 'SP',
+            country: 'BR',
+          },
+        },
+      }),
+    }
+    const service = createSchoolModuleService(client, () => 'test-token')
+
+    await expect(service.lookupAddressByZipCode('01001-000')).resolves.toEqual({
+      street: 'Praça da Sé',
+      neighborhood: 'Sé',
+      city: 'São Paulo',
+      state: 'SP',
+      country: 'Brazil',
+    })
+
+    expect(client.get).toHaveBeenCalledWith('/api/v1/address-lookups/01001000', {
+      headers: { Authorization: 'Bearer test-token' },
+    })
+  })
+
+  it('maps raw ViaCEP address aliases defensively', () => {
+    expect(
+      mapAddressLookupResponse({
+        logradouro: 'Praça da Sé',
+        bairro: 'Sé',
+        localidade: 'São Paulo',
+        uf: 'SP',
+      }),
+    ).toEqual({
+      street: 'Praça da Sé',
+      neighborhood: 'Sé',
+      city: 'São Paulo',
+      state: 'SP',
+      country: 'Brazil',
+    })
   })
 
   it('uses multipart form data when a logo file is present', () => {
