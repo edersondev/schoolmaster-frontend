@@ -25,4 +25,19 @@ describe('SchoolBasicFields', () => {
 
     expect(model.inep_code).toBe('12345678')
   })
+
+  it('renders status as a switch after description', () => {
+    const wrapper = mount(SchoolBasicFields, {
+      props: { modelValue: createModel() },
+      global: { plugins: administrationPlugins() },
+    })
+
+    const text = wrapper.text()
+    const statusSwitch = wrapper.findComponent({ name: 'ElSwitch' })
+
+    expect(text.indexOf('Description')).toBeLessThan(text.indexOf('Status'))
+    expect(statusSwitch.exists()).toBe(true)
+    expect(statusSwitch.props('activeValue')).toBe(1)
+    expect(statusSwitch.props('inactiveValue')).toBe(0)
+  })
 })

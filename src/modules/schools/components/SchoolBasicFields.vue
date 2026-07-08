@@ -21,13 +21,6 @@ const inepCode = computed({
       <ElInput v-model="inepCode" inputmode="numeric" maxlength="8" autocomplete="off" />
     </ElFormItem>
 
-    <ElFormItem label="Status" required :error="errors.status?.[0]">
-      <ElSelect v-model="model.status" class="w-full">
-        <ElOption label="Active" :value="1" />
-        <ElOption label="Inactive" :value="0" />
-      </ElSelect>
-    </ElFormItem>
-
     <ElFormItem label="Name" required :error="errors.name?.[0]">
       <ElInput v-model="model.name" autocomplete="organization" maxlength="255" show-word-limit />
     </ElFormItem>
@@ -58,6 +51,16 @@ const inepCode = computed({
 
     <ElFormItem label="Description" class="sm:col-span-2" :error="errors.description?.[0]">
       <ElInput v-model="model.description" type="textarea" :rows="3" maxlength="500" show-word-limit />
+    </ElFormItem>
+
+    <ElFormItem label="Status" required :error="errors.status?.[0]">
+      <ElSwitch
+        v-model="model.status"
+        :active-value="1"
+        :inactive-value="0"
+        active-text="Active"
+        inactive-text="Inactive"
+      />
     </ElFormItem>
   </div>
 </template>
