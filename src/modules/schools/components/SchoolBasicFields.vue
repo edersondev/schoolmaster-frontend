@@ -29,7 +29,7 @@ const inepCode = computed({
     </ElFormItem>
 
     <ElFormItem label="Name" required :error="errors.name?.[0]">
-      <ElInput v-model="model.name" autocomplete="organization" />
+      <ElInput v-model="model.name" autocomplete="organization" maxlength="255" show-word-limit />
     </ElFormItem>
 
     <ElFormItem label="CNPJ" required :error="errors.document?.[0]">
@@ -37,15 +37,15 @@ const inepCode = computed({
     </ElFormItem>
 
     <ElFormItem label="Trade name" :error="errors.trade_name?.[0]">
-      <ElInput v-model="model.trade_name" autocomplete="organization" />
+      <ElInput v-model="model.trade_name" autocomplete="organization" maxlength="255" show-word-limit />
     </ElFormItem>
 
     <ElFormItem label="Legal name" :error="errors.legal_name?.[0]">
-      <ElInput v-model="model.legal_name" autocomplete="organization" />
+      <ElInput v-model="model.legal_name" autocomplete="organization" maxlength="255" show-word-limit />
     </ElFormItem>
 
     <ElFormItem label="Email" required :error="errors.email?.[0]">
-      <ElInput v-model="model.email" type="email" autocomplete="email" />
+      <ElInput v-model="model.email" type="email" autocomplete="email" maxlength="100" show-word-limit />
     </ElFormItem>
 
     <ElFormItem label="Phone" :error="errors.phone?.[0]">
@@ -53,11 +53,11 @@ const inepCode = computed({
     </ElFormItem>
 
     <ElFormItem label="Website" :error="errors.website?.[0]">
-      <ElInput v-model="model.website" type="url" autocomplete="url" />
+      <ElInput v-model="model.website" type="url" autocomplete="url" maxlength="100" show-word-limit />
     </ElFormItem>
 
     <ElFormItem label="Description" class="sm:col-span-2" :error="errors.description?.[0]">
-      <ElInput v-model="model.description" type="textarea" :rows="3" />
+      <ElInput v-model="model.description" type="textarea" :rows="3" maxlength="500" show-word-limit />
     </ElFormItem>
   </div>
 </template>
