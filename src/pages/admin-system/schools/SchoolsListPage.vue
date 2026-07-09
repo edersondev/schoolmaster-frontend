@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, reactive, shallowRef } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -14,6 +14,7 @@ import {
   restoreSchool,
 } from '@/services/admin-system/schools'
 import { useAdministrationResourceList } from '@/composables/admin-system/useAdministrationResourceList'
+import { schoolModuleService } from '@/modules/schools/services/schoolService'
 import AdminListPage from '@/components/ui/admin/AdminListPage.vue'
 import AdminLifecycleDialog from '@/components/ui/admin/AdminLifecycleDialog.vue'
 import AdminPagination from '@/components/ui/admin/AdminPagination.vue'
@@ -24,13 +25,49 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const sessionStore = useAuthSessionStore()
+const lookupStatus = shallowRef('loading')
+const lookupOptions = reactive({
+  administrativeTypes: [],
+  legalNatures: [],
+  managementTypes: [],
+  pedagogicalApproaches: [],
+})
+const institutionalFilterMap = Object.freeze({
+  administrativeTypeId: { options: 'administrativeTypes' },
+  legalNatureId: { options: 'legalNatures' },
+  managementTypeId: { options: 'managementTypes' },
+  pedagogicalApproachId: { options: 'pedagogicalApproaches' },
+})
+const listEnabled = computed(() => lookupStatus.value !== 'loading')
 const list = useAdministrationResourceList({
   resource: 'schools',
   loader: listSchools,
   operationId: 'listSchools',
   tenantOwned: false,
+  enabled: listEnabled,
+  sanitizeQuery: sanitizeSchoolListQuery,
 })
 const canManage = computed(() => list.can(['schools.view', 'schools.manage']))
+const invalidFilterLabels = computed(() => {
+  const labels = []
+  const rawStatus = route.query.status
+  if (rawStatus !== undefined && !['1', '0'].includes(String(rawStatus))) {
+    labels.push(t('administration.common.status'))
+  }
+  if (lookupStatus.value !== 'ready') return labels
+  for (const [key, config] of Object.entries(institutionalFilterMap)) {
+    const value = list.query.value[key]
+    if (value && !hasLookupOption(config.options, value)) {
+      labels.push(t(`administration.common.${key.replace(/Id$/, '')}`))
+    }
+  }
+  return labels
+})
+const filterWarning = computed(() => {
+  if (lookupStatus.value === 'unavailable') return t('administration.schools.lookupUnavailable')
+  if (!invalidFilterLabels.value.length) return ''
+  return t('administration.schools.invalidFilters', { fields: invalidFilterLabels.value.join(', ') })
+})
 const lifecycle = useAdminLifecycleAction({
   routeName: route.name,
   submitter: ({ target, action, values }) => {
@@ -39,9 +76,39 @@ const lifecycle = useAdminLifecycleAction({
   },
   onSuccess: async () => {
     ElMessage.success(t('administration.common.updateSuccess'))
-    await list.load(list.query.value)
+    await list.load(sanitizeSchoolListQuery(list.query.value))
   },
 })
+
+onMounted(loadFilterLookups)
+
+async function loadFilterLookups() {
+  lookupStatus.value = 'loading'
+  try {
+    Object.assign(lookupOptions, await schoolModuleService.listSchoolFilterLookups())
+    lookupStatus.value = 'ready'
+  } catch {
+    lookupStatus.value = 'unavailable'
+  }
+}
+
+function hasLookupOption(group, value) {
+  return (lookupOptions[group] ?? []).some((option) => String(option.id) === String(value))
+}
+
+function sanitizeSchoolListQuery(query = {}) {
+  const sanitized = { ...query }
+  for (const [key, config] of Object.entries(institutionalFilterMap)) {
+    if (lookupStatus.value !== 'ready' || (query[key] && !hasLookupOption(config.options, query[key]))) {
+      delete sanitized[key]
+    }
+  }
+  return sanitized
+}
+
+function updateFilter(key, value) {
+  return list.updateQuery({ [key]: value })
+}
 
 function onView(row) {
   router.push({ name: 'schoolDetail', params: { schoolId: row.id }, query: route.query })
@@ -71,7 +138,9 @@ function onLifecycle({ row, action }) {
 async function submitLifecycle() {
   try {
     await lifecycle.submit()
-  } catch {}
+  } catch {
+    // useAdminLifecycleAction owns field and form error state.
+  }
 }
 </script>
 <template>
@@ -85,9 +154,40 @@ async function submitLifecycle() {
     @reset="list.resetFilters"
   >
     <template #filters>
+      <ElAlert
+        v-if="filterWarning"
+        class="!mb-3"
+        type="warning"
+        :closable="false"
+        show-icon
+        data-test="school-filter-warning"
+        :title="filterWarning"
+      />
       <SchoolFilters
-        :status="list.query.value.status"
-        @update:status="list.updateQuery({ status: $event })"
+        :status="list.query.value.status ?? ''"
+        :inep-code="list.query.value.inepCode ?? ''"
+        :document="list.query.value.document ?? ''"
+        :name="list.query.value.name ?? ''"
+        :email="list.query.value.email ?? ''"
+        :city="list.query.value.city ?? ''"
+        :state="list.query.value.state ?? ''"
+        :administrative-type-id="list.query.value.administrativeTypeId ?? ''"
+        :legal-nature-id="list.query.value.legalNatureId ?? ''"
+        :management-type-id="list.query.value.managementTypeId ?? ''"
+        :pedagogical-approach-id="list.query.value.pedagogicalApproachId ?? ''"
+        :lookup-options="lookupOptions"
+        :lookup-status="lookupStatus"
+        @update:status="updateFilter('status', $event)"
+        @update:inep-code="updateFilter('inepCode', $event)"
+        @update:document="updateFilter('document', $event)"
+        @update:name="updateFilter('name', $event)"
+        @update:email="updateFilter('email', $event)"
+        @update:city="updateFilter('city', $event)"
+        @update:state="updateFilter('state', $event)"
+        @update:administrative-type-id="updateFilter('administrativeTypeId', $event)"
+        @update:legal-nature-id="updateFilter('legalNatureId', $event)"
+        @update:management-type-id="updateFilter('managementTypeId', $event)"
+        @update:pedagogical-approach-id="updateFilter('pedagogicalApproachId', $event)"
         @reset="list.resetFilters"
       />
     </template>

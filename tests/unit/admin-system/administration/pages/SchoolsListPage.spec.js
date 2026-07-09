@@ -7,10 +7,20 @@ import { administrationPlugins, recordId } from '../administration.fixtures'
 
 const listSchools = vi.fn()
 const deleteSchool = vi.fn()
+const listSchoolFilterLookups = vi.fn()
 
 vi.mock('@/services/admin-system/schools', () => ({
   listSchools: (...args) => listSchools(...args),
+  activateSchool: vi.fn(),
+  deactivateSchool: vi.fn(),
   deleteSchool: (...args) => deleteSchool(...args),
+  restoreSchool: vi.fn(),
+}))
+
+vi.mock('@/modules/schools/services/schoolService', () => ({
+  schoolModuleService: {
+    listSchoolFilterLookups: (...args) => listSchoolFilterLookups(...args),
+  },
 }))
 
 const SchoolDeleteDialogStub = {
@@ -43,7 +53,7 @@ async function mountPage() {
     ],
   })
 
-  router.push('/admin/schools?status=active')
+  router.push('/admin/schools?status=1')
   await router.isReady()
 
   const wrapper = mount(SchoolsListPage, {
@@ -72,6 +82,12 @@ describe('SchoolsListPage', () => {
   })
 
   it('navigates to edit with the current list query', async () => {
+    listSchoolFilterLookups.mockResolvedValue({
+      administrativeTypes: [],
+      legalNatures: [],
+      managementTypes: [],
+      pedagogicalApproaches: [],
+    })
     listSchools.mockResolvedValue({
       items: [
         {
@@ -90,7 +106,7 @@ describe('SchoolsListPage', () => {
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('schoolEdit')
     expect(router.currentRoute.value.params.schoolId).toBe(recordId)
-    expect(router.currentRoute.value.query).toEqual({ status: 'active' })
+    expect(router.currentRoute.value.query).toEqual({ status: '1' })
 
     expect(deleteSchool).not.toHaveBeenCalled()
   })
