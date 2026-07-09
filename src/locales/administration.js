@@ -4,6 +4,7 @@ export const administrationMessages = {
     submit: 'Create',
     cancel: 'Cancel',
     retry: 'Retry',
+    search: 'Search',
     resetFilters: 'Reset filters',
     actions: 'Actions',
     edit: 'Edit',

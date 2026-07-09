@@ -66,12 +66,19 @@ const invalidFilterLabels = computed(() => {
 const filterWarning = computed(() => {
   if (lookupStatus.value === 'unavailable') return t('administration.schools.lookupUnavailable')
   if (!invalidFilterLabels.value.length) return ''
-  return t('administration.schools.invalidFilters', { fields: invalidFilterLabels.value.join(', ') })
+  return t('administration.schools.invalidFilters', {
+    fields: invalidFilterLabels.value.join(', '),
+  })
 })
 const lifecycle = useAdminLifecycleAction({
   routeName: route.name,
   submitter: ({ target, action, values }) => {
-    const services = { activate: activateSchool, deactivate: deactivateSchool, delete: deleteSchool, restore: restoreSchool }
+    const services = {
+      activate: activateSchool,
+      deactivate: deactivateSchool,
+      delete: deleteSchool,
+      restore: restoreSchool,
+    }
     return services[action](target.id, values)
   },
   onSuccess: async () => {
@@ -99,15 +106,18 @@ function hasLookupOption(group, value) {
 function sanitizeSchoolListQuery(query = {}) {
   const sanitized = { ...query }
   for (const [key, config] of Object.entries(institutionalFilterMap)) {
-    if (lookupStatus.value !== 'ready' || (query[key] && !hasLookupOption(config.options, query[key]))) {
+    if (
+      lookupStatus.value !== 'ready' ||
+      (query[key] && !hasLookupOption(config.options, query[key]))
+    ) {
       delete sanitized[key]
     }
   }
   return sanitized
 }
 
-function updateFilter(key, value) {
-  return list.updateQuery({ [key]: value })
+function applyFilters(filters) {
+  return list.updateQuery(filters)
 }
 
 function onView(row) {
@@ -177,17 +187,7 @@ async function submitLifecycle() {
         :pedagogical-approach-id="list.query.value.pedagogicalApproachId ?? ''"
         :lookup-options="lookupOptions"
         :lookup-status="lookupStatus"
-        @update:status="updateFilter('status', $event)"
-        @update:inep-code="updateFilter('inepCode', $event)"
-        @update:document="updateFilter('document', $event)"
-        @update:name="updateFilter('name', $event)"
-        @update:email="updateFilter('email', $event)"
-        @update:city="updateFilter('city', $event)"
-        @update:state="updateFilter('state', $event)"
-        @update:administrative-type-id="updateFilter('administrativeTypeId', $event)"
-        @update:legal-nature-id="updateFilter('legalNatureId', $event)"
-        @update:management-type-id="updateFilter('managementTypeId', $event)"
-        @update:pedagogical-approach-id="updateFilter('pedagogicalApproachId', $event)"
+        @submit="applyFilters"
         @reset="list.resetFilters"
       />
     </template>

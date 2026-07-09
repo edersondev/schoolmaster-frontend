@@ -31,8 +31,16 @@ async function mountSchoolsList(path) {
     routes: [
       { path: '/admin/schools', name: 'schoolsList', component: SchoolsListPage },
       { path: '/admin/schools/create', name: 'schoolCreate', component: { template: '<div />' } },
-      { path: '/admin/schools/:schoolId', name: 'schoolDetail', component: { template: '<div />' } },
-      { path: '/admin/schools/:schoolId/edit', name: 'schoolEdit', component: { template: '<div />' } },
+      {
+        path: '/admin/schools/:schoolId',
+        name: 'schoolDetail',
+        component: { template: '<div />' },
+      },
+      {
+        path: '/admin/schools/:schoolId/edit',
+        name: 'schoolEdit',
+        component: { template: '<div />' },
+      },
     ],
   })
 
@@ -72,7 +80,7 @@ describe('SchoolsListPage filters', () => {
     )
   })
 
-  it('resets page while preserving sort when a filter changes', async () => {
+  it('waits for filter submit before resetting page and preserving sort', async () => {
     mocks.listSchools.mockResolvedValue(paginatedEnvelope)
     mocks.listSchoolFilterLookups.mockResolvedValue({
       administrativeTypes: [],
@@ -83,7 +91,17 @@ describe('SchoolsListPage filters', () => {
 
     const { router, wrapper } = await mountSchoolsList('/admin/schools?page=4&sort=-name')
 
+    mocks.listSchools.mockClear()
     await wrapper.findComponent({ name: 'SchoolFilters' }).vm.$emit('update:name', 'North')
+    await flushPromises()
+
+    expect(mocks.listSchools).not.toHaveBeenCalled()
+    expect(router.currentRoute.value.query).toMatchObject({
+      page: '4',
+      sort: '-name',
+    })
+
+    await wrapper.findComponent({ name: 'SchoolFilters' }).vm.$emit('submit', { name: 'North' })
     await flushPromises()
 
     expect(router.currentRoute.value.query).toMatchObject({
