@@ -64,9 +64,11 @@ describe('school list filter query helpers', () => {
     )
     expect(changed).toMatchObject({ page: 1, sort: '-name', city: 'Campinas', name: 'North' })
 
+    expect(updateAdminListQuery('schools', changed, { city: '' })).not.toHaveProperty('city')
+
     expect(
-      updateAdminListQuery('schools', changed, { city: '' }),
-    ).not.toHaveProperty('city')
+      updateAdminListQuery('schools', { ...changed, inepCode: '35000001' }, { inepCode: '' }),
+    ).not.toHaveProperty('inepCode')
   })
 
   it('rejects invalid status, multi-value, and non-positive lookup filters', () => {

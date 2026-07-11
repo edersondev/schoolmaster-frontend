@@ -20,7 +20,14 @@ export const SCHOOL_LIST_FILTER_KEYS = Object.freeze([
   'pedagogicalApproachId',
 ])
 
-const SCHOOL_TEXT_FILTERS = Object.freeze(['inepCode', 'document', 'name', 'email', 'city', 'state'])
+const SCHOOL_TEXT_FILTERS = Object.freeze([
+  'inepCode',
+  'document',
+  'name',
+  'email',
+  'city',
+  'state',
+])
 const SCHOOL_LOOKUP_FILTERS = Object.freeze([
   'administrativeTypeId',
   'legalNatureId',
@@ -128,11 +135,17 @@ export function serializeAdminListQuery(resource, query = {}) {
   return serialized
 }
 
+function serializePatchQuery(patch = {}) {
+  return Object.fromEntries(
+    Object.entries(patch).map(([key, value]) => [QUERY_PARAMS[key] ?? key, value]),
+  )
+}
+
 export function updateAdminListQuery(resource, current, patch) {
   const resetsPage = Object.keys(patch).some((key) => key !== 'page')
   return parseAdminListQuery(resource, {
     ...serializeAdminListQuery(resource, current),
-    ...patch,
+    ...serializePatchQuery(patch),
     page: resetsPage ? 1 : (patch.page ?? current.page),
     per_page: patch.perPage ?? current.perPage,
     academic_year_id: patch.academicYearId ?? current.academicYearId,

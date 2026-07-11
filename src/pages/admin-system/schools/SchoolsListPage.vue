@@ -48,6 +48,9 @@ const list = useAdministrationResourceList({
   sanitizeQuery: sanitizeSchoolListQuery,
 })
 const canManage = computed(() => list.can(['schools.view', 'schools.manage']))
+const displayState = computed(() =>
+  lookupStatus.value === 'loading' ? 'loading' : list.status.value,
+)
 const invalidFilterLabels = computed(() => {
   const labels = []
   const rawStatus = route.query.status
@@ -156,7 +159,7 @@ async function submitLifecycle() {
 <template>
   <AdminListPage
     :title="t('administration.schools.title')"
-    :state="list.status.value"
+    :state="displayState"
     :feedback="list.error.value"
     :can-create="list.can(['schools.view', 'schools.manage'])"
     :create-to="{ name: 'schoolCreate', query: $route.query }"
