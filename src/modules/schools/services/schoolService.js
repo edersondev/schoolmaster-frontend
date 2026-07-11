@@ -69,6 +69,27 @@ export function createSchoolModuleService(
       return this.listLookup('pedagogical-approaches')
     },
 
+    async listSchoolFilterLookups() {
+      const [
+        administrativeTypes,
+        legalNatures,
+        managementTypes,
+        pedagogicalApproaches,
+      ] = await Promise.all([
+        this.listAdministrativeTypes(),
+        this.listLegalNatures(),
+        this.listManagementTypes(),
+        this.listPedagogicalApproaches(),
+      ])
+
+      return {
+        administrativeTypes,
+        legalNatures,
+        managementTypes,
+        pedagogicalApproaches,
+      }
+    },
+
     listEducationLevels() {
       return this.listLookup('education-levels')
     },

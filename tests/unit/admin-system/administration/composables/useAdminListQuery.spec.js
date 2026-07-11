@@ -6,16 +6,16 @@ import {
 } from '@/composables/admin-system/useAdminListQuery'
 
 describe('useAdminListQuery helpers', () => {
-  it('normalizes, allowlists, excludes school sort, and resets page', () => {
+  it('normalizes, allowlists school sort, and resets page', () => {
     expect(
       parseAdminListQuery('schools', {
         page: '-2',
         per_page: '50',
-        status: 'active',
+        status: '1',
         sort: '-name',
         unsafe: 'x',
       }),
-    ).toEqual({ page: 1, perPage: 50, status: 'active' })
+    ).toEqual({ page: 1, perPage: 50, status: '1', sort: '-name' })
     expect(serializeAdminListQuery('permissions', { page: 2, perPage: 25 })).toEqual({
       page: '2',
       per_page: '25',

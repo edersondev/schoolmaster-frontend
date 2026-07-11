@@ -22,6 +22,16 @@ export function mapListParams(query = {}) {
       sort: query.sort,
       academic_year_id: query.academicYearId,
       search: query.search,
+      inep_code: query.inepCode,
+      document: query.document,
+      name: query.name,
+      email: query.email,
+      city: query.city,
+      state: query.state,
+      administrative_type_id: query.administrativeTypeId,
+      legal_nature_id: query.legalNatureId,
+      management_type_id: query.managementTypeId,
+      pedagogical_approach_id: query.pedagogicalApproachId,
     }).filter(([, value]) => value !== undefined && value !== null && value !== ''),
   )
 }

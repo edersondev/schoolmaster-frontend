@@ -40,4 +40,17 @@ describe('SchoolBasicFields', () => {
     expect(statusSwitch.props('activeValue')).toBe(1)
     expect(statusSwitch.props('inactiveValue')).toBe(0)
   })
+
+  it('emits status-change without mutating the form status directly', async () => {
+    const model = createModel()
+    const wrapper = mount(SchoolBasicFields, {
+      props: { modelValue: model },
+      global: { plugins: administrationPlugins() },
+    })
+
+    wrapper.findComponent({ name: 'ElSwitch' }).vm.$emit('update:modelValue', 0)
+
+    expect(wrapper.emitted('status-change')).toEqual([[0]])
+    expect(model.status).toBe(1)
+  })
 })

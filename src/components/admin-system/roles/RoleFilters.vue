@@ -6,7 +6,7 @@ defineEmits(['update:status', 'reset'])
 <template>
   <SchoolFilters
     :status="status"
-    @update:status="$emit('update:status', $event)"
+    @submit="$emit('update:status', $event.status)"
     @reset="$emit('reset')"
   />
 </template>

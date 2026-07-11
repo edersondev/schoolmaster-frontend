@@ -2,15 +2,26 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import SchoolsListPage from '@/pages/admin-system/schools/SchoolsListPage.vue'
+import AdminRowActions from '@/components/ui/admin/AdminRowActions.vue'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import { administrationPlugins, recordId } from '../administration.fixtures'
 
 const listSchools = vi.fn()
 const deleteSchool = vi.fn()
+const listSchoolFilterLookups = vi.fn()
 
 vi.mock('@/services/admin-system/schools', () => ({
   listSchools: (...args) => listSchools(...args),
+  activateSchool: vi.fn(),
+  deactivateSchool: vi.fn(),
   deleteSchool: (...args) => deleteSchool(...args),
+  restoreSchool: vi.fn(),
+}))
+
+vi.mock('@/modules/schools/services/schoolService', () => ({
+  schoolModuleService: {
+    listSchoolFilterLookups: (...args) => listSchoolFilterLookups(...args),
+  },
 }))
 
 const SchoolDeleteDialogStub = {
@@ -38,12 +49,16 @@ async function mountPage() {
     history: createMemoryHistory(),
     routes: [
       { path: '/admin/schools', name: 'schoolsList', component: SchoolsListPage },
-      { path: '/admin/schools/:schoolId/edit', name: 'schoolEdit', component: { template: '<div />' } },
+      {
+        path: '/admin/schools/:schoolId/edit',
+        name: 'schoolEdit',
+        component: { template: '<div />' },
+      },
       { path: '/admin/schools/create', name: 'schoolCreate', component: { template: '<div />' } },
     ],
   })
 
-  router.push('/admin/schools?status=active')
+  router.push('/admin/schools?status=1')
   await router.isReady()
 
   const wrapper = mount(SchoolsListPage, {
@@ -72,6 +87,12 @@ describe('SchoolsListPage', () => {
   })
 
   it('navigates to edit with the current list query', async () => {
+    listSchoolFilterLookups.mockResolvedValue({
+      administrativeTypes: [],
+      legalNatures: [],
+      managementTypes: [],
+      pedagogicalApproaches: [],
+    })
     listSchools.mockResolvedValue({
       items: [
         {
@@ -86,11 +107,18 @@ describe('SchoolsListPage', () => {
     })
     const { wrapper, router } = await mountPage()
 
-    await wrapper.get('[data-test="edit-school"]').trigger('click')
+    const rowActions = wrapper.findComponent(AdminRowActions).props('actions')
+    expect(rowActions[0]).toMatchObject({
+      command: 'edit',
+      labelKey: 'administration.common.edit',
+    })
+    expect(rowActions.slice(1)).toEqual(['deactivate', 'delete'])
+
+    wrapper.findComponent(AdminRowActions).vm.$emit('action', 'edit')
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('schoolEdit')
     expect(router.currentRoute.value.params.schoolId).toBe(recordId)
-    expect(router.currentRoute.value.query).toEqual({ status: 'active' })
+    expect(router.currentRoute.value.query).toEqual({ status: '1' })
 
     expect(deleteSchool).not.toHaveBeenCalled()
   })

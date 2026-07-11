@@ -4,24 +4,44 @@ import AdminRowActions from '@/components/ui/admin/AdminRowActions.vue'
 import AdminStatusTag from '@/components/ui/admin/AdminStatusTag.vue'
 import { formatCnpj } from '@/utils/cnpj'
 
-defineProps({
+const props = defineProps({
   rows: { type: Array, default: () => [] },
   canManage: { type: Boolean, default: false },
   actionResolver: { type: Function, default: () => [] },
 })
 const emit = defineEmits(['view', 'edit', 'lifecycle'])
 const { t } = useI18n()
+
+const editAction = Object.freeze({
+  key: 'edit',
+  command: 'edit',
+  labelKey: 'administration.common.edit',
+  dataTest: 'edit-school',
+})
+
+function rowActions(row) {
+  return [editAction, ...props.actionResolver(row)]
+}
+
+function handleRowAction(row, action) {
+  if (action === 'edit') {
+    emit('edit', row)
+    return
+  }
+
+  emit('lifecycle', { row, action })
+}
 </script>
 
 <template>
   <ElTable :data="rows" class="w-full" table-layout="auto">
-    <ElTableColumn
-      prop="name"
-      :label="t('administration.common.name')"
-      :min-width="220"
-    >
+    <ElTableColumn prop="name" :label="t('administration.common.name')" :min-width="220">
       <template #default="{ row }">
-        <button class="font-medium text-sm-brand hover:underline" type="button" @click="emit('view', row)">
+        <button
+          class="font-medium text-sm-brand hover:underline"
+          type="button"
+          @click="emit('view', row)"
+        >
           {{ row.name ?? '—' }}
         </button>
       </template>
@@ -36,32 +56,14 @@ const { t } = useI18n()
         <AdminStatusTag :status="row.status" compact />
       </template>
     </ElTableColumn>
-    <ElTableColumn
-      prop="contactEmail"
-      :label="t('administration.common.email')"
-      :min-width="220"
-    >
+    <ElTableColumn prop="contactEmail" :label="t('administration.common.email')" :min-width="220">
       <template #default="{ row }">
         <span class="text-sm-muted">{{ row.contactEmail ?? '—' }}</span>
       </template>
     </ElTableColumn>
-    <ElTableColumn
-      v-if="canManage"
-      :label="t('administration.common.actions')"
-      :min-width="180"
-    >
+    <ElTableColumn v-if="canManage" :label="t('administration.common.actions')" :min-width="180">
       <template #default="{ row }">
-        <div class="flex items-center gap-2">
-          <ElButton
-            link
-            type="primary"
-            data-test="edit-school"
-            @click="emit('edit', row)"
-          >
-            {{ t('administration.common.edit') }}
-          </ElButton>
-          <AdminRowActions :actions="actionResolver(row)" @action="emit('lifecycle', { row, action: $event })" />
-        </div>
+        <AdminRowActions :actions="rowActions(row)" @action="handleRowAction(row, $event)" />
       </template>
     </ElTableColumn>
   </ElTable>

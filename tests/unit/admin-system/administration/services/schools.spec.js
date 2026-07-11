@@ -11,11 +11,11 @@ describe('schools service', () => {
       delete: vi.fn().mockResolvedValue({ data: { data: { status: 'deleted' } } }),
     })
     const service = createSchoolsService(client, () => 'test-token')
-    await service.listSchools({ page: 1, perPage: 25, status: 'active' })
+    await service.listSchools({ page: 1, perPage: 25, status: '1' })
     expect(client.get).toHaveBeenCalledWith(
       '/api/v1/schools',
       expect.objectContaining({
-        params: { page: 1, per_page: 25, status: 'active' },
+        params: { page: 1, per_page: 25, status: '1' },
         headers: { Authorization: 'Bearer test-token' },
       }),
     )

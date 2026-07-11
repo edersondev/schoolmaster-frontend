@@ -7,11 +7,11 @@ import { schoolRoutes } from '@/router/modules/schools.routes'
 
 describe('school page flows', () => {
   it('restores validated query and protects list/create/edit routes', () => {
-    const query = parseAdminListQuery('schools', { page: '2', per_page: '50', status: 'active' })
+    const query = parseAdminListQuery('schools', { page: '2', per_page: '50', status: '1' })
     expect(serializeAdminListQuery('schools', query)).toEqual({
       page: '2',
       per_page: '50',
-      status: 'active',
+      status: '1',
     })
     expect(schoolRoutes[0].meta.permissions).toEqual(['schools.view'])
     expect(schoolRoutes[1].meta.permissions).toEqual(['schools.view', 'schools.manage'])
