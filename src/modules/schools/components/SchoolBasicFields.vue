@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 
 const model = defineModel({ type: Object, required: true })
+const emit = defineEmits(['status-change'])
 defineProps({
   errors: { type: Object, default: () => ({}) },
   readonlyDocument: { type: Boolean, default: false },
@@ -13,6 +14,19 @@ const inepCode = computed({
     model.value.inep_code = String(value ?? '').replace(/\D/g, '').slice(0, 8)
   },
 })
+
+const statusValue = computed(() => normalizeStatus(model.value?.status))
+
+function requestStatusChange(value) {
+  const nextStatus = normalizeStatus(value)
+  if (nextStatus === statusValue.value) return
+
+  emit('status-change', nextStatus)
+}
+
+function normalizeStatus(value) {
+  return Number(value) === 1 ? 1 : 0
+}
 </script>
 
 <template>
@@ -55,11 +69,12 @@ const inepCode = computed({
 
     <ElFormItem label="Status" required :error="errors.status?.[0]">
       <ElSwitch
-        v-model="model.status"
+        :model-value="statusValue"
         :active-value="1"
         :inactive-value="0"
         active-text="Active"
         inactive-text="Inactive"
+        @update:model-value="requestStatusChange"
       />
     </ElFormItem>
   </div>

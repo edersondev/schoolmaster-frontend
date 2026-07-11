@@ -13,7 +13,7 @@ const props = defineProps({
   lookupStatus: { type: String, default: 'idle' },
   readonlyDocument: { type: Boolean, default: false },
 })
-const emit = defineEmits(['update:activeTab'])
+const emit = defineEmits(['update:activeTab', 'status-change'])
 
 function tabLabel(label, tab) {
   return props.tabErrors[tab] ? `${label} *` : label
@@ -23,7 +23,12 @@ function tabLabel(label, tab) {
 <template>
   <ElTabs :model-value="activeTab" class="school-tabs" @update:model-value="emit('update:activeTab', $event)">
     <ElTabPane :label="tabLabel('Basic', 'basic')" name="basic">
-      <SchoolBasicFields v-model="model" :errors="errors" :readonly-document="readonlyDocument" />
+      <SchoolBasicFields
+        v-model="model"
+        :errors="errors"
+        :readonly-document="readonlyDocument"
+        @status-change="emit('status-change', $event)"
+      />
     </ElTabPane>
 
     <ElTabPane :label="tabLabel('Address', 'address')" name="address">
