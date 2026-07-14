@@ -4,7 +4,8 @@ import {
   AUTH_FEEDBACK_STATES,
   AUTH_SESSION_STATUSES,
   createAuthFeedbackState,
-  hasPrivilegedAccess,
+  isActiveSchoolContext,
+  isSystemAdministratorSession,
   mapRequestedRoute,
 } from '@/contracts/auth/authSession.contract'
 import { authService, SCHOOL_SELECTION_SOURCE_APPROVED } from '@/services/auth/authService'
@@ -46,18 +47,25 @@ export const useAuthSessionStore = defineStore('auth-session', {
     authorizedSchools: [],
     schoolSelectionSourceApproved: SCHOOL_SELECTION_SOURCE_APPROVED,
     passwordResetPending: false,
+    schoolContextGeneration: 0,
   }),
 
   getters: {
     isAuthenticated: (state) => state.status === AUTH_SESSION_STATUSES.authenticated,
     isProtectedContentReady: (state) => state.status === AUTH_SESSION_STATUSES.authenticated,
     isBootstrapping: (state) => state.status === AUTH_SESSION_STATUSES.bootstrapping,
+    isSystemAdministrator: (state) =>
+      state.status === AUTH_SESSION_STATUSES.authenticated &&
+      isSystemAdministratorSession(state),
     permissionCodes: (state) => {
       const codes = state.permissions
         .filter((permission) => permission.status === 'active')
         .map((permission) => permission.code)
 
-      return hasPrivilegedAccess(state) ? [AUTH_ALL_PERMISSIONS, ...codes] : codes
+      return state.status === AUTH_SESSION_STATUSES.authenticated &&
+        isSystemAdministratorSession(state)
+        ? [AUTH_ALL_PERMISSIONS, ...codes]
+        : codes
     },
     hasPermission() {
       return (permissionCode) =>
@@ -66,7 +74,8 @@ export const useAuthSessionStore = defineStore('auth-session', {
     },
     tenantReady: (state) =>
       state.status === AUTH_SESSION_STATUSES.authenticated &&
-      (state.activeSchool !== null || !state.roles.some((role) => role.scope === 'school')),
+      (isActiveSchoolContext(state.activeSchool) ||
+        !state.roles.some((role) => role.scope === 'school')),
   },
 
   actions: {
@@ -83,6 +92,8 @@ export const useAuthSessionStore = defineStore('auth-session', {
 
     clearTenantContext({ clearPersisted = false } = {}) {
       this.activeSchool = null
+      this.activeStudentProfile = null
+      this.currentAcademicPeriod = null
       this.authorizedSchools = []
       if (clearPersisted) {
         this.lastApprovedSchoolId = null
@@ -95,20 +106,19 @@ export const useAuthSessionStore = defineStore('auth-session', {
       this.currentUser = session.currentUser
       this.roles = session.roles
       this.permissions = session.permissions
-      this.activeSchool = session.activeSchool
+      this.activeSchool = isActiveSchoolContext(session.activeSchool) ? session.activeSchool : null
       this.activeStudentProfile = session.activeStudentProfile ?? null
       this.currentAcademicPeriod = session.currentAcademicPeriod ?? null
       this.feedbackState = null
 
-      if (session.activeSchool) {
+      if (this.activeSchool) {
         this.lastApprovedSchoolId = session.activeSchool.id
         persistLastApprovedSchoolId(session.activeSchool.id)
       }
 
       const needsSchool =
         requiresSchoolContext &&
-        !session.activeSchool &&
-        session.tenantContext.requiresSchoolSelection
+        !this.activeSchool
       this.status = needsSchool
         ? AUTH_SESSION_STATUSES.selectingSchool
         : AUTH_SESSION_STATUSES.authenticated
@@ -160,6 +170,47 @@ export const useAuthSessionStore = defineStore('auth-session', {
         throw error
       } finally {
         this.hasBootstrapped = true
+      }
+    },
+
+    async selectSchool(schoolId, { service = authService, beforeSwitch = [] } = {}) {
+      const requestedSchoolId = String(schoolId ?? '').trim()
+      if (!requestedSchoolId) {
+        throw new TypeError('A school identifier is required to switch context.')
+      }
+
+      const generation = ++this.schoolContextGeneration
+      this.clearTenantContext()
+      this.status = AUTH_SESSION_STATUSES.selectingSchool
+      this.feedbackState = null
+
+      for (const reset of beforeSwitch) {
+        await reset()
+      }
+
+      try {
+        const session = await service.getCurrentUser({ schoolId: requestedSchoolId })
+        if (generation !== this.schoolContextGeneration) return null
+
+        const selectedSchool = session.activeSchool
+        if (
+          !selectedSchool ||
+          selectedSchool.id !== requestedSchoolId ||
+          selectedSchool.status !== 'active'
+        ) {
+          const error = new Error('Selected school context was not confirmed by the backend.')
+          error.feedback = createAuthFeedbackState(AUTH_FEEDBACK_STATES.inactiveSchool)
+          throw error
+        }
+
+        this.applySession(session, { requiresSchoolContext: true })
+        this.hasBootstrapped = true
+        return session
+      } catch (error) {
+        if (generation !== this.schoolContextGeneration) return null
+        this.applyDeniedState(error)
+        this.hasBootstrapped = true
+        throw error
       }
     },
 
