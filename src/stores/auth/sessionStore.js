@@ -80,6 +80,7 @@ export const useAuthSessionStore = defineStore('auth-session', {
 
   actions: {
     clearIdentity() {
+      this.schoolContextGeneration += 1
       this.tokenExpiresAt = null
       this.currentUser = null
       this.roles = []
