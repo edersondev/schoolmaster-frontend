@@ -19,7 +19,7 @@ describe('teacherWorkflowContract capabilities', () => {
     expect(
       hasCapability(
         {
-          roles: [{ name: 'Super Admin', scope: 'platform', status: 'active' }],
+          roles: [{ name: 'System Administrator', scope: 'platform', status: 'active' }],
           permissions: [],
         },
         TEACHER_WORKFLOW_CAPABILITIES.adminImport,

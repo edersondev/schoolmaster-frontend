@@ -35,13 +35,7 @@ export const TENANT_STATUSES = Object.freeze({
 })
 
 export const AUTH_ALL_PERMISSIONS = '*'
-
-const SYSTEM_ADMINISTRATOR_ROLE_NAMES = new Set([
-  'system administrator',
-  'system admin',
-  'super administrator',
-  'super admin',
-])
+export const SYSTEM_ADMINISTRATOR_ROLE_NAME = 'System Administrator'
 
 function mapAddress(address) {
   if (!address) {
@@ -108,20 +102,39 @@ export function isSystemAdministratorRole(role = {}) {
   return (
     role.status === 'active' &&
     role.scope === 'platform' &&
-    SYSTEM_ADMINISTRATOR_ROLE_NAMES.has(String(role.name ?? '').trim().toLowerCase())
+    role.name === SYSTEM_ADMINISTRATOR_ROLE_NAME
   )
 }
 
-export function hasPrivilegedAccess(session = {}) {
+export function isSystemAdministratorSession(session = {}) {
   const roles = Array.isArray(session.roles) ? session.roles : []
+  return roles.some(isSystemAdministratorRole)
+}
+
+export function hasPrivilegedAccess(session = {}) {
   const permissions = Array.isArray(session.permissions) ? session.permissions : []
 
   return (
-    roles.some(isSystemAdministratorRole) ||
+    isSystemAdministratorSession(session) ||
     permissions.some(
       (permission) => permission.status === 'active' && permission.code === AUTH_ALL_PERMISSIONS,
     )
   )
+}
+
+export function hasRequiredFeaturePermissions(session = {}, requiredPermissions = []) {
+  if (hasPrivilegedAccess(session)) return true
+
+  const activePermissionCodes = (session.permissions ?? [])
+    .filter((permission) => permission.status === 'active')
+    .map((permission) => permission.code)
+
+  return requiredPermissions.every((permission) => activePermissionCodes.includes(permission))
+}
+
+export function isActiveSchoolContext(school) {
+  if (!school?.id) return false
+  return !school.status || school.status === 'active'
 }
 
 function mapSchool(school) {

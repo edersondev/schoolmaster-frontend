@@ -1,8 +1,8 @@
 import {
-  AUTH_ALL_PERMISSIONS,
   AUTH_FEEDBACK_STATES,
   AUTH_SESSION_STATUSES,
-  hasPrivilegedAccess,
+  hasRequiredFeaturePermissions,
+  isActiveSchoolContext,
   mapRequestedRoute,
 } from '@/contracts/auth/authSession.contract'
 import { AUTH_ROUTE_NAMES } from './modules/auth.routes'
@@ -11,30 +11,16 @@ export function captureRequestedRoute(route, createdFrom) {
   return mapRequestedRoute(route, createdFrom)
 }
 
-function permissionCodes(session) {
-  const codes = (session.permissions ?? [])
-    .filter((permission) => permission.status === 'active')
-    .map((permission) => permission.code)
-
-  return hasPrivilegedAccess(session) ? [AUTH_ALL_PERMISSIONS, ...codes] : codes
-}
-
-function hasPermissions(session, requiredPermissions = []) {
-  const availablePermissions = permissionCodes(session)
-  if (availablePermissions.includes(AUTH_ALL_PERMISSIONS)) return true
-  return requiredPermissions.every((permission) => availablePermissions.includes(permission))
-}
-
 export function resolveRequestedRoute(requestedRoute, session) {
   if (!requestedRoute || session.status !== AUTH_SESSION_STATUSES.authenticated) {
     return null
   }
 
-  if (requestedRoute.requiresSchoolContext && !session.activeSchool) {
+  if (requestedRoute.requiresSchoolContext && !isActiveSchoolContext(session.activeSchool)) {
     return null
   }
 
-  if (!hasPermissions(session, requestedRoute.requiredPermissions)) {
+  if (!hasRequiredFeaturePermissions(session, requestedRoute.requiredPermissions)) {
     return null
   }
 
@@ -120,12 +106,12 @@ export function createAuthGuard({ store, fallbackRoute }) {
     }
 
     const requiredPermissions = to.meta.permissions ?? to.meta.requiredPermissions ?? []
-    if (!hasPermissions(store, requiredPermissions)) {
+    if (!hasRequiredFeaturePermissions(store, requiredPermissions)) {
       store.setFeedbackState?.(AUTH_FEEDBACK_STATES.forbidden)
       return { name: AUTH_ROUTE_NAMES.state }
     }
 
-    if (to.meta.requiresSchoolContext && !store.activeSchool) {
+    if (to.meta.requiresSchoolContext && !isActiveSchoolContext(store.activeSchool)) {
       return { name: AUTH_ROUTE_NAMES.schoolSelection }
     }
 
