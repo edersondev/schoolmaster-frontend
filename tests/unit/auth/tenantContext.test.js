@@ -10,7 +10,13 @@ describe('tenant context', () => {
   })
 
   it('requests restoration and accepts only backend-confirmed school context', async () => {
-    window.localStorage.setItem('schoolmaster.auth.lastApprovedSchoolId', 'school-1')
+    window.localStorage.setItem(
+      'schoolmaster.auth.lastApprovedSchoolId',
+      JSON.stringify({
+        schoolId: 'school-1',
+        identityId: authSessionEnvelope.data.user.id,
+      }),
+    )
     const store = useAuthSessionStore()
     const service = {
       getCurrentUser: vi.fn().mockResolvedValue(mapAuthSession(authSessionEnvelope.data)),
@@ -35,6 +41,6 @@ describe('tenant context', () => {
 
     expect(store.status).toBe('selecting-school')
     expect(store.authorizedSchools).toEqual([])
-    expect(store.schoolSelectionSourceApproved).toBe(false)
+    expect(store.schoolSelectionSourceApproved).toBe(true)
   })
 })

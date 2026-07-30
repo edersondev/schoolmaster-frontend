@@ -9,10 +9,12 @@ import { ADVANCED_ASSESSMENT_ROUTE_NAMES } from '@/contracts/assessments/advance
 
 export { ADVANCED_ASSESSMENT_ROUTE_NAMES }
 
-const assessmentMeta = (title) => ({
+const assessmentMeta = (title, retainAcrossSchoolSwitch = false) => ({
   requiresAuth: true,
   requiresSchoolContext: true,
   title,
+  schoolContextSwitch: retainAcrossSchoolSwitch ? 'retain' : 'discard',
+  contextNeutralQueryKeys: retainAcrossSchoolSwitch ? ['page', 'status', 'search'] : [],
 })
 
 export const assessmentRoutes = [
@@ -48,7 +50,7 @@ export const assessmentRoutes = [
         path: 'review',
         name: ADVANCED_ASSESSMENT_ROUTE_NAMES.reviewQueue,
         component: AssessmentReviewQueuePage,
-        meta: assessmentMeta('advancedAssessment.navigation.review'),
+        meta: assessmentMeta('advancedAssessment.navigation.review', true),
       },
       {
         path: 'responses/:responseAttemptId/grading',
@@ -66,7 +68,7 @@ export const assessmentRoutes = [
         path: 'reporting',
         name: ADVANCED_ASSESSMENT_ROUTE_NAMES.reporting,
         component: AdvancedAssessmentReportingPage,
-        meta: assessmentMeta('advancedAssessment.navigation.reporting'),
+        meta: assessmentMeta('advancedAssessment.navigation.reporting', true),
       },
     ],
   },

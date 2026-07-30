@@ -1,12 +1,38 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { storeToRefs } from 'pinia'
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
-import SchoolSelectionList from '@/components/auth/SchoolSelectionList.vue'
+import { isSystemAdministratorSession } from '@/contracts/auth/authSession.contract'
+import { getPostAuthRoute } from '@/router/authGuards'
+import { getAdminFallbackRoute } from '@/router/adminFallbackRoute'
+import { AUTH_ROUTE_NAMES } from '@/router/modules/auth.routes'
+import { ADMIN_ROUTE_NAMES } from '@/contracts/admin-system/navigation'
+import SchoolContextSelector from '@/components/auth/SchoolContextSelector.vue'
 
 const { t } = useI18n()
 const store = useAuthSessionStore()
-const { authorizedSchools, schoolSelectionSourceApproved } = storeToRefs(store)
+const router = useRouter()
+
+onMounted(() => {
+  if (!isSystemAdministratorSession(store)) {
+    router.replace({ name: AUTH_ROUTE_NAMES.state })
+  }
+})
+
+async function onConfirmed() {
+  const destination = getPostAuthRoute(store, getAdminFallbackRoute, router)
+  store.clearRequestedRoute()
+  await router.replace(destination)
+}
+
+async function onManageSchools() {
+  await router.push({ name: ADMIN_ROUTE_NAMES.schools })
+}
+
+async function onRecoveryRequired() {
+  await router.replace({ name: AUTH_ROUTE_NAMES.state })
+}
 </script>
 
 <template>
@@ -22,15 +48,10 @@ const { authorizedSchools, schoolSelectionSourceApproved } = storeToRefs(store)
       </p>
     </header>
 
-    <ElAlert
-      v-if="!schoolSelectionSourceApproved"
-      :title="t('auth.schoolSelection.blockedTitle')"
-      :description="t('auth.schoolSelection.blockedMessage')"
-      type="warning"
-      :closable="false"
-      show-icon
+    <SchoolContextSelector
+      @confirmed="onConfirmed"
+      @manage-schools="onManageSchools"
+      @recovery-required="onRecoveryRequired"
     />
-
-    <SchoolSelectionList v-else :schools="authorizedSchools" />
   </article>
 </template>

@@ -14,7 +14,7 @@ export const AUTH_ENDPOINTS = Object.freeze({
   passwordResetRequests: '/api/v1/auth/password-reset-requests',
 })
 
-export const SCHOOL_SELECTION_SOURCE_APPROVED = false
+export const SCHOOL_SELECTION_SOURCE_APPROVED = true
 
 export function createAuthService(client) {
   let accessToken = null
@@ -94,12 +94,6 @@ export function createAuthService(client) {
         }
         throw normalized
       }
-    },
-
-    async listAuthorizedSchools() {
-      throw new Error(
-        'School selection is blocked until an approved user-authorized source exists.',
-      )
     },
   }
 }

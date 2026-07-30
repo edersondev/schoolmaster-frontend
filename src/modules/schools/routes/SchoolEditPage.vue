@@ -5,6 +5,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAdminLifecycleAction } from '@/composables/admin-system/useAdminLifecycleAction'
 import { useUnsavedChangesGuard } from '@/composables/admin-system/useUnsavedChangesGuard'
+import { applySchoolLifecycleContextOutcome } from '@/composables/auth/schoolContextLifecycle'
+import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import { createReturnToListLocation } from '@/router/modules/administration-route'
 import { activateSchool, deactivateSchool } from '@/services/admin-system/schools'
 import AdminFeedbackState from '@/components/ui/admin/AdminFeedbackState.vue'
@@ -16,6 +18,7 @@ import { useSchoolForm } from '../composables/useSchoolForm'
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const sessionStore = useAuthSessionStore()
 const schoolId = computed(() => String(route.params.schoolId ?? ''))
 const form = useSchoolForm({ mode: 'edit' })
 const lifecycle = useAdminLifecycleAction({
@@ -27,7 +30,13 @@ const lifecycle = useAdminLifecycleAction({
     }
     return services[action](target.id, values)
   },
-  onSuccess: async () => {
+  onSuccess: async (outcome) => {
+    applySchoolLifecycleContextOutcome({
+      action: lifecycle.action.value,
+      targetId: lifecycle.target.value?.id,
+      outcome,
+      session: sessionStore,
+    })
     ElMessage.success(t('administration.common.updateSuccess'))
     await load()
   },
@@ -47,7 +56,11 @@ const blockingState = computed(() =>
     : null,
 )
 
-useUnsavedChangesGuard({ isDirty: form.isDirty, submitted: form.submitted })
+useUnsavedChangesGuard({
+  isDirty: form.isDirty,
+  submitted: form.submitted,
+  isDialogOpen: lifecycle.open,
+})
 
 function destination() {
   return createReturnToListLocation(route, 'schoolsList')

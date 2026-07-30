@@ -6,12 +6,13 @@ import {
   mapRequestedRoute,
 } from '@/contracts/auth/authSession.contract'
 import { AUTH_ROUTE_NAMES } from './modules/auth.routes'
+import { resolveSchoolContextRoute } from './schoolContextRoutes'
 
 export function captureRequestedRoute(route, createdFrom) {
   return mapRequestedRoute(route, createdFrom)
 }
 
-export function resolveRequestedRoute(requestedRoute, session) {
+export function resolveRequestedRoute(requestedRoute, session, router = null) {
   if (!requestedRoute || session.status !== AUTH_SESSION_STATUSES.authenticated) {
     return null
   }
@@ -24,10 +25,9 @@ export function resolveRequestedRoute(requestedRoute, session) {
     return null
   }
 
-  if (!requestedRoute.routeName) {
-    return null
-  }
+  if (router) return resolveSchoolContextRoute(requestedRoute, router)
 
+  if (!requestedRoute.routeName) return null
   return {
     name: requestedRoute.routeName,
     params: requestedRoute.routeParams,
@@ -35,14 +35,14 @@ export function resolveRequestedRoute(requestedRoute, session) {
   }
 }
 
-export function getPostAuthRoute(store, fallbackRoute) {
-  const requestedRoute = resolveRequestedRoute(store.requestedRoute, store)
+export function getPostAuthRoute(store, fallbackRoute, router = null) {
+  const requestedRoute = resolveRequestedRoute(store.requestedRoute, store, router)
   if (requestedRoute) return requestedRoute
 
   return typeof fallbackRoute === 'function' ? fallbackRoute(store) : fallbackRoute
 }
 
-export function createAuthGuard({ store, fallbackRoute }) {
+export function createAuthGuard({ store, fallbackRoute, router = null }) {
   return async function authGuard(to) {
     if (to.meta.guestLifecycle) {
       return true
@@ -57,7 +57,7 @@ export function createAuthGuard({ store, fallbackRoute }) {
     }
 
     if (to.meta.guestOnly && store.status === AUTH_SESSION_STATUSES.authenticated) {
-      return getPostAuthRoute(store, fallbackRoute)
+      return getPostAuthRoute(store, fallbackRoute, router)
     }
 
     if (!to.meta.requiresAuth) {
@@ -82,7 +82,12 @@ export function createAuthGuard({ store, fallbackRoute }) {
     }
 
     if (store.status === AUTH_SESSION_STATUSES.selectingSchool) {
-      return { name: AUTH_ROUTE_NAMES.schoolSelection }
+      if (to.meta.requiresSchoolContext) {
+        store.captureRequestedRoute?.(to, 'missing-school-context')
+        return { name: AUTH_ROUTE_NAMES.schoolSelection }
+      }
+
+      store.status = AUTH_SESSION_STATUSES.authenticated
     }
 
     if (store.status !== AUTH_SESSION_STATUSES.authenticated) {
@@ -112,6 +117,7 @@ export function createAuthGuard({ store, fallbackRoute }) {
     }
 
     if (to.meta.requiresSchoolContext && !isActiveSchoolContext(store.activeSchool)) {
+      store.captureRequestedRoute?.(to, 'missing-school-context')
       return { name: AUTH_ROUTE_NAMES.schoolSelection }
     }
 

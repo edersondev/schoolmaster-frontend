@@ -54,4 +54,25 @@ describe('AuthStatePage', () => {
     })
     expect(store.requestedRoute).toBeNull()
   })
+
+  it('clears a preserved invalidated session before sign-in recovery', async () => {
+    const plugins = authGlobalPlugins()
+    const store = useAuthSessionStore()
+    store.status = 'authenticated'
+    store.currentUser = { id: 'user-1' }
+    store.feedbackState = {
+      state: 'inactive-school',
+      severity: 'error',
+      recoveryAction: 'sign-in',
+    }
+    const clearLifecycleSessionAssumptions = vi.spyOn(store, 'clearLifecycleSessionAssumptions')
+    const wrapper = mount(AuthStatePage, { global: { plugins } })
+
+    await wrapper.get('button').trigger('click')
+    await flushPromises()
+
+    expect(clearLifecycleSessionAssumptions).toHaveBeenCalledOnce()
+    expect(store.currentUser).toBeNull()
+    expect(replace).toHaveBeenCalledWith({ name: 'authLogin' })
+  })
 })

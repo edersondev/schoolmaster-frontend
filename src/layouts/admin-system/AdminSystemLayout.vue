@@ -75,6 +75,11 @@ async function onAccountCommand(command) {
   await sessionStore.logout()
   await router.push({ name: AUTH_ROUTE_NAMES.login })
 }
+
+async function onChooseSchool() {
+  sessionStore.captureRequestedRoute(route, 'shell-switch')
+  await router.push({ name: AUTH_ROUTE_NAMES.schoolSelection })
+}
 </script>
 
 <template>
@@ -110,9 +115,12 @@ async function onAccountCommand(command) {
         :is-mobile="isMobile"
         :is-sidebar-collapsed="sidebarCollapsed"
         :notification-panel-open="notificationPanelOpen"
+        :current-school="sessionStore.activeSchool"
+        :can-switch-school="sessionStore.isSystemAdministrator"
         @toggle-navigation="toggleNavigation"
         @toggle-notifications="shellStore.toggleNotificationPanel"
         @account-command="onAccountCommand"
+        @choose-school="onChooseSchool"
       />
 
       <AdminShellFeedback v-if="feedbackState" :feedback-state="feedbackState" />
