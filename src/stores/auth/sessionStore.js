@@ -316,10 +316,13 @@ export const useAuthSessionStore = defineStore('auth-session', {
       this.status = this.currentUser
         ? AUTH_SESSION_STATUSES.authenticated
         : AUTH_SESSION_STATUSES.signedOut
-      this.feedbackState = createAuthFeedbackState(
+      const feedbackState =
         reason === 'inactive-school'
           ? AUTH_FEEDBACK_STATES.inactiveSchool
-          : AUTH_FEEDBACK_STATES.tenantMismatch,
+          : AUTH_FEEDBACK_STATES.tenantMismatch
+      this.feedbackState = createAuthFeedbackState(
+        feedbackState,
+        isSystemAdministratorSession(this) ? {} : { recoveryAction: 'sign-in' },
       )
       return true
     },

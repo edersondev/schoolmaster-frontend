@@ -34,13 +34,21 @@ export function installSchoolContextInvalidationObserver({ client, store, router
         stamp?.schoolId === currentSchoolId &&
         stamp?.generation === store.schoolContextGeneration
       ) {
+        const currentRoute = router?.currentRoute?.value
+        const requiresSchoolContext = currentRoute?.meta?.requiresSchoolContext === true
+        const canSelectSchool = store.isSystemAdministrator === true
+
+        if (requiresSchoolContext && canSelectSchool) {
+          store.captureRequestedRoute?.(currentRoute, 'context-invalidation')
+        }
+
         const invalidated = store.invalidateSchoolContext({
           reason: code.replace('_', '-'),
           schoolId: stamp.schoolId,
           generation: stamp.generation,
         })
-        if (invalidated && router?.currentRoute?.value?.meta?.requiresSchoolContext) {
-          await router.replace({ name: 'authSchoolSelection' })
+        if (invalidated && requiresSchoolContext) {
+          await router.replace({ name: canSelectSchool ? 'authSchoolSelection' : 'authState' })
         }
       }
 

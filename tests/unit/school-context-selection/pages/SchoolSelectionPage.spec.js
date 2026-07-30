@@ -56,4 +56,43 @@ describe('SchoolSelectionPage', () => {
     expect(router.currentRoute.value).toMatchObject({ name: 'usersList', query: { page: '2' } })
     expect(store.requestedRoute).toBeNull()
   })
+
+  it('opens auth recovery when confirmation loses the session', async () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        {
+          path: '/auth/school-selection',
+          name: 'authSchoolSelection',
+          component: SchoolSelectionPage,
+        },
+        { path: '/auth/state', name: 'authState', component: { template: '<div>State</div>' } },
+      ],
+    })
+    const plugins = authGlobalPlugins([router])
+    const store = useAuthSessionStore()
+    store.status = 'authenticated'
+    store.currentUser = { id: 'user-1' }
+    store.roles = [{ name: 'System Administrator', scope: 'platform', status: 'active' }]
+    await router.push({ name: 'authSchoolSelection' })
+    await router.isReady()
+
+    const wrapper = mount(SchoolSelectionPage, {
+      global: {
+        plugins,
+        stubs: {
+          SchoolContextSelector: {
+            emits: ['confirmed', 'manage-schools', 'recovery-required'],
+            template:
+              '<button data-test="recover" @click="$emit(\'recovery-required\')">Recover</button>',
+          },
+        },
+      },
+    })
+
+    await wrapper.get('[data-test="recover"]').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.name).toBe('authState')
+  })
 })

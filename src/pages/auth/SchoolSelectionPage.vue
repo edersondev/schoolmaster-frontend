@@ -29,6 +29,10 @@ async function onConfirmed() {
 async function onManageSchools() {
   await router.push({ name: ADMIN_ROUTE_NAMES.schools })
 }
+
+async function onRecoveryRequired() {
+  await router.replace({ name: AUTH_ROUTE_NAMES.state })
+}
 </script>
 
 <template>
@@ -44,6 +48,10 @@ async function onManageSchools() {
       </p>
     </header>
 
-    <SchoolContextSelector @confirmed="onConfirmed" @manage-schools="onManageSchools" />
+    <SchoolContextSelector
+      @confirmed="onConfirmed"
+      @manage-schools="onManageSchools"
+      @recovery-required="onRecoveryRequired"
+    />
   </article>
 </template>

@@ -67,6 +67,40 @@ describe('SchoolContextSelector', () => {
     expect(wrapper.emitted('confirmed')?.[0]?.[0]?.id).toBe(activeSchool.id)
   })
 
+  it('emits recovery when confirmation expires the session', async () => {
+    const service = {
+      listActiveSchools: vi.fn().mockResolvedValue(paginatedSchools([mappedSchool()])),
+    }
+    const sessionService = {
+      getCurrentUser: vi.fn().mockRejectedValue({
+        status: 401,
+        feedback: {
+          state: 'expired-session',
+          severity: 'warning',
+          recoveryAction: 'sign-in',
+        },
+      }),
+    }
+    const plugins = authGlobalPlugins()
+    const store = useAuthSessionStore()
+    store.status = 'authenticated'
+    store.currentUser = { id: 'user-1' }
+    store.roles = [systemAdministratorRole]
+    const wrapper = mount(SchoolContextSelector, {
+      attachTo: document.body,
+      props: { service, sessionService },
+      global: { plugins },
+    })
+    await flushPromises()
+
+    await wrapper.get('button[aria-label^="Select Central School"]').trigger('click')
+    await flushPromises()
+
+    expect(store.currentUser).toBeNull()
+    expect(wrapper.emitted('recovery-required')).toHaveLength(1)
+    expect(wrapper.emitted('confirmed')).toBeUndefined()
+  })
+
   it('blocks every non-exact role without requesting school data', async () => {
     const service = { listActiveSchools: vi.fn() }
     const plugins = authGlobalPlugins()

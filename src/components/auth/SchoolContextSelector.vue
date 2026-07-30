@@ -20,7 +20,7 @@ const props = defineProps({
     default: null,
   },
 })
-const emit = defineEmits(['confirmed', 'manage-schools'])
+const emit = defineEmits(['confirmed', 'manage-schools', 'recovery-required'])
 const { t } = useI18n()
 const session = useAuthSessionStore()
 const { selectionPendingSchoolId, feedbackState } = storeToRefs(session)
@@ -50,6 +50,9 @@ async function selectSchool(school) {
     }
   } catch {
     // The session store owns safe selection feedback and identity-loss handling.
+    if (!actorAllowed.value) {
+      emit('recovery-required')
+    }
   }
 }
 

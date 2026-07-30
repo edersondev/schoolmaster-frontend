@@ -38,4 +38,16 @@ describe('sessionStore.invalidateSchoolContext', () => {
     expect(store.invalidateSchoolContext({ schoolId: 'school-1', generation: 99 })).toBe(false)
     expect(store.activeSchool.id).toBe('school-1')
   })
+
+  it('offers sign-in recovery when a non-administrator context is invalidated', () => {
+    const store = useAuthSessionStore()
+    store.status = 'authenticated'
+    store.currentUser = { id: 'user-1' }
+    store.roles = [{ name: 'School Administrator', scope: 'school', status: 'active' }]
+    store.activeSchool = { id: 'school-1', status: 'active' }
+
+    expect(store.invalidateSchoolContext({ schoolId: 'school-1' })).toBe(true)
+    expect(store.currentUser.id).toBe('user-1')
+    expect(store.feedbackState.recoveryAction).toBe('sign-in')
+  })
 })
