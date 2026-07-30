@@ -26,6 +26,8 @@ export function createAdministrationRoute({
       mode,
       resource,
       returnListRoute,
+      schoolContextSwitch: schoolContext && mode === 'list' ? 'retain' : 'discard',
+      contextNeutralQueryKeys: ['page', 'per_page', 'perPage', 'status', 'sort', 'search'],
     },
   }
   if (order) {

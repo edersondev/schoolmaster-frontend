@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowDown, Bell, Expand, Fold, Menu, User } from '@element-plus/icons-vue'
+import SchoolContextControl from './SchoolContextControl.vue'
 
 const props = defineProps({
   pageContext: {
@@ -20,9 +21,16 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  currentSchool: { type: Object, default: null },
+  canSwitchSchool: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['toggleNavigation', 'toggleNotifications', 'account-command'])
+const emit = defineEmits([
+  'toggleNavigation',
+  'toggleNotifications',
+  'account-command',
+  'choose-school',
+])
 const { t } = useI18n()
 
 const navigationIcon = computed(() => {
@@ -46,8 +54,12 @@ function onAccountCommand(command) {
       <ElButton
         circle
         :icon="navigationIcon"
-        :aria-label="isMobile ? t('adminSystem.shell.drawerToggle') : t('adminSystem.shell.sidebarToggle')"
-        :title="isMobile ? t('adminSystem.shell.drawerToggle') : t('adminSystem.shell.sidebarToggle')"
+        :aria-label="
+          isMobile ? t('adminSystem.shell.drawerToggle') : t('adminSystem.shell.sidebarToggle')
+        "
+        :title="
+          isMobile ? t('adminSystem.shell.drawerToggle') : t('adminSystem.shell.sidebarToggle')
+        "
         @click="emit('toggleNavigation')"
       />
 
@@ -62,6 +74,11 @@ function onAccountCommand(command) {
     </div>
 
     <div class="admin-header__actions">
+      <SchoolContextControl
+        :school="currentSchool"
+        :can-switch="canSwitchSchool"
+        @choose-school="emit('choose-school')"
+      />
       <ElButton
         circle
         :type="notificationPanelOpen ? 'primary' : 'default'"

@@ -11,52 +11,64 @@ import {
 import { authService, SCHOOL_SELECTION_SOURCE_APPROVED } from '@/services/auth/authService'
 
 const lastApprovedSchoolKey = 'schoolmaster.auth.lastApprovedSchoolId'
+const pendingSchoolSelections = new WeakMap()
 
-function readLastApprovedSchoolId() {
+function readLastApprovedSchoolPreference() {
   if (typeof window === 'undefined') {
     return null
   }
-  return window.localStorage.getItem(lastApprovedSchoolKey)
+  try {
+    const value = JSON.parse(window.localStorage.getItem(lastApprovedSchoolKey))
+    if (value?.schoolId && value?.identityId) return value
+  } catch {
+    // Legacy or malformed values are not identity-bound and must not be restored.
+  }
+  window.localStorage.removeItem(lastApprovedSchoolKey)
+  return null
 }
 
-function persistLastApprovedSchoolId(schoolId) {
+function persistLastApprovedSchool(schoolId, identityId) {
   if (typeof window === 'undefined') {
     return
   }
-  if (schoolId) {
-    window.localStorage.setItem(lastApprovedSchoolKey, schoolId)
+  if (schoolId && identityId) {
+    window.localStorage.setItem(lastApprovedSchoolKey, JSON.stringify({ schoolId, identityId }))
   } else {
     window.localStorage.removeItem(lastApprovedSchoolKey)
   }
 }
 
 export const useAuthSessionStore = defineStore('auth-session', {
-  state: () => ({
-    status: AUTH_SESSION_STATUSES.signedOut,
-    hasBootstrapped: false,
-    tokenExpiresAt: null,
-    currentUser: null,
-    roles: [],
-    permissions: [],
-    activeSchool: null,
-    activeStudentProfile: null,
-    currentAcademicPeriod: null,
-    lastApprovedSchoolId: readLastApprovedSchoolId(),
-    requestedRoute: null,
-    feedbackState: null,
-    authorizedSchools: [],
-    schoolSelectionSourceApproved: SCHOOL_SELECTION_SOURCE_APPROVED,
-    passwordResetPending: false,
-    schoolContextGeneration: 0,
-  }),
+  state: () => {
+    const preference = readLastApprovedSchoolPreference()
+    return {
+      status: AUTH_SESSION_STATUSES.signedOut,
+      hasBootstrapped: false,
+      tokenExpiresAt: null,
+      currentUser: null,
+      roles: [],
+      permissions: [],
+      activeSchool: null,
+      activeStudentProfile: null,
+      currentAcademicPeriod: null,
+      lastApprovedSchoolId: preference?.schoolId ?? null,
+      lastApprovedSchoolIdentityId: preference?.identityId ?? null,
+      requestedRoute: null,
+      feedbackState: null,
+      authorizedSchools: [],
+      schoolSelectionSourceApproved: SCHOOL_SELECTION_SOURCE_APPROVED,
+      passwordResetPending: false,
+      schoolContextGeneration: 0,
+      selectionPendingSchoolId: null,
+    }
+  },
 
   getters: {
     isAuthenticated: (state) => state.status === AUTH_SESSION_STATUSES.authenticated,
     isProtectedContentReady: (state) => state.status === AUTH_SESSION_STATUSES.authenticated,
     isBootstrapping: (state) => state.status === AUTH_SESSION_STATUSES.bootstrapping,
     isSystemAdministrator: (state) =>
-      state.status === AUTH_SESSION_STATUSES.authenticated &&
-      isSystemAdministratorSession(state),
+      state.status === AUTH_SESSION_STATUSES.authenticated && isSystemAdministratorSession(state),
     permissionCodes: (state) => {
       const codes = state.permissions
         .filter((permission) => permission.status === 'active')
@@ -89,6 +101,9 @@ export const useAuthSessionStore = defineStore('auth-session', {
       this.activeStudentProfile = null
       this.currentAcademicPeriod = null
       this.authorizedSchools = []
+      this.lastApprovedSchoolId = null
+      this.lastApprovedSchoolIdentityId = null
+      persistLastApprovedSchool(null, null)
     },
 
     clearTenantContext({ clearPersisted = false } = {}) {
@@ -98,11 +113,19 @@ export const useAuthSessionStore = defineStore('auth-session', {
       this.authorizedSchools = []
       if (clearPersisted) {
         this.lastApprovedSchoolId = null
-        persistLastApprovedSchoolId(null)
+        this.lastApprovedSchoolIdentityId = null
+        persistLastApprovedSchool(null, null)
       }
     },
 
     applySession(session, { requiresSchoolContext = false } = {}) {
+      const nextIdentityId = session.currentUser?.id ?? null
+      if (
+        (this.currentUser?.id && this.currentUser.id !== nextIdentityId) ||
+        (this.lastApprovedSchoolIdentityId && this.lastApprovedSchoolIdentityId !== nextIdentityId)
+      ) {
+        this.clearTenantContext({ clearPersisted: true })
+      }
       this.tokenExpiresAt = session.tokenExpiresAt
       this.currentUser = session.currentUser
       this.roles = session.roles
@@ -114,12 +137,11 @@ export const useAuthSessionStore = defineStore('auth-session', {
 
       if (this.activeSchool) {
         this.lastApprovedSchoolId = session.activeSchool.id
-        persistLastApprovedSchoolId(session.activeSchool.id)
+        this.lastApprovedSchoolIdentityId = nextIdentityId
+        persistLastApprovedSchool(session.activeSchool.id, nextIdentityId)
       }
 
-      const needsSchool =
-        requiresSchoolContext &&
-        !this.activeSchool
+      const needsSchool = requiresSchoolContext && !this.activeSchool
       this.status = needsSchool
         ? AUTH_SESSION_STATUSES.selectingSchool
         : AUTH_SESSION_STATUSES.authenticated
@@ -161,12 +183,35 @@ export const useAuthSessionStore = defineStore('auth-session', {
       this.status = AUTH_SESSION_STATUSES.bootstrapping
       this.feedbackState = null
       try {
-        const session = await service.getCurrentUser({
+        let session = await service.getCurrentUser({
           schoolId: this.lastApprovedSchoolId ?? undefined,
         })
+        if (
+          this.lastApprovedSchoolId &&
+          this.lastApprovedSchoolIdentityId !== session.currentUser?.id
+        ) {
+          this.clearTenantContext({ clearPersisted: true })
+          session = await service.getCurrentUser({ schoolId: undefined })
+        }
         this.applySession(session, { requiresSchoolContext })
         return session
       } catch (error) {
+        if (
+          this.lastApprovedSchoolId &&
+          [AUTH_FEEDBACK_STATES.tenantMismatch, AUTH_FEEDBACK_STATES.inactiveSchool].includes(
+            error?.feedback?.state,
+          )
+        ) {
+          this.clearTenantContext({ clearPersisted: true })
+          try {
+            const session = await service.getCurrentUser({ schoolId: undefined })
+            this.applySession(session, { requiresSchoolContext })
+            return session
+          } catch (retryError) {
+            this.applyDeniedState(retryError)
+            throw retryError
+          }
+        }
         this.applyDeniedState(error)
         throw error
       } finally {
@@ -180,38 +225,73 @@ export const useAuthSessionStore = defineStore('auth-session', {
         throw new TypeError('A school identifier is required to switch context.')
       }
 
-      const generation = ++this.schoolContextGeneration
-      this.clearTenantContext()
-      this.status = AUTH_SESSION_STATUSES.selectingSchool
-      this.feedbackState = null
+      const existingSelection = pendingSchoolSelections.get(this)
+      if (existingSelection?.schoolId === requestedSchoolId) return existingSelection.promise
 
-      for (const reset of beforeSwitch) {
-        await reset()
-      }
+      const selection = (async () => {
+        const generation = ++this.schoolContextGeneration
+        this.selectionPendingSchoolId = requestedSchoolId
+        this.clearTenantContext()
+        this.status = AUTH_SESSION_STATUSES.selectingSchool
+        this.feedbackState = null
 
-      try {
-        const session = await service.getCurrentUser({ schoolId: requestedSchoolId })
-        if (generation !== this.schoolContextGeneration) return null
-
-        const selectedSchool = session.activeSchool
-        if (
-          !selectedSchool ||
-          selectedSchool.id !== requestedSchoolId ||
-          selectedSchool.status !== 'active'
-        ) {
-          const error = new Error('Selected school context was not confirmed by the backend.')
-          error.feedback = createAuthFeedbackState(AUTH_FEEDBACK_STATES.inactiveSchool)
-          throw error
+        for (const reset of beforeSwitch) {
+          await reset()
         }
 
-        this.applySession(session, { requiresSchoolContext: true })
-        this.hasBootstrapped = true
-        return session
-      } catch (error) {
-        if (generation !== this.schoolContextGeneration) return null
-        this.applyDeniedState(error)
-        this.hasBootstrapped = true
-        throw error
+        try {
+          const session = await service.getCurrentUser({ schoolId: requestedSchoolId })
+          if (generation !== this.schoolContextGeneration) return null
+
+          const selectedSchool = session.activeSchool
+          if (
+            !selectedSchool ||
+            selectedSchool.id !== requestedSchoolId ||
+            selectedSchool.status !== 'active'
+          ) {
+            const error = new Error('Selected school context was not confirmed by the backend.')
+            error.feedback = createAuthFeedbackState(AUTH_FEEDBACK_STATES.inactiveSchool)
+            throw error
+          }
+
+          this.applySession(session, { requiresSchoolContext: true })
+          this.hasBootstrapped = true
+          return session
+        } catch (error) {
+          if (generation !== this.schoolContextGeneration) return null
+
+          if (
+            error?.status === 401 ||
+            [AUTH_FEEDBACK_STATES.expiredSession, AUTH_FEEDBACK_STATES.unauthorized].includes(
+              error?.feedback?.state,
+            )
+          ) {
+            this.applyDeniedState(error)
+          } else {
+            this.clearTenantContext({
+              clearPersisted: [
+                AUTH_FEEDBACK_STATES.tenantMismatch,
+                AUTH_FEEDBACK_STATES.inactiveSchool,
+              ].includes(error?.feedback?.state),
+            })
+            this.feedbackState =
+              error?.feedback ?? createAuthFeedbackState(AUTH_FEEDBACK_STATES.temporaryUnavailable)
+            this.status = AUTH_SESSION_STATUSES.selectingSchool
+          }
+          this.hasBootstrapped = true
+          throw error
+        }
+      })()
+
+      const pendingSelection = { schoolId: requestedSchoolId, promise: selection }
+      pendingSchoolSelections.set(this, pendingSelection)
+      try {
+        return await selection
+      } finally {
+        if (pendingSchoolSelections.get(this) === pendingSelection) {
+          pendingSchoolSelections.delete(this)
+          this.selectionPendingSchoolId = null
+        }
       }
     },
 
@@ -224,6 +304,24 @@ export const useAuthSessionStore = defineStore('auth-session', {
         this.feedbackState = null
         this.hasBootstrapped = true
       }
+    },
+
+    invalidateSchoolContext({ reason = 'tenant-mismatch', schoolId, generation } = {}) {
+      if (!this.activeSchool) return false
+      if (schoolId && this.activeSchool.id !== schoolId) return false
+      if (generation !== undefined && generation !== this.schoolContextGeneration) return false
+
+      this.schoolContextGeneration += 1
+      this.clearTenantContext({ clearPersisted: true })
+      this.status = this.currentUser
+        ? AUTH_SESSION_STATUSES.authenticated
+        : AUTH_SESSION_STATUSES.signedOut
+      this.feedbackState = createAuthFeedbackState(
+        reason === 'inactive-school'
+          ? AUTH_FEEDBACK_STATES.inactiveSchool
+          : AUTH_FEEDBACK_STATES.tenantMismatch,
+      )
+      return true
     },
 
     async requestPasswordReset(input, service = authService) {

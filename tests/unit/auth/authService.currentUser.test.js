@@ -31,4 +31,33 @@ describe('authService.getCurrentUser', () => {
     )
     await expect(service.getCurrentUser()).rejects.toMatchObject({ feedback: { state } })
   })
+
+  it('maps a contract-accurate numeric active school status', async () => {
+    const response = {
+      ...authSessionEnvelope,
+      data: {
+        ...authSessionEnvelope.data,
+        resolved_school: { ...authSessionEnvelope.data.resolved_school, status: 1 },
+      },
+    }
+    const service = createAuthService(
+      createAuthClient({ get: vi.fn().mockResolvedValue(response) }),
+    )
+
+    await expect(service.getCurrentUser()).resolves.toMatchObject({
+      activeSchool: { status: 'active' },
+    })
+  })
+
+  it('maps nullable resolved_school without inventing a context', async () => {
+    const response = {
+      ...authSessionEnvelope,
+      data: { ...authSessionEnvelope.data, resolved_school: null },
+    }
+    const service = createAuthService(
+      createAuthClient({ get: vi.fn().mockResolvedValue(response) }),
+    )
+
+    await expect(service.getCurrentUser()).resolves.toMatchObject({ activeSchool: null })
+  })
 })

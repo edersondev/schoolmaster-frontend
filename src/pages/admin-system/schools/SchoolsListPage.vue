@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { deriveLifecycleActions } from '@/composables/admin-system/useAdminActionEligibility'
 import { useAdminLifecycleAction } from '@/composables/admin-system/useAdminLifecycleAction'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
+import { applySchoolLifecycleContextOutcome } from '@/composables/auth/schoolContextLifecycle'
 import {
   activateSchool,
   deactivateSchool,
@@ -84,7 +85,13 @@ const lifecycle = useAdminLifecycleAction({
     }
     return services[action](target.id, values)
   },
-  onSuccess: async () => {
+  onSuccess: async (outcome) => {
+    applySchoolLifecycleContextOutcome({
+      action: lifecycle.action.value,
+      targetId: lifecycle.target.value?.id,
+      outcome,
+      session: sessionStore,
+    })
     ElMessage.success(t('administration.common.updateSuccess'))
     await list.load(sanitizeSchoolListQuery(list.query.value))
   },
