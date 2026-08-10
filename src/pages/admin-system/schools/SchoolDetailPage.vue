@@ -7,7 +7,14 @@ import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import { deriveLifecycleActions } from '@/composables/admin-system/useAdminActionEligibility'
 import { useAdminDetail } from '@/composables/admin-system/useAdminDetail'
 import { useAdminLifecycleAction } from '@/composables/admin-system/useAdminLifecycleAction'
-import { activateSchool, deactivateSchool, deleteSchool, getSchool, restoreSchool } from '@/services/admin-system/schools'
+import { applySchoolLifecycleContextOutcome } from '@/composables/auth/schoolContextLifecycle'
+import {
+  activateSchool,
+  deactivateSchool,
+  deleteSchool,
+  getSchool,
+  restoreSchool,
+} from '@/services/admin-system/schools'
 import { createReturnToListLocation } from '@/router/modules/administration-route'
 import AdminDetailPage from '@/components/ui/admin/AdminDetailPage.vue'
 import AdminLifecycleDialog from '@/components/ui/admin/AdminLifecycleDialog.vue'
@@ -27,16 +34,40 @@ const detail = useAdminDetail({
 const canEdit = computed(() => ['schools.view', 'schools.manage'].every(sessionStore.hasPermission))
 const returnTo = computed(() => createReturnToListLocation(route, 'schoolsList'))
 const editTo = computed(() => ({ name: 'schoolEdit', params: route.params, query: route.query }))
-const actions = computed(() => deriveLifecycleActions({ resource: 'schools', status: detail.record.value?.status, permissions: sessionStore.permissionCodes }))
+const actions = computed(() =>
+  deriveLifecycleActions({
+    resource: 'schools',
+    status: detail.record.value?.status,
+    permissions: sessionStore.permissionCodes,
+  }),
+)
 const lifecycle = useAdminLifecycleAction({
   routeName: route.name,
-  submitter: ({ target, action, values }) => ({ activate: activateSchool, deactivate: deactivateSchool, delete: deleteSchool, restore: restoreSchool })[action](target.id, values),
-  onSuccess: async () => {
+  submitter: ({ target, action, values }) =>
+    ({
+      activate: activateSchool,
+      deactivate: deactivateSchool,
+      delete: deleteSchool,
+      restore: restoreSchool,
+    })[action](target.id, values),
+  onSuccess: async (outcome) => {
+    applySchoolLifecycleContextOutcome({
+      action: lifecycle.action.value,
+      targetId: lifecycle.target.value?.id,
+      outcome,
+      session: sessionStore,
+    })
     ElMessage.success(t('administration.common.updateSuccess'))
     await detail.load()
   },
 })
-async function submitLifecycle() { try { await lifecycle.submit() } catch {} }
+async function submitLifecycle() {
+  try {
+    await lifecycle.submit()
+  } catch {
+    // useAdminLifecycleAction owns field and form error state.
+  }
+}
 
 watch(schoolId, () => detail.load(), { immediate: true })
 </script>
@@ -57,5 +88,18 @@ watch(schoolId, () => detail.load(), { immediate: true })
     </template>
     <SchoolDetailSections v-if="detail.record.value" :record="detail.record.value" />
   </AdminDetailPage>
-  <AdminLifecycleDialog v-if="lifecycle.target.value" v-model:open="lifecycle.open.value" v-model:values="lifecycle.form" :action="lifecycle.action.value" :resource-label="lifecycle.target.value?.name ?? ''" resource-type="schools" :current-status="lifecycle.target.value?.status ?? ''" :pending="lifecycle.pending.value" :field-errors="lifecycle.fieldErrors.value" :form-error="lifecycle.formError.value" @submit="submitLifecycle" @cancel="lifecycle.close" />
+  <AdminLifecycleDialog
+    v-if="lifecycle.target.value"
+    v-model:open="lifecycle.open.value"
+    v-model:values="lifecycle.form"
+    :action="lifecycle.action.value"
+    :resource-label="lifecycle.target.value?.name ?? ''"
+    resource-type="schools"
+    :current-status="lifecycle.target.value?.status ?? ''"
+    :pending="lifecycle.pending.value"
+    :field-errors="lifecycle.fieldErrors.value"
+    :form-error="lifecycle.formError.value"
+    @submit="submitLifecycle"
+    @cancel="lifecycle.close"
+  />
 </template>

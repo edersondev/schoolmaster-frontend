@@ -14,6 +14,11 @@ const store = useAuthSessionStore()
 const { feedbackState } = storeToRefs(store)
 
 async function recover(action) {
+  if (action === 'sign-in') {
+    store.clearLifecycleSessionAssumptions()
+    await router.replace({ name: AUTH_ROUTE_NAMES.login })
+    return
+  }
   if (action === 'choose-school') {
     await router.replace({ name: AUTH_ROUTE_NAMES.schoolSelection })
     return

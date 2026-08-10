@@ -42,4 +42,17 @@ describe('AdminShellHeader', () => {
 
     wrapper.unmount()
   })
+
+  it('shows exact current school and remains read-only unless switching is enabled', async () => {
+    const wrapper = mountHeader()
+    await wrapper.setProps({ currentSchool: { id: 'school-1', name: 'Central School' } })
+
+    expect(wrapper.text()).toContain('Central School')
+    expect(wrapper.text()).not.toContain('Choose school')
+    expect(wrapper.emitted('choose-school')).toBeUndefined()
+
+    await wrapper.setProps({ canSwitchSchool: true })
+    await wrapper.get('.el-button--primary').trigger('click')
+    expect(wrapper.emitted('choose-school')).toHaveLength(1)
+  })
 })

@@ -8,6 +8,10 @@ export const adminSystemMessages = {
     noticeToggle: 'Toggle notification placeholder',
     contentLabel: 'Admin content',
     logout: 'Log out',
+    schoolUnresolved: 'No school selected',
+    chooseSchool: 'Choose school',
+    schoolContextInvalidated: 'The previous school context ended.',
+    schoolRestorationFailed: 'The saved school could not be restored.',
   },
   navigation: {
     dashboard: 'Dashboard',

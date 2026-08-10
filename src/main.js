@@ -19,9 +19,13 @@ import { advancedAssessmentMessages } from './i18n/modules/advanced-assessment'
 import { studentSelfServiceMessages } from './i18n/modules/studentSelfService'
 import { teacherWorkflowMessages } from './i18n/modules/teacherWorkflow'
 import globalComponents from './plugins/global-components'
+import { administrationHttpClient } from './services/admin-system/administration-service'
+import { installSchoolContextInvalidationObserver } from './services/api/schoolContextInvalidation'
+import { useAuthSessionStore } from './stores/auth/sessionStore'
 import './assets/styles/main.css'
 
 const app = createApp(App)
+const pinia = createPinia()
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
@@ -47,10 +51,16 @@ const i18n = createI18n({
   },
 })
 
-app.use(createPinia())
+app.use(pinia)
 app.use(i18n)
 app.use(ElementPlus)
 app.use(globalComponents)
 app.use(router)
+
+installSchoolContextInvalidationObserver({
+  client: administrationHttpClient,
+  store: useAuthSessionStore(pinia),
+  router,
+})
 
 app.mount('#app')

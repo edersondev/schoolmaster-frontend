@@ -24,11 +24,17 @@ export const TEACHER_WORKFLOW_PERMISSIONS = Object.freeze({
   adminImport: 'teacher_workflows.admin.import',
 })
 
-const teacherMeta = (title, permissions = [TEACHER_WORKFLOW_PERMISSIONS.viewWorkspace]) => ({
+const teacherMeta = (
+  title,
+  permissions = [TEACHER_WORKFLOW_PERMISSIONS.viewWorkspace],
+  retainAcrossSchoolSwitch = false,
+) => ({
   requiresAuth: true,
   requiresSchoolContext: true,
   title,
   permissions,
+  schoolContextSwitch: retainAcrossSchoolSwitch ? 'retain' : 'discard',
+  contextNeutralQueryKeys: retainAcrossSchoolSwitch ? ['page', 'status', 'search'] : [],
 })
 
 export const teacherWorkflowRoutes = [
@@ -41,7 +47,7 @@ export const teacherWorkflowRoutes = [
         path: 'content',
         name: TEACHER_WORKFLOW_ROUTE_NAMES.content,
         component: TeacherContentListView,
-        meta: teacherMeta('teacherWorkflow.navigation.content'),
+        meta: teacherMeta('teacherWorkflow.navigation.content', undefined, true),
       },
       {
         path: 'content/:contentItemId',
@@ -53,7 +59,7 @@ export const teacherWorkflowRoutes = [
         path: 'questionnaires',
         name: TEACHER_WORKFLOW_ROUTE_NAMES.questionnaires,
         component: QuestionnaireListView,
-        meta: teacherMeta('teacherWorkflow.navigation.questionnaires'),
+        meta: teacherMeta('teacherWorkflow.navigation.questionnaires', undefined, true),
       },
       {
         path: 'questionnaires/create',
@@ -71,7 +77,7 @@ export const teacherWorkflowRoutes = [
         path: 'learning-sets',
         name: TEACHER_WORKFLOW_ROUTE_NAMES.learningSets,
         component: LearningSetListView,
-        meta: teacherMeta('teacherWorkflow.navigation.learningSets'),
+        meta: teacherMeta('teacherWorkflow.navigation.learningSets', undefined, true),
       },
       {
         path: 'learning-sets/:learningSetId',
@@ -83,13 +89,13 @@ export const teacherWorkflowRoutes = [
         path: 'grades',
         name: TEACHER_WORKFLOW_ROUTE_NAMES.grades,
         component: GradeRecordsView,
-        meta: teacherMeta('teacherWorkflow.navigation.grades'),
+        meta: teacherMeta('teacherWorkflow.navigation.grades', undefined, true),
       },
       {
         path: 'attendance',
         name: TEACHER_WORKFLOW_ROUTE_NAMES.attendance,
         component: AttendanceRecordsView,
-        meta: teacherMeta('teacherWorkflow.navigation.attendance'),
+        meta: teacherMeta('teacherWorkflow.navigation.attendance', undefined, true),
       },
     ],
   },
@@ -97,24 +103,30 @@ export const teacherWorkflowRoutes = [
     path: '/admin/teacher-workflow/materials',
     name: TEACHER_WORKFLOW_ROUTE_NAMES.adminMaterials,
     component: AdminTeacherMaterialsView,
-    meta: teacherMeta('teacherWorkflow.navigation.adminMaterials', [
-      TEACHER_WORKFLOW_PERMISSIONS.adminObserve,
-    ]),
+    meta: teacherMeta(
+      'teacherWorkflow.navigation.adminMaterials',
+      [TEACHER_WORKFLOW_PERMISSIONS.adminObserve],
+      true,
+    ),
   },
   {
     path: '/admin/teacher-workflow/academic-records',
     name: TEACHER_WORKFLOW_ROUTE_NAMES.adminAcademicRecords,
     component: AdminAcademicRecordsView,
-    meta: teacherMeta('teacherWorkflow.navigation.adminRecords', [
-      TEACHER_WORKFLOW_PERMISSIONS.adminObserve,
-    ]),
+    meta: teacherMeta(
+      'teacherWorkflow.navigation.adminRecords',
+      [TEACHER_WORKFLOW_PERMISSIONS.adminObserve],
+      true,
+    ),
   },
   {
     path: '/admin/teacher-workflow/imports',
     name: TEACHER_WORKFLOW_ROUTE_NAMES.adminImports,
     component: AdminTeacherWorkflowImportsView,
-    meta: teacherMeta('teacherWorkflow.navigation.imports', [
-      TEACHER_WORKFLOW_PERMISSIONS.adminImport,
-    ]),
+    meta: teacherMeta(
+      'teacherWorkflow.navigation.imports',
+      [TEACHER_WORKFLOW_PERMISSIONS.adminImport],
+      true,
+    ),
   },
 ]

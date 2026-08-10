@@ -32,6 +32,7 @@ router.beforeEach((to, from) => {
   const guard = createAuthGuard({
     store,
     fallbackRoute: getAdminFallbackRoute,
+    router,
   })
   return guard(to, from)
 })

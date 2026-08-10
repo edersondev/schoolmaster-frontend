@@ -147,13 +147,22 @@ function mapSchool(school) {
     name: school.name ?? '',
     code: school.code ?? school.cnpj ?? '',
     cnpj: school.cnpj ?? school.code ?? '',
-    status: school.status ?? '',
+    status: mapSchoolStatus(school.status),
+    inepCode: school.inep_code ?? school.inepCode ?? '',
     timezone: school.timezone ?? school.time_zone ?? null,
     timeZone: school.timezone ?? school.time_zone ?? null,
     contactEmail: school.contact_email ?? null,
     contactPhone: school.contact_phone ?? null,
     address: mapAddress(school.address),
+    city: school.address?.city ?? school.city ?? '',
+    state: school.address?.state ?? school.state ?? '',
   }
+}
+
+function mapSchoolStatus(status) {
+  if (status === 1 || status === '1') return 'active'
+  if (status === 0 || status === '0') return 'inactive'
+  return status ?? ''
 }
 
 function mapCurrentUser(user = {}) {
@@ -165,7 +174,10 @@ function mapCurrentUser(user = {}) {
     status: user.status ?? '',
     roles: Array.isArray(user.roles) ? user.roles.map(mapRole) : [],
     guardianAccessState:
-      user.guardian_access_state ?? user.guardian_self_service_access ?? user.guardianAccessState ?? null,
+      user.guardian_access_state ??
+      user.guardian_self_service_access ??
+      user.guardianAccessState ??
+      null,
   }
 }
 
@@ -271,6 +283,10 @@ export function mapRequestedRoute(route, createdFrom) {
     routeQuery: { ...route.query },
     requiresSchoolContext: route.meta?.requiresSchoolContext === true,
     requiredPermissions: [...(route.meta?.permissions ?? route.meta?.requiredPermissions ?? [])],
+    schoolContextSwitch: route.meta?.schoolContextSwitch ?? 'discard',
+    contextNeutralQueryKeys: [...(route.meta?.contextNeutralQueryKeys ?? [])],
+    featureEnabled: route.meta?.featureEnabled,
+    released: route.meta?.released,
     createdFrom,
   }
 }

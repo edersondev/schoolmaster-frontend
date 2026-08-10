@@ -61,7 +61,15 @@ export function validateSchoolForm(form = {}) {
   }
 
   if (!form.removeAddress) {
-    for (const field of ['zipCode', 'street', 'number', 'neighborhood', 'city', 'state', 'country']) {
+    for (const field of [
+      'zipCode',
+      'street',
+      'number',
+      'neighborhood',
+      'city',
+      'state',
+      'country',
+    ]) {
       if (!isPresent(form.address?.[field])) {
         errors[`address.${toSnakeCase(field)}`] = [requiredAddressMessages[field]]
       }
@@ -101,8 +109,11 @@ export function mapSchool(record) {
 
   return {
     ...mapped,
+    inepCode: record.inep_code ?? record.inepCode ?? '',
     cnpj: normalizeCnpj(record.cnpj ?? record.document),
     status: mapSchoolStatus(record.status),
+    city: mapped.address?.city ?? record.city ?? '',
+    state: mapped.address?.state ?? record.state ?? '',
     contactEmail: mapped.contactEmail ?? record.email ?? null,
     contactPhone: mapped.contactPhone ?? record.phone ?? null,
   }

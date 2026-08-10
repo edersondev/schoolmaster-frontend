@@ -57,4 +57,62 @@ describe('System Administrator school context', () => {
       }),
     ).resolves.toEqual({ name: 'authSchoolSelection' })
   })
+
+  it('blocks duplicate confirmation submissions while one is pending', async () => {
+    const store = useAuthSessionStore()
+    store.status = 'authenticated'
+    store.currentUser = { id: 'system-administrator' }
+    store.roles = [systemAdministratorRole]
+    let resolveSession
+    const service = {
+      getCurrentUser: vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveSession = resolve
+          }),
+      ),
+    }
+
+    const first = store.selectSchool(activeSchool.id, { service })
+    const duplicate = store.selectSchool(activeSchool.id, { service })
+    resolveSession(mapAuthSession(backendSessionForSchool()))
+    await Promise.all([first, duplicate])
+
+    expect(service.getCurrentUser).toHaveBeenCalledTimes(1)
+  })
+
+  it('preserves identity after a recoverable selection failure', async () => {
+    const store = useAuthSessionStore()
+    store.status = 'authenticated'
+    store.currentUser = { id: 'system-administrator' }
+    store.roles = [systemAdministratorRole]
+    const error = { status: 403, feedback: { state: 'tenant-mismatch' } }
+
+    await expect(
+      store.selectSchool(activeSchool.id, {
+        service: { getCurrentUser: vi.fn().mockRejectedValue(error) },
+      }),
+    ).rejects.toBe(error)
+
+    expect(store.currentUser.id).toBe('system-administrator')
+    expect(store.activeSchool).toBeNull()
+    expect(store.status).toBe('selecting-school')
+  })
+
+  it('clears identity after token rejection during confirmation', async () => {
+    const store = useAuthSessionStore()
+    store.status = 'authenticated'
+    store.currentUser = { id: 'system-administrator' }
+    store.roles = [systemAdministratorRole]
+    const error = { status: 401, feedback: { state: 'expired-session' } }
+
+    await expect(
+      store.selectSchool(activeSchool.id, {
+        service: { getCurrentUser: vi.fn().mockRejectedValue(error) },
+      }),
+    ).rejects.toBe(error)
+
+    expect(store.currentUser).toBeNull()
+    expect(store.status).toBe('expired-session')
+  })
 })
