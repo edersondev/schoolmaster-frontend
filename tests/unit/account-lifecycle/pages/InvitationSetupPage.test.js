@@ -19,4 +19,3 @@ describe('InvitationSetupPage', () => {
     expect(wrapper.find('input[name="password"]').exists()).toBe(true)
   })
 })
-

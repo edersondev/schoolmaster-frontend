@@ -69,6 +69,8 @@ export const useAuthSessionStore = defineStore('auth-session', {
     isBootstrapping: (state) => state.status === AUTH_SESSION_STATUSES.bootstrapping,
     isSystemAdministrator: (state) =>
       state.status === AUTH_SESSION_STATUSES.authenticated && isSystemAdministratorSession(state),
+    hasActiveSystemAdministratorRole: (state) => isSystemAdministratorSession(state),
+    scopedPermissions: (state) => state.permissions.map((permission) => ({ ...permission })),
     permissionCodes: (state) => {
       const codes = state.permissions
         .filter((permission) => permission.status === 'active')
@@ -83,6 +85,16 @@ export const useAuthSessionStore = defineStore('auth-session', {
       return (permissionCode) =>
         this.permissionCodes.includes(AUTH_ALL_PERMISSIONS) ||
         this.permissionCodes.includes(permissionCode)
+    },
+    hasScopedPermission() {
+      return (permissionCode, scope) =>
+        this.hasActiveSystemAdministratorRole ||
+        this.scopedPermissions.some(
+          (permission) =>
+            permission.code === permissionCode &&
+            permission.scope === scope &&
+            permission.status === 'active',
+        )
     },
     tenantReady: (state) =>
       state.status === AUTH_SESSION_STATUSES.authenticated &&

@@ -132,6 +132,14 @@ export function hasRequiredFeaturePermissions(session = {}, requiredPermissions 
   return requiredPermissions.every((permission) => activePermissionCodes.includes(permission))
 }
 
+export function hasAnyFeaturePermission(session = {}, permissions = []) {
+  if (permissions.length === 0 || hasPrivilegedAccess(session)) return true
+
+  return (session.permissions ?? []).some(
+    (permission) => permission.status === 'active' && permissions.includes(permission.code),
+  )
+}
+
 export function isActiveSchoolContext(school) {
   if (!school?.id) return false
   return !school.status || school.status === 'active'
@@ -277,13 +285,20 @@ export function createAuthFeedbackState(state, options = {}) {
 }
 
 export function mapRequestedRoute(route, createdFrom) {
+  const dynamicSchoolLookup =
+    route.meta?.userLookupMode === true && route.query?.user_mode === 'school'
+
   return {
     routeName: route.name ?? null,
     routeParams: { ...route.params },
     routeQuery: { ...route.query },
-    requiresSchoolContext: route.meta?.requiresSchoolContext === true,
+    requiresSchoolContext: route.meta?.requiresSchoolContext === true || dynamicSchoolLookup,
     requiredPermissions: [...(route.meta?.permissions ?? route.meta?.requiredPermissions ?? [])],
-    schoolContextSwitch: route.meta?.schoolContextSwitch ?? 'discard',
+    anyPermissions: [...(route.meta?.anyPermissions ?? [])],
+    schoolContextSwitch:
+      dynamicSchoolLookup && route.meta?.mode === 'list'
+        ? 'retain'
+        : (route.meta?.schoolContextSwitch ?? 'discard'),
     contextNeutralQueryKeys: [...(route.meta?.contextNeutralQueryKeys ?? [])],
     featureEnabled: route.meta?.featureEnabled,
     released: route.meta?.released,

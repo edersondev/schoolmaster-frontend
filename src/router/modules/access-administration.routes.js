@@ -62,7 +62,8 @@ export const accessAdministrationRoutes = [
   createAdministrationRoute({
     path: 'teacher-assignments/:teacherAssignmentId',
     name: 'teacherAssignmentDetail',
-    component: () => import('@/pages/admin-system/teacher-assignments/TeacherAssignmentDetailPage.vue'),
+    component: () =>
+      import('@/pages/admin-system/teacher-assignments/TeacherAssignmentDetailPage.vue'),
     title: 'studentEnrollmentRoster.teacherAssignments.detail',
     permissions: ['teacher_assignments.view'],
     returnListRoute: 'teacherAssignmentsList',
@@ -74,7 +75,10 @@ export const accessAdministrationRoutes = [
     name: 'usersList',
     component: () => import('@/pages/admin-system/users/UsersListPage.vue'),
     title: 'navigation.users',
-    permissions: ['users.view'],
+    permissions: [],
+    anyPermissions: ['users.view', 'schools.view'],
+    userLookupMode: true,
+    schoolContext: false,
     order: 30,
   }),
   createAdministrationRoute({
@@ -89,7 +93,10 @@ export const accessAdministrationRoutes = [
     name: 'userDetail',
     component: () => import('@/pages/admin-system/users/UserDetailPage.vue'),
     title: 'navigation.userDetail',
-    permissions: ['users.view'],
+    permissions: [],
+    anyPermissions: ['users.view', 'schools.view'],
+    userLookupMode: true,
+    schoolContext: false,
     returnListRoute: 'usersList',
     mode: 'detail',
     resource: 'users',

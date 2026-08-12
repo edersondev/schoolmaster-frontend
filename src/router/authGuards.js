@@ -2,6 +2,7 @@ import {
   AUTH_FEEDBACK_STATES,
   AUTH_SESSION_STATUSES,
   hasRequiredFeaturePermissions,
+  hasAnyFeaturePermission,
   isActiveSchoolContext,
   mapRequestedRoute,
 } from '@/contracts/auth/authSession.contract'
@@ -24,6 +25,7 @@ export function resolveRequestedRoute(requestedRoute, session, router = null) {
   if (!hasRequiredFeaturePermissions(session, requestedRoute.requiredPermissions)) {
     return null
   }
+  if (!hasAnyFeaturePermission(session, requestedRoute.anyPermissions ?? [])) return null
 
   if (router) return resolveSchoolContextRoute(requestedRoute, router)
 
@@ -114,6 +116,20 @@ export function createAuthGuard({ store, fallbackRoute, router = null }) {
     if (!hasRequiredFeaturePermissions(store, requiredPermissions)) {
       store.setFeedbackState?.(AUTH_FEEDBACK_STATES.forbidden)
       return { name: AUTH_ROUTE_NAMES.state }
+    }
+    if (!hasAnyFeaturePermission(store, to.meta.anyPermissions ?? [])) {
+      store.setFeedbackState?.(AUTH_FEEDBACK_STATES.forbidden)
+      return { name: AUTH_ROUTE_NAMES.state }
+    }
+
+    if (
+      to.meta.userLookupMode === true &&
+      to.query.user_mode === 'school' &&
+      !isActiveSchoolContext(store.activeSchool)
+    ) {
+      store.captureRequestedRoute?.(to, 'missing-school-context')
+      store.status = AUTH_SESSION_STATUSES.selectingSchool
+      return { name: AUTH_ROUTE_NAMES.schoolSelection }
     }
 
     if (to.meta.requiresSchoolContext && !isActiveSchoolContext(store.activeSchool)) {

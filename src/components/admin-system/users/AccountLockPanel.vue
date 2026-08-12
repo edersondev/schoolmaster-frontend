@@ -5,6 +5,7 @@ defineProps({
   lock: { type: Object, default: null },
   loading: { type: Boolean, default: false },
   hidden: { type: Boolean, default: false },
+  error: { type: Object, default: null },
 })
 
 const { t } = useI18n()
@@ -18,6 +19,13 @@ const { t } = useI18n()
       </h3>
     </header>
     <ElSkeleton v-if="loading" :rows="3" animated />
+    <ElAlert
+      v-else-if="error"
+      :title="t(`administrationLifecycle.${error.messageKey ?? 'conflict.unknown'}`)"
+      type="error"
+      :closable="false"
+      show-icon
+    />
     <p v-else-if="!lock || lock.status === 'none'" class="text-sm text-sm-muted">
       {{ t('accountLifecycle.lock.empty') }}
     </p>
@@ -45,4 +53,3 @@ const { t } = useI18n()
     </dl>
   </section>
 </template>
-

@@ -19,6 +19,20 @@ describe('users service', () => {
       full_name: 'A',
       email: 'a@b.test',
       role_ids: ['r'],
+      account_setup_mode: 'active',
+    })
+
+    await service.createUser(
+      {
+        fullName: 'Invited',
+        email: 'invited@b.test',
+        roleIds: ['r'],
+        accountSetupMode: 'invitation',
+      },
+      { schoolId },
+    )
+    expect(client.post.mock.calls[1][1]).toMatchObject({
+      account_setup_mode: 'invitation',
     })
   })
 

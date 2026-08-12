@@ -13,7 +13,13 @@ describe('admin account lifecycle service', () => {
 
     await expect(
       service.createAccountInvitation(
-        { scope: 'school', schoolId, fullName: 'Avery', email: 'avery@example.com', roleIds: ['role-1'] },
+        {
+          scope: 'school',
+          schoolId,
+          fullName: 'Avery',
+          email: 'avery@example.com',
+          roleIds: ['role-1'],
+        },
         { schoolId },
       ),
     ).resolves.toMatchObject({ id: 'inv-1', userId })
@@ -35,5 +41,72 @@ describe('admin account lifecycle service', () => {
       operationId: 'getAccountLock',
     })
   })
-})
 
+  it('uses exact lock, unlock, recovery, and reactivation requests with abort signals', async () => {
+    const client = createClient({
+      get: vi.fn().mockResolvedValue({ data: { data: { user_id: userId, status: 'none' } } }),
+      post: vi.fn().mockResolvedValue({ data: { data: { user_id: userId, status: 'active' } } }),
+      delete: vi.fn().mockResolvedValue({
+        data: { data: { user_id: userId, status: 'active', action: 'account_unlocked' } },
+      }),
+    })
+    const service = createAdminAccountLifecycleService(client, () => 'token')
+    const controller = new AbortController()
+
+    await service.getAccountLock(userId, { schoolId, signal: controller.signal })
+    await service.lockAccount(
+      userId,
+      { reason: ' Security review ' },
+      { schoolId, signal: controller.signal },
+    )
+    await service.unlockAccount(userId, { schoolId, signal: controller.signal })
+    await service.reactivateAccount(
+      userId,
+      { action: 'recover', reason: ' Verified ' },
+      { schoolId, signal: controller.signal },
+    )
+    await service.reactivateAccount(
+      userId,
+      { action: 'reactivate' },
+      { schoolId, signal: controller.signal },
+    )
+
+    expect(client.get).toHaveBeenCalledWith(
+      `/api/v1/users/${userId}/account-lock`,
+      expect.objectContaining({ signal: controller.signal }),
+    )
+    expect(client.post).toHaveBeenNthCalledWith(
+      1,
+      `/api/v1/users/${userId}/account-lock`,
+      { reason: 'Security review' },
+      expect.objectContaining({ signal: controller.signal }),
+    )
+    expect(client.delete).toHaveBeenCalledWith(
+      `/api/v1/users/${userId}/account-lock`,
+      expect.objectContaining({ signal: controller.signal }),
+    )
+    expect(client.post).toHaveBeenNthCalledWith(
+      2,
+      `/api/v1/users/${userId}/account-reactivation`,
+      { action: 'unlock', reason: 'Verified' },
+      expect.objectContaining({ signal: controller.signal }),
+    )
+    expect(client.post).toHaveBeenNthCalledWith(
+      3,
+      `/api/v1/users/${userId}/account-reactivation`,
+      { action: 'reactivate' },
+      expect.objectContaining({ signal: controller.signal }),
+    )
+  })
+
+  it('omits the school header for platform targets', async () => {
+    const client = createClient({
+      get: vi.fn().mockResolvedValue({ data: { data: { user_id: userId, status: 'none' } } }),
+    })
+    const service = createAdminAccountLifecycleService(client, () => 'token')
+
+    await service.getAccountLock(userId)
+
+    expect(client.get.mock.calls[0][1].headers).not.toHaveProperty('X-School-Id')
+  })
+})

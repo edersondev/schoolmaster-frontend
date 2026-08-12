@@ -8,6 +8,7 @@ defineProps({
   roles: { type: Array, default: () => [] },
   rolesLoading: { type: Boolean, default: false },
   showStatus: { type: Boolean, default: false },
+  showAccountSetupMode: { type: Boolean, default: false },
   lookupMeta: {
     type: Object,
     default: () => ({ page: 1, perPage: 25, total: 0 }),
@@ -36,6 +37,16 @@ const { t } = useI18n()
       <ElSelect v-model="model.status" class="w-full">
         <ElOption :label="t('administration.common.active')" value="active" />
         <ElOption :label="t('administration.common.inactive')" value="inactive" />
+      </ElSelect>
+    </ElFormItem>
+    <ElFormItem
+      v-if="showAccountSetupMode"
+      :label="t('administration.users.accountSetupMode')"
+      :error="errors.account_setup_mode?.[0]"
+    >
+      <ElSelect v-model="model.accountSetupMode" class="w-full">
+        <ElOption :label="t('administration.users.setupActive')" value="active" />
+        <ElOption :label="t('administration.users.setupInvitation')" value="invitation" />
       </ElSelect>
     </ElFormItem>
     <ElFormItem

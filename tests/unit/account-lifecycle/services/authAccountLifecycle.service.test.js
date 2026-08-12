@@ -12,7 +12,10 @@ describe('auth account lifecycle service', () => {
     const service = createAuthAccountLifecycleService(client)
 
     await expect(
-      service.completeAccountInvitation({ invitationToken: validToken, password: 'valid-password' }),
+      service.completeAccountInvitation({
+        invitationToken: validToken,
+        password: 'valid-password',
+      }),
     ).resolves.toMatchObject({ userId: 'user-1' })
     expect(client.post).toHaveBeenCalledWith(
       `/api/v1/account-invitations/${validToken}/setup`,
@@ -33,7 +36,9 @@ describe('auth account lifecycle service', () => {
 
     const validationService = createAuthAccountLifecycleService(
       createClient({
-        post: vi.fn().mockRejectedValue(lifecycleError('validation_failed', 422, { password: ['Weak'] })),
+        post: vi
+          .fn()
+          .mockRejectedValue(lifecycleError('validation_failed', 422, { password: ['Weak'] })),
       }),
     )
     await expect(
@@ -41,4 +46,3 @@ describe('auth account lifecycle service', () => {
     ).rejects.toMatchObject({ feedback: { state: 'validation' } })
   })
 })
-

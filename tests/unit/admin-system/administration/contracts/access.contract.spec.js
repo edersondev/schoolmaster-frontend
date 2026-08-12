@@ -24,6 +24,7 @@ describe('access contracts', () => {
         full_name: 'A',
         email: 'a@b.test',
         role_ids: [],
+        account_setup_mode: 'active',
       },
     )
     expect(mapRoleCreateRequest({ ...createRoleForm(), name: 'Admin' }).scope).toBe('school')

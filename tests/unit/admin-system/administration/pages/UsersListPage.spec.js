@@ -57,11 +57,11 @@ const UserTableStub = {
 async function mountPage() {
   const plugins = administrationPlugins()
   const sessionStore = useAuthSessionStore()
-  sessionStore.activeSchool = { id: schoolId, name: 'Northfield Academy' }
+  sessionStore.activeSchool = { id: schoolId, name: 'Northfield Academy', status: 'active' }
   sessionStore.permissions = [
-    { code: 'users.view', status: 'active' },
-    { code: 'users.manage', status: 'active' },
-    { code: 'roles.view', status: 'active' },
+    { code: 'users.view', scope: 'school', status: 'active' },
+    { code: 'users.manage', scope: 'school', status: 'active' },
+    { code: 'roles.view', scope: 'school', status: 'active' },
   ]
 
   const router = createRouter({
@@ -115,7 +115,7 @@ describe('UsersListPage', () => {
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('userEdit')
     expect(router.currentRoute.value.params.userId).toBe(recordId)
-    expect(router.currentRoute.value.query).toEqual({ status: 'active' })
+    expect(router.currentRoute.value.query).toEqual({ status: 'active', user_mode: 'school' })
 
     expect(deleteUser).not.toHaveBeenCalled()
   })

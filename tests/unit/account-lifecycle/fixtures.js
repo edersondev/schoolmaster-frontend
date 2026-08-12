@@ -61,9 +61,9 @@ export function lifecycleError(code, status = 422, details = {}) {
 
 export const userRecord = Object.freeze({
   id: userId,
+  schoolId,
   fullName: 'Avery Stone',
   email: 'avery@example.com',
   status: 'active',
   roles: [{ id: 'role-1' }],
 })
-

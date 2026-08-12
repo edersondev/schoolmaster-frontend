@@ -18,4 +18,3 @@ describe('account lifecycle action requests', () => {
     })
   })
 })
-

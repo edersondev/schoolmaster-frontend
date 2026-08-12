@@ -21,6 +21,7 @@ import {
 } from '@/services/admin-system/users'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import { useAdministrationResourceList } from '@/composables/admin-system/useAdministrationResourceList'
+import { resolveUserLookupMode, userLookupRouteQuery } from '@/contracts/admin-system/user-lookup'
 import AdminListPage from '@/components/ui/admin/AdminListPage.vue'
 import AdminLifecycleDialog from '@/components/ui/admin/AdminLifecycleDialog.vue'
 import AdminBulkActionBar from '@/components/ui/admin/AdminBulkActionBar.vue'
@@ -32,19 +33,44 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const sessionStore = useAuthSessionStore()
-const { activeSchool } = storeToRefs(sessionStore)
-const tenantId = computed(() => activeSchool.value?.id ?? null)
+const { activeSchool, roles, scopedPermissions } = storeToRefs(sessionStore)
+const lookupMode = computed(() =>
+  resolveUserLookupMode({
+    requestedMode: route.query.user_mode ?? null,
+    activeSchool: activeSchool.value,
+    permissions: scopedPermissions.value,
+    roles: roles.value,
+  }),
+)
+const tenantId = computed(() => lookupMode.value?.schoolId ?? null)
+
+watch(
+  () => lookupMode.value?.scope,
+  (scope) => {
+    if (scope && route.query.user_mode !== scope) {
+      void router.replace({ query: userLookupRouteQuery(lookupMode.value, route.query) })
+    }
+  },
+  { immediate: true },
+)
 const list = useAdministrationResourceList({
   resource: 'users',
   loader: listUsers,
   operationId: 'listUsers',
-  tenantOwned: true,
+  tenantOwned: false,
+  tenantId,
+  enabled: computed(() => Boolean(lookupMode.value)),
 })
 const canManage = computed(() => list.can(['users.view', 'users.manage', 'roles.view']))
 const lifecycle = useAdminLifecycleAction({
   routeName: route.name,
   submitter: ({ target, action, values }) => {
-    const services = { activate: activateUser, deactivate: deactivateUser, delete: deleteUser, restore: restoreUser }
+    const services = {
+      activate: activateUser,
+      deactivate: deactivateUser,
+      delete: deleteUser,
+      restore: restoreUser,
+    }
     return services[action](target.id, values, { schoolId: tenantId.value })
   },
   onSuccess: async () => {
@@ -84,14 +110,18 @@ watch(
 )
 
 function onView(row) {
-  router.push({ name: 'userDetail', params: { userId: row.id }, query: route.query })
+  router.push({
+    name: 'userDetail',
+    params: { userId: row.id },
+    query: userLookupRouteQuery(lookupMode.value, route.query),
+  })
 }
 
 function onEdit(row) {
   router.push({
     name: 'userEdit',
     params: { userId: row.id },
-    query: route.query,
+    query: userLookupRouteQuery(lookupMode.value, route.query),
   })
 }
 
@@ -147,7 +177,11 @@ async function submitBulkLifecycle() {
       :actions="bulkActions"
       :over-limit="bulk.overLimit.value"
       :pending="bulk.pending.value"
-      @action="(action) => { bulk.action.value = action }"
+      @action="
+        (action) => {
+          bulk.action.value = action
+        }
+      "
       @clear="bulk.clearSelection"
     />
     <UserTable
@@ -187,7 +221,11 @@ async function submitBulkLifecycle() {
   <AdminLifecycleDialog
     v-if="bulk.selectedCount.value > 0 && bulk.action.value"
     :open="Boolean(bulk.action.value)"
-    @update:open="(open) => { if (!open) bulk.action.value = null }"
+    @update:open="
+      (open) => {
+        if (!open) bulk.action.value = null
+      }
+    "
     v-model:values="bulk.form"
     :action="bulk.action.value"
     resource-type="users"
@@ -197,6 +235,10 @@ async function submitBulkLifecycle() {
     :field-errors="bulk.fieldErrors.value"
     :form-error="bulk.formError.value"
     @submit="submitBulkLifecycle"
-    @cancel="() => { bulk.action.value = null }"
+    @cancel="
+      () => {
+        bulk.action.value = null
+      }
+    "
   />
 </template>
