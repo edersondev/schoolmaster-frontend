@@ -155,21 +155,32 @@ test('authorized lifecycle detail uses exact school mode and remains responsive'
     const overflow = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,
       scrollWidth: document.documentElement.scrollWidth,
+      rootOverflowX: getComputedStyle(document.documentElement).overflowX,
+      bodyOverflowX: getComputedStyle(document.body).overflowX,
       offenders: [...document.querySelectorAll('body *')]
-        .filter(
-          (element) =>
-            element.getBoundingClientRect().right > document.documentElement.clientWidth + 2,
-        )
+        .filter((element) => {
+          const rect = element.getBoundingClientRect()
+          return (
+            rect.left < -2 ||
+            rect.right > document.documentElement.clientWidth + 2 ||
+            element.scrollWidth > element.clientWidth + 2
+          )
+        })
         .slice(0, 8)
         .map((element) => ({
           tag: element.tagName,
           className: element.className?.toString?.() ?? '',
+          left: element.getBoundingClientRect().left,
           right: element.getBoundingClientRect().right,
+          clientWidth: element.clientWidth,
+          scrollWidth: element.scrollWidth,
         })),
     }))
     expect(overflow.scrollWidth, JSON.stringify(overflow)).toBeLessThanOrEqual(
       overflow.clientWidth + 2,
     )
+    expect(['hidden', 'clip']).not.toContain(overflow.rootOverflowX)
+    expect(['hidden', 'clip']).not.toContain(overflow.bodyOverflowX)
 
     if (width === 390) {
       const lockButton = page.getByRole('button', { name: 'Lock account' })

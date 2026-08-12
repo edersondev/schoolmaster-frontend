@@ -58,7 +58,7 @@ vi.mock('@/services/admin-system/users', () => ({
   restoreUser: vi.fn(),
 }))
 
-async function mountPage(blocked = false) {
+async function mountPage(blocked = false, mode = 'school') {
   const plugins = lifecyclePlugins()
   const session = useAuthSessionStore()
   session.status = 'authenticated'
@@ -67,9 +67,24 @@ async function mountPage(blocked = false) {
   session.roles = []
   session.permissions = [
     { code: 'users.view', scope: 'school', status: 'active' },
+    { code: 'users.manage', scope: 'school', status: 'active' },
+    { code: 'roles.view', scope: 'school', status: 'active' },
     { code: 'account_lifecycle.manage', scope: 'school', status: 'active' },
   ]
-  detail.record.value = { ...userRecord }
+  if (mode === 'platform') {
+    session.roles = [{ name: 'System Administrator', scope: 'platform', status: 'active' }]
+    session.permissions.push(
+      { code: 'schools.view', scope: 'platform', status: 'active' },
+      { code: 'users.view', scope: 'platform', status: 'active' },
+      { code: 'users.manage', scope: 'platform', status: 'active' },
+      { code: 'roles.view', scope: 'platform', status: 'active' },
+      { code: 'account_lifecycle.manage', scope: 'platform', status: 'active' },
+    )
+  }
+  detail.record.value = {
+    ...userRecord,
+    schoolId: mode === 'platform' ? null : userRecord.schoolId,
+  }
   accountLifecycle.eligibility.value = { blocked, canLock: !blocked }
 
   const router = createRouter({
@@ -80,14 +95,18 @@ async function mountPage(blocked = false) {
       { path: '/admin/users/:userId/edit', name: 'userEdit', component: { template: '<div />' } },
     ],
   })
-  await router.push(`/admin/users/${userRecord.id}?user_mode=school`)
+  await router.push(`/admin/users/${userRecord.id}?user_mode=${mode}`)
   await router.isReady()
 
   return mount(UserDetailPage, {
     global: {
       plugins: [...plugins, router],
       stubs: {
-        AdminDetailPage: { template: '<main><slot name="actions"/><slot/></main>' },
+        AdminDetailPage: {
+          props: ['canEdit'],
+          template:
+            '<main><button v-if="canEdit" data-test="detail-edit">Edit</button><slot name="actions"/><slot/></main>',
+        },
         AdminRowActions: true,
         UserDetailSections: true,
         UserInvitationPanel: { template: '<section data-test="invitation-panel" />' },
@@ -123,5 +142,11 @@ describe('UserDetail account lifecycle integration', () => {
     expect(wrapper.find('[data-test="invitation-panel"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="lock-panel"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="lifecycle-action"]').exists()).toBe(false)
+  })
+
+  it('does not expose the school-only editor for a platform user', async () => {
+    const wrapper = await mountPage(false, 'platform')
+
+    expect(wrapper.find('[data-test="detail-edit"]').exists()).toBe(false)
   })
 })

@@ -21,20 +21,13 @@
   --sm-color-brand-strong: #115e59;
 }
 
-html {
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
 body {
   margin: 0;
-  max-width: 100%;
   min-width: 320px;
   min-height: 100vh;
   background: var(--sm-color-bg);
   color: var(--sm-color-text);
   font-family: 'Aptos', 'Segoe UI', sans-serif;
-  overflow-x: hidden;
 }
 
 #app {

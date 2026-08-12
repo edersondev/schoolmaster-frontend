@@ -62,6 +62,7 @@ const list = useAdministrationResourceList({
   enabled: computed(() => Boolean(lookupMode.value)),
 })
 const canManage = computed(() => list.can(['users.view', 'users.manage', 'roles.view']))
+const canEdit = computed(() => lookupMode.value?.scope === 'school' && canManage.value)
 const lifecycle = useAdminLifecycleAction({
   routeName: route.name,
   submitter: ({ target, action, values }) => {
@@ -145,13 +146,17 @@ function onToggleSelection({ row, checked }) {
 async function submitLifecycle() {
   try {
     await lifecycle.submit()
-  } catch {}
+  } catch {
+    // The composable owns normalized feedback.
+  }
 }
 
 async function submitBulkLifecycle() {
   try {
     await bulk.submit(bulk.action.value)
-  } catch {}
+  } catch {
+    // The composable owns normalized feedback.
+  }
 }
 </script>
 <template>
@@ -187,6 +192,7 @@ async function submitBulkLifecycle() {
     <UserTable
       :rows="list.items.value"
       :can-manage="canManage"
+      :can-edit="canEdit"
       :action-resolver="lifecycleActions"
       :selected-ids="bulk.selectedIds.value"
       bulk-enabled

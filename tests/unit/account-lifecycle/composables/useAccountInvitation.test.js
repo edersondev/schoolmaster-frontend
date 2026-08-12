@@ -39,6 +39,11 @@ describe('useAccountInvitation', () => {
       schoolId,
       roleIds: ['role-1'],
     })
+
+    await invitation.create()
+
+    expect(invitation.canCreate.value).toBe(false)
+    expect(service.createAccountInvitation).toHaveBeenCalledTimes(1)
   })
 
   it('invalidates old results when the actor changes', async () => {

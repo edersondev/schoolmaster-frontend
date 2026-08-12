@@ -27,7 +27,9 @@ export function useAccountInvitation({
       roles: toValue(roles) ?? [],
     }),
   )
-  const canCreate = computed(() => eligibility.value.canInvite && !pending.value)
+  const canCreate = computed(
+    () => eligibility.value.canInvite && !pending.value && !invitation.value,
+  )
 
   async function create() {
     if (pendingRequest) return pendingRequest

@@ -61,8 +61,10 @@ const detail = useAdminDetail({
   operationId: 'getUser',
   routeName: route.name,
 })
-const canEdit = computed(() =>
-  ['users.view', 'users.manage', 'roles.view'].every(sessionStore.hasPermission),
+const canEdit = computed(
+  () =>
+    lookupMode.value?.scope === 'school' &&
+    ['users.view', 'users.manage', 'roles.view'].every(sessionStore.hasPermission),
 )
 const returnTo = computed(() => createReturnToListLocation(route, 'usersList'))
 const editTo = computed(() => ({ name: 'userEdit', params: route.params, query: route.query }))
