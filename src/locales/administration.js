@@ -13,6 +13,8 @@ export const administrationMessages = {
     status: 'Status',
     allStatuses: 'All statuses',
     active: 'Active',
+    planned: 'Planned',
+    closed: 'Closed',
     inactive: 'Inactive',
     pageSize: 'Rows per page',
     loading: 'Loading administration records.',
@@ -123,6 +125,8 @@ export const administrationMessages = {
   permissions: { title: 'Permissions' },
   academicYears: {
     title: 'Academic years',
+    dateRange: 'Date range',
+    dateRangeSeparator: 'to',
     createTitle: 'Create academic year',
     editTitle: 'Edit academic year',
     detailTitle: 'Academic year detail',

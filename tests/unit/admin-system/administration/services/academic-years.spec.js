@@ -3,6 +3,30 @@ import { createAcademicYearsService } from '@/services/admin-system/academic-yea
 import { createAdminClient } from '../administration.fixtures'
 
 describe('academic years service', () => {
+  it('submits documented list filter parameter names', async () => {
+    const client = createAdminClient({
+      get: vi.fn().mockResolvedValue({ data: { data: [], meta: {} } }),
+    })
+
+    await createAcademicYearsService(client).listAcademicYears({
+      page: 2,
+      perPage: 50,
+      name: 'Primary',
+      dateFrom: '2026-01-01',
+      dateTo: '2026-12-31',
+      status: 'closed',
+    })
+
+    expect(client.get.mock.calls[0][1].params).toEqual({
+      page: 2,
+      per_page: 50,
+      name: 'Primary',
+      date_from: '2026-01-01',
+      date_to: '2026-12-31',
+      status: 'closed',
+    })
+  })
+
   it('maps create dates', async () => {
     const client = createAdminClient({
       post: vi.fn().mockResolvedValue({ data: { data: { id: '1' } } }),

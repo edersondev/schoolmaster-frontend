@@ -3,7 +3,11 @@ import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import { useAdminList } from './useAdminList'
-import { SCHOOL_LIST_FILTER_KEYS, useAdminListQuery } from './useAdminListQuery'
+import {
+  ACADEMIC_YEAR_FILTER_KEYS,
+  SCHOOL_LIST_FILTER_KEYS,
+  useAdminListQuery,
+} from './useAdminListQuery'
 
 export function useAdministrationResourceList(options) {
   const route = useRoute()
@@ -57,6 +61,11 @@ export function useAdministrationResourceList(options) {
     const patch = { status: '', sort: '', academicYearId: '', page: 1 }
     if (options.resource === 'schools') {
       for (const key of SCHOOL_LIST_FILTER_KEYS) {
+        patch[key] = ''
+      }
+    }
+    if (options.resource === 'academic-years') {
+      for (const key of ACADEMIC_YEAR_FILTER_KEYS) {
         patch[key] = ''
       }
     }

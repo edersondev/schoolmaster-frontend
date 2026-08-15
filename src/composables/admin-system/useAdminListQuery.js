@@ -4,6 +4,7 @@ const DEFAULT_PAGE_SIZE = 25
 const PAGE_SIZES = new Set([10, 25, 50, 100])
 const STATUSES = new Set(['active', 'inactive'])
 const SCHOOL_STATUSES = new Set(['1', '0'])
+const ACADEMIC_YEAR_STATUSES = new Set(['planned', 'active', 'closed', 'inactive'])
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export const SCHOOL_LIST_FILTER_KEYS = Object.freeze([
@@ -19,6 +20,7 @@ export const SCHOOL_LIST_FILTER_KEYS = Object.freeze([
   'managementTypeId',
   'pedagogicalApproachId',
 ])
+export const ACADEMIC_YEAR_FILTER_KEYS = Object.freeze(['name', 'dateFrom', 'dateTo', 'status'])
 
 const SCHOOL_TEXT_FILTERS = Object.freeze([
   'inepCode',
@@ -37,6 +39,8 @@ const SCHOOL_LOOKUP_FILTERS = Object.freeze([
 const QUERY_PARAMS = Object.freeze({
   perPage: 'per_page',
   academicYearId: 'academic_year_id',
+  dateFrom: 'date_from',
+  dateTo: 'date_to',
   inepCode: 'inep_code',
   administrativeTypeId: 'administrative_type_id',
   legalNatureId: 'legal_nature_id',
@@ -54,7 +58,12 @@ export const ADMIN_QUERY_CONFIG = Object.freeze({
   users: { status: true, sorts: ['full_name', 'email', 'status'] },
   roles: { status: true },
   permissions: {},
-  'academic-years': { status: true },
+  'academic-years': {
+    status: true,
+    statusValues: ACADEMIC_YEAR_STATUSES,
+    name: true,
+    dateRange: true,
+  },
   'academic-periods': { status: true, academicYearId: true },
   guardians: { status: true },
 })
@@ -88,6 +97,16 @@ function positiveIntegerString(value) {
   return Number.parseInt(normalized, 10) > 0 ? normalized : undefined
 }
 
+function isoDate(value) {
+  const normalized = nonEmptyString(value)
+  if (!normalized || !/^\d{4}-\d{2}-\d{2}$/.test(normalized)) return undefined
+  const date = new Date(`${normalized}T00:00:00Z`)
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== normalized) {
+    return undefined
+  }
+  return normalized
+}
+
 export function parseAdminListQuery(resource, query = {}) {
   const config = ADMIN_QUERY_CONFIG[resource] ?? {}
   const perPage = positiveInteger(queryValue(query, 'perPage'), DEFAULT_PAGE_SIZE)
@@ -104,6 +123,18 @@ export function parseAdminListQuery(resource, query = {}) {
   const academicYearId = queryValue(query, 'academicYearId')
   if (config.academicYearId && UUID.test(String(academicYearId ?? ''))) {
     parsed.academicYearId = academicYearId
+  }
+  if (config.name) {
+    const name = nonEmptyString(queryValue(query, 'name'))
+    if (name) parsed.name = name
+  }
+  if (config.dateRange) {
+    const dateFrom = isoDate(queryValue(query, 'dateFrom'))
+    const dateTo = isoDate(queryValue(query, 'dateTo'))
+    if (dateFrom && dateTo && dateFrom <= dateTo) {
+      parsed.dateFrom = dateFrom
+      parsed.dateTo = dateTo
+    }
   }
   if (config.schoolFilters) {
     for (const key of SCHOOL_TEXT_FILTERS) {
@@ -124,6 +155,11 @@ export function serializeAdminListQuery(resource, query = {}) {
   if (parsed.status) serialized.status = parsed.status
   if (parsed.sort) serialized.sort = parsed.sort
   if (parsed.academicYearId) serialized.academic_year_id = parsed.academicYearId
+  if (parsed.name && ADMIN_QUERY_CONFIG[resource]?.name) serialized.name = parsed.name
+  if (parsed.dateFrom && parsed.dateTo && ADMIN_QUERY_CONFIG[resource]?.dateRange) {
+    serialized.date_from = parsed.dateFrom
+    serialized.date_to = parsed.dateTo
+  }
   if (ADMIN_QUERY_CONFIG[resource]?.schoolFilters) {
     for (const key of SCHOOL_TEXT_FILTERS) {
       if (parsed[key]) serialized[QUERY_PARAMS[key] ?? key] = parsed[key]
