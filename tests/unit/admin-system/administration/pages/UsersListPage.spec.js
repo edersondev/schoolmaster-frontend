@@ -104,7 +104,7 @@ async function mountPage({ mode = null } = {}) {
 
   await flushPromises()
 
-  return { wrapper, router }
+  return { wrapper, router, sessionStore }
 }
 
 describe('UsersListPage', () => {
@@ -170,5 +170,30 @@ describe('UsersListPage', () => {
     const { wrapper } = await mountPage({ mode: 'platform' })
 
     expect(wrapper.find('[data-test="edit-user"]').exists()).toBe(false)
+  })
+
+  it('clears loaded users when lookup mode becomes unauthorized', async () => {
+    listUsers.mockResolvedValue({
+      items: [
+        {
+          id: recordId,
+          fullName: 'Platform Operator',
+          email: 'operator@example.test',
+          status: 'active',
+          roles: [{ id: 'role', name: 'System Administrator' }],
+        },
+      ],
+      meta: { page: 1, perPage: 25, total: 1 },
+    })
+    const { wrapper, sessionStore } = await mountPage({ mode: 'platform' })
+
+    expect(wrapper.find('[data-test="delete-user"]').exists()).toBe(true)
+
+    sessionStore.roles = []
+    sessionStore.permissions = []
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="delete-user"]').exists()).toBe(false)
+    expect(listUsers).toHaveBeenCalledTimes(1)
   })
 })

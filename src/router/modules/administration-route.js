@@ -65,6 +65,9 @@ export function sanitizeAdministrationReturnQuery(query = {}) {
     'academicPeriodId',
     'search',
     'user_mode',
+    'name',
+    'date_from',
+    'date_to',
   ]
   return Object.fromEntries(
     Object.entries(query).filter(([key, value]) => allowed.includes(key) && value !== ''),

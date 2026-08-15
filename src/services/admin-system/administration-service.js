@@ -21,6 +21,8 @@ export function mapListParams(query = {}) {
       status: query.status,
       sort: query.sort,
       academic_year_id: query.academicYearId,
+      date_from: query.dateFrom,
+      date_to: query.dateTo,
       search: query.search,
       inep_code: query.inepCode,
       document: query.document,
