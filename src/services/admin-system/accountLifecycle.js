@@ -1,7 +1,4 @@
-import {
-  mapAccountInvitation,
-  mapAccountLifecycleResult,
-} from '@/contracts/auth/account-lifecycle'
+import { mapAccountInvitation, mapAccountLifecycleResult } from '@/contracts/auth/account-lifecycle'
 import {
   ACCOUNT_LIFECYCLE_ACTIONS,
   ACCOUNT_LIFECYCLE_OPERATION_IDS,
@@ -137,4 +134,3 @@ export const {
   unlockAccount,
   reactivateAccount,
 } = adminAccountLifecycleService
-

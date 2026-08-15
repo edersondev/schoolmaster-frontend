@@ -2,7 +2,7 @@ import {
   ACCOUNT_LIFECYCLE_FEEDBACK_STATES,
   createAccountLifecycleFeedbackState,
 } from '@/contracts/auth/account-lifecycle'
-import { AUTH_ALL_PERMISSIONS } from '@/contracts/auth/authSession.contract'
+import { isSystemAdministratorRole } from '@/contracts/auth/authSession.contract'
 
 export const ACCOUNT_LIFECYCLE_OPERATION_IDS = Object.freeze({
   createInvitation: 'createAccountInvitation',
@@ -28,11 +28,10 @@ export const ACCOUNT_LIFECYCLE_API_ACTIONS = Object.freeze({
   reactivate: 'reactivate',
 })
 
-export const ACCOUNT_LIFECYCLE_PERMISSION_SOURCE_CONFIRMED = false
+export const ACCOUNT_LIFECYCLE_PERMISSION_SOURCE_CONFIRMED = true
 
 export const ACCOUNT_LIFECYCLE_PERMISSIONS = Object.freeze({
-  platform: [],
-  school: [],
+  manage: 'account_lifecycle.manage',
 })
 
 export const BLOCKED_ADMIN_INVITATION_RESEND = Object.freeze({
@@ -71,7 +70,9 @@ function firstValue(record = {}, snakeKey, camelKey, fallback = null) {
 
 function compact(record) {
   return Object.fromEntries(
-    Object.entries(record).filter(([, value]) => value !== undefined && value !== null && value !== ''),
+    Object.entries(record).filter(
+      ([, value]) => value !== undefined && value !== null && value !== '',
+    ),
   )
 }
 
@@ -136,48 +137,59 @@ export function validateAccountLifecycleAction({ action, reason } = {}) {
   return errors
 }
 
-export function hasAccountLifecycleAuthority({ permissions = [], capabilities = [] } = {}) {
-  if (!ACCOUNT_LIFECYCLE_PERMISSION_SOURCE_CONFIRMED) {
-    return false
-  }
+export function hasAccountLifecycleAuthority({ permissions = [], roles = [], scope } = {}) {
+  if (roles.some(isSystemAdministratorRole)) return true
 
-  if (permissions.includes(AUTH_ALL_PERMISSIONS)) {
-    return true
-  }
-
-  return [...ACCOUNT_LIFECYCLE_PERMISSIONS.platform, ...ACCOUNT_LIFECYCLE_PERMISSIONS.school].some(
-    (permission) => permissions.includes(permission) || capabilities.includes(permission),
+  return permissions.some(
+    (permission) =>
+      permission?.code === ACCOUNT_LIFECYCLE_PERMISSIONS.manage &&
+      permission?.scope === scope &&
+      permission?.status === 'active',
   )
 }
 
 export function deriveAccountLifecycleEligibility({
+  actorId = null,
   target = null,
   lock = null,
   permissions = [],
-  capabilities = [],
-  schoolReady = false,
+  roles = [],
+  schoolId = null,
 } = {}) {
   const sourceConfirmed = ACCOUNT_LIFECYCLE_PERMISSION_SOURCE_CONFIRMED
-  const hasAuthority = hasAccountLifecycleAuthority({ permissions, capabilities })
-  const blocked = !sourceConfirmed || !hasAuthority || !target || !schoolReady
+  const targetSchoolId = target?.schoolId ?? target?.school_id ?? null
+  const scope = targetSchoolId ? 'school' : 'platform'
+  const isMaster = roles.some(isSystemAdministratorRole)
+  const hasAuthority = hasAccountLifecycleAuthority({ permissions, roles, scope })
+  const schoolReady = scope === 'platform' || (Boolean(schoolId) && schoolId === targetSchoolId)
+  const selfTarget = Boolean(actorId && target?.id && actorId === target.id)
+  const targetAvailable = Boolean(target?.id) && !target?.deletedAt && !target?.deleted_at
+  const blocked =
+    !sourceConfirmed || !hasAuthority || !targetAvailable || !schoolReady || selfTarget
   const lockStatus = lock?.status ?? 'none'
   const targetStatus = target?.status ?? ''
+  const activeTarget = targetStatus === 'active'
+  const inactiveTarget = targetStatus === 'inactive'
+  const invitedTarget = targetStatus === 'invited'
 
   return {
     sourceConfirmed,
+    scope,
+    isMaster,
     hasAuthority,
+    schoolReady,
+    selfTarget,
     blocked,
-    canReviewLock: !blocked,
-    canInvite: !blocked,
-    canLock: !blocked && lockStatus !== 'active',
-    canUnlock: !blocked && lockStatus === 'active',
-    canRecover: !blocked && lockStatus === 'active',
-    canReactivate: !blocked && ['inactive', 'disabled'].includes(targetStatus),
-    feedback: !sourceConfirmed
+    canReviewLock: !blocked && !invitedTarget,
+    canInvite: !blocked && invitedTarget,
+    canLock: !blocked && activeTarget && lockStatus !== 'active',
+    canUnlock: !blocked && activeTarget && lockStatus === 'active',
+    canRecover: !blocked && activeTarget && lockStatus === 'active',
+    canReactivate: !blocked && inactiveTarget && lockStatus !== 'active',
+    feedback: blocked
       ? createAccountLifecycleFeedbackState(ACCOUNT_LIFECYCLE_FEEDBACK_STATES.forbidden, {
           messageKey: 'feedback.permissionSourceBlocked',
         })
       : null,
   }
 }
-

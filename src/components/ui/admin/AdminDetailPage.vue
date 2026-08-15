@@ -21,14 +21,16 @@ const ready = computed(() => props.status === 'ready')
 </script>
 
 <template>
-  <section class="mx-auto flex w-full max-w-screen-xl flex-col gap-4">
-    <header class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div class="flex flex-col gap-2">
+  <section class="mx-auto flex min-w-0 w-full max-w-screen-xl flex-col gap-4">
+    <header class="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div class="flex min-w-0 flex-col gap-2">
         <RouterLink v-if="returnTo" class="text-sm font-medium text-sm-brand" :to="returnTo">
           {{ t('administrationLifecycle.detail.backToList') }}
         </RouterLink>
         <div class="flex flex-wrap items-center gap-3">
-          <h1 class="font-display text-2xl font-semibold text-sm-text">{{ title }}</h1>
+          <h1 class="min-w-0 break-words font-display text-2xl font-semibold text-sm-text">
+            {{ title }}
+          </h1>
           <AdminStatusTag v-if="recordStatus" :status="recordStatus" />
         </div>
       </div>
@@ -50,7 +52,10 @@ const ready = computed(() => props.status === 'ready')
       :feedback="feedback"
       @retry="$emit('retry')"
     />
-    <div v-else class="rounded-lg border border-sm-border bg-sm-surface p-4 sm:p-6">
+    <div
+      v-else
+      class="min-w-0 max-w-full rounded-lg border border-sm-border bg-sm-surface p-4 sm:p-6"
+    >
       <slot />
     </div>
   </section>

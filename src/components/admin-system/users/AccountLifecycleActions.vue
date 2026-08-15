@@ -19,20 +19,13 @@ const visibleActions = computed(() => actions.value.filter((action) => action.vi
 </script>
 
 <template>
-  <section class="grid gap-4 border-t border-sm-border pt-6">
+  <section v-if="!eligibility.blocked" class="grid gap-4 border-t border-sm-border pt-6">
     <header>
       <h3 class="text-base font-semibold text-sm-ink">
         {{ t('accountLifecycle.actions.title') }}
       </h3>
     </header>
-    <ElAlert
-      v-if="eligibility.blocked"
-      :title="t('accountLifecycle.actions.blocked')"
-      type="info"
-      :closable="false"
-      show-icon
-    />
-    <div v-else class="flex flex-wrap gap-2">
+    <div class="flex flex-wrap gap-2">
       <ElButton
         v-for="entry in visibleActions"
         :key="entry.key"
@@ -47,4 +40,3 @@ const visibleActions = computed(() => actions.value.filter((action) => action.vi
     </div>
   </section>
 </template>
-

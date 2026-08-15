@@ -1,12 +1,15 @@
 <script setup>
-import SchoolFilters from '../schools/SchoolFilters.vue'
+import AdminFilterBar from '@/components/ui/admin/AdminFilterBar.vue'
+
 defineProps({ status: { type: String, default: '' } })
 defineEmits(['update:status', 'reset'])
 </script>
+
 <template>
-  <SchoolFilters
+  <AdminFilterBar
     :status="status"
-    @submit="$emit('update:status', $event.status)"
+    show-status
+    @update:status="$emit('update:status', $event)"
     @reset="$emit('reset')"
   />
 </template>

@@ -306,7 +306,7 @@ for (const width of [390, 768, 1440]) {
   }) => {
     await page.setViewportSize({ width, height: 844 })
     await mockSelectionApis(page)
-    await page.goto('/admin/users')
+    await page.goto('/admin/users?user_mode=school')
 
     await expect(page.getByRole('heading', { name: 'Choose a school' })).toBeVisible()
     await expect(page.getByText('56563930000108')).toHaveCount(0)
@@ -338,7 +338,7 @@ test('restores a valid preference and clears an invalid preference with one head
 }) => {
   const state = await mockSchoolContextApis(page)
   await seedLastConfirmedSchool(page, schoolA)
-  await page.goto('/admin/users')
+  await page.goto('/admin/users?user_mode=school')
 
   await expect(page.getByText(schoolA.name).first()).toBeVisible()
   expect(state.authRequests[0]).toBe(schoolA.id)
@@ -363,7 +363,7 @@ test('switches a safe list route, clears old data, and ignores a stale authorita
 }) => {
   const state = await mockSchoolContextApis(page, { staleUserError: true })
   await seedLastConfirmedSchool(page, schoolA)
-  await page.goto('/admin/users')
+  await page.goto('/admin/users?user_mode=school')
 
   await expect(page.getByText(`${schoolA.name} User`)).toBeVisible()
   const statusCombobox = page.getByRole('combobox', { name: 'Status' })
@@ -436,7 +436,7 @@ test('activates an inactive school, exposes it only after refresh, then selects 
   page,
 }) => {
   await mockSchoolContextApis(page, { holdActivatedSchoolUntilRefresh: true })
-  await page.goto('/admin/users')
+  await page.goto('/admin/users?user_mode=school')
 
   await expect(page.getByRole('heading', { name: 'Choose a school' })).toBeVisible()
   await page.getByRole('button', { name: 'Open School administration' }).click()
@@ -461,7 +461,7 @@ test('activates an inactive school, exposes it only after refresh, then selects 
 
 test('keeps a conflicted activation unavailable for selection', async ({ page }) => {
   await mockSchoolContextApis(page, { activationConflicts: 1 })
-  await page.goto('/admin/users')
+  await page.goto('/admin/users?user_mode=school')
   await page.getByRole('button', { name: 'Open School administration' }).click()
 
   const dialog = await launchSchoolLifecycle(page, inactiveSchool.name, 'Activate')

@@ -22,4 +22,3 @@ describe('create account invitation request', () => {
     })
   })
 })
-

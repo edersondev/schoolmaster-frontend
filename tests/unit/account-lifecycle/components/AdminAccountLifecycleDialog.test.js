@@ -29,4 +29,36 @@ describe('AdminAccountLifecycleDialog', () => {
     await unlockWrapper.findAll('button').at(-1).trigger('click')
     expect(unlockWrapper.emitted('submit')).toBeTruthy()
   })
+
+  it('limits reason length and disables dismissal while pending', async () => {
+    const wrapper = mount(AdminAccountLifecycleDialog, {
+      props: { open: true, reason: 'Support', action: 'reactivate', pending: true },
+      global: {
+        plugins: lifecyclePlugins(),
+        stubs: {
+          ElDialog: { template: '<section><slot /><slot name="footer" /></section>' },
+        },
+      },
+    })
+
+    expect(wrapper.find('textarea').attributes('maxlength')).toBe('500')
+    expect(
+      wrapper.findAll('button').every((button) => button.attributes('disabled') !== undefined),
+    ).toBe(true)
+  })
+
+  it('emits cancel from the explicit cancel control', async () => {
+    const wrapper = mount(AdminAccountLifecycleDialog, {
+      props: { open: true, reason: '', action: 'unlock' },
+      global: {
+        plugins: lifecyclePlugins(),
+        stubs: {
+          ElDialog: { template: '<section><slot /><slot name="footer" /></section>' },
+        },
+      },
+    })
+
+    await wrapper.findAll('button')[0].trigger('click')
+    expect(wrapper.emitted('cancel')).toBeTruthy()
+  })
 })

@@ -16,4 +16,3 @@ describe('PasswordResetCompletionForm', () => {
     expect(wrapper.emitted('submit')[0][0]).toEqual({ password: 'valid-password' })
   })
 })
-

@@ -83,7 +83,9 @@ async function onChooseSchool() {
 </script>
 
 <template>
-  <div class="admin-shell">
+  <div
+    class="flex min-h-screen bg-[linear-gradient(135deg,rgba(15,118,110,0.08),transparent_38%),var(--sm-color-bg)]"
+  >
     <AdminShellSidebar
       v-if="!isMobile"
       :items="visibleNavigationItems"
@@ -109,7 +111,7 @@ async function onChooseSchool() {
       />
     </ElDrawer>
 
-    <section class="admin-shell__workspace">
+    <section class="min-w-0 flex-1">
       <AdminShellHeader
         :page-context="pageContext"
         :is-mobile="isMobile"
@@ -125,7 +127,7 @@ async function onChooseSchool() {
 
       <AdminShellFeedback v-if="feedbackState" :feedback-state="feedbackState" />
 
-      <main class="admin-shell__content" :aria-label="t('adminSystem.shell.contentLabel')">
+      <main class="min-w-0 max-w-full p-5" :aria-label="t('adminSystem.shell.contentLabel')">
         <RouterView v-slot="{ Component }">
           <component :is="Component" v-bind="routeViewProps" />
         </RouterView>
@@ -135,24 +137,6 @@ async function onChooseSchool() {
 </template>
 
 <style scoped>
-.admin-shell {
-  display: flex;
-  min-height: 100vh;
-  background:
-    linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 38%), var(--sm-color-bg);
-}
-
-.admin-shell__workspace {
-  min-width: 0;
-  flex: 1;
-}
-
-.admin-shell__content {
-  min-width: 0;
-  overflow-x: hidden;
-  padding: 1.25rem;
-}
-
 :deep(.admin-shell__drawer .el-drawer__body) {
   padding: 0;
 }

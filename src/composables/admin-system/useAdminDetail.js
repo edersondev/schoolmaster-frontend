@@ -6,8 +6,14 @@ export function useAdminDetail(options = {}) {
   const status = shallowRef('idle')
   const error = shallowRef(null)
   let requestSequence = 0
+  let activeController = null
 
   async function load(id = toValue(options.id)) {
+    if (options.enabled !== undefined && !toValue(options.enabled)) {
+      status.value = 'forbidden'
+      record.value = null
+      return null
+    }
     if (!id || (options.schoolRequired && !toValue(options.schoolId))) {
       status.value = options.schoolRequired ? 'inactive-context' : 'not-found'
       record.value = null
@@ -15,7 +21,9 @@ export function useAdminDetail(options = {}) {
     }
 
     const requestId = ++requestSequence
+    activeController?.abort()
     const controller = new AbortController()
+    activeController = controller
     status.value = 'loading'
     error.value = null
 
@@ -43,6 +51,7 @@ export function useAdminDetail(options = {}) {
 
   function reset() {
     requestSequence += 1
+    activeController?.abort()
     record.value = null
     status.value = 'idle'
     error.value = null

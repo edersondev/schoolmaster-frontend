@@ -26,7 +26,9 @@ describe('account lifecycle diagnostics', () => {
   })
 
   it('keeps only safe error context', () => {
-    expect(createSafeErrorDiagnostic(lifecycleError('validation_failed', 422), { operationId: 'op' })).toEqual({
+    expect(
+      createSafeErrorDiagnostic(lifecycleError('validation_failed', 422), { operationId: 'op' }),
+    ).toEqual({
       operationId: 'op',
       status: 422,
       code: 'validation_failed',
@@ -34,4 +36,3 @@ describe('account lifecycle diagnostics', () => {
     })
   })
 })
-

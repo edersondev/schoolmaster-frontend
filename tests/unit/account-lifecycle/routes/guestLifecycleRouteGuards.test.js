@@ -14,4 +14,3 @@ describe('guest lifecycle route guards', () => {
     await expect(guard({ meta: { guestLifecycle: true } })).resolves.toBe(true)
   })
 })
-

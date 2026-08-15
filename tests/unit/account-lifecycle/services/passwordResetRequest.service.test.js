@@ -13,4 +13,3 @@ describe('password reset request service mapping', () => {
     ).toEqual({ email: 'avery@example.com' })
   })
 })
-

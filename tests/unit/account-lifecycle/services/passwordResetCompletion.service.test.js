@@ -23,4 +23,3 @@ describe('password reset completion service', () => {
     ).rejects.toMatchObject({ feedback: { state: 'invalid-token' } })
   })
 })
-

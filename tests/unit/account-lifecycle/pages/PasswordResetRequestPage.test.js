@@ -25,13 +25,15 @@ describe('PasswordResetRequestPage', () => {
     expect(wrapper.text()).toContain('If the address can receive recovery email')
   })
 
-  it.each(['missing@example.com', 'inactive@example.com', 'locked@example.com', 'deleted@example.com'])(
-    'uses same confirmation copy for %s',
-    () => {
-      const wrapper = mount(PasswordResetRequestPage, {
-        global: { plugins: lifecyclePlugins(), stubs: { RouterLink: true } },
-      })
-      expect(wrapper.text()).not.toContain('not found')
-    },
-  )
+  it.each([
+    'missing@example.com',
+    'inactive@example.com',
+    'locked@example.com',
+    'deleted@example.com',
+  ])('uses same confirmation copy for %s', () => {
+    const wrapper = mount(PasswordResetRequestPage, {
+      global: { plugins: lifecyclePlugins(), stubs: { RouterLink: true } },
+    })
+    expect(wrapper.text()).not.toContain('not found')
+  })
 })

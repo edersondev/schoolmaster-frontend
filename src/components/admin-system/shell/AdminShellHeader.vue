@@ -50,7 +50,7 @@ function onAccountCommand(command) {
 
 <template>
   <header class="admin-header">
-    <div class="admin-header__context">
+    <div class="admin-header__context flex-1">
       <ElButton
         circle
         :icon="navigationIcon"
@@ -63,17 +63,21 @@ function onAccountCommand(command) {
         @click="emit('toggleNavigation')"
       />
 
-      <div class="admin-header__titles">
-        <ElBreadcrumb v-if="pageContext.breadcrumb.length" separator="/">
+      <div class="admin-header__titles flex-1">
+        <ElBreadcrumb
+          v-if="pageContext.breadcrumb.length"
+          class="hidden min-w-0 sm:block"
+          separator="/"
+        >
           <ElBreadcrumbItem v-for="item in pageContext.breadcrumb" :key="item.label">
             {{ item.label }}
           </ElBreadcrumbItem>
         </ElBreadcrumb>
-        <h1 class="admin-header__title">{{ pageContext.title }}</h1>
+        <h1 class="admin-header__title wrap-anywhere">{{ pageContext.title }}</h1>
       </div>
     </div>
 
-    <div class="admin-header__actions">
+    <div class="admin-header__actions shrink-0">
       <SchoolContextControl
         :school="currentSchool"
         :can-switch="canSwitchSchool"

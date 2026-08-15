@@ -11,7 +11,8 @@ export const accountLifecycleMessages = {
     inactiveSchool: 'This school is not available for account lifecycle actions.',
     notFound: 'The requested account is unavailable in this permitted scope.',
     conflict: 'The account state changed. Refresh and retry if the action is still needed.',
-    temporaryUnavailable: 'Account lifecycle service is temporarily unavailable. Try again shortly.',
+    temporaryUnavailable:
+      'Account lifecycle service is temporarily unavailable. Try again shortly.',
     success: 'Account lifecycle action completed. Sign in to continue.',
     permissionSourceBlocked:
       'Account lifecycle actions are hidden until approved permission codes or capability flags are published.',
@@ -42,6 +43,7 @@ export const accountLifecycleMessages = {
     deliveryChannel: 'Delivery channel',
     empty: 'No invitation has been created in this view.',
     created: 'Invitation request accepted.',
+    createdUser: 'The invited user was saved. You can create the invitation now or finish later.',
     resendBlocked: 'Admin resend is blocked until a non-secret resend contract is approved.',
   },
   setup: {
@@ -95,4 +97,3 @@ export const accountLifecycleMessages = {
 }
 
 export default accountLifecycleMessages
-

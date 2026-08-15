@@ -6,6 +6,8 @@ export function createAdministrationRoute({
   component,
   title,
   permissions,
+  anyPermissions = [],
+  userLookupMode = false,
   schoolContext = true,
   order,
   returnListRoute = null,
@@ -23,11 +25,21 @@ export function createAdministrationRoute({
       title,
       breadcrumb: [{ label: title, routeName: name }],
       permissions,
+      anyPermissions,
+      userLookupMode,
       mode,
       resource,
       returnListRoute,
       schoolContextSwitch: schoolContext && mode === 'list' ? 'retain' : 'discard',
-      contextNeutralQueryKeys: ['page', 'per_page', 'perPage', 'status', 'sort', 'search'],
+      contextNeutralQueryKeys: [
+        'page',
+        'per_page',
+        'perPage',
+        'status',
+        'sort',
+        'search',
+        'user_mode',
+      ],
     },
   }
   if (order) {
@@ -52,6 +64,7 @@ export function sanitizeAdministrationReturnQuery(query = {}) {
     'academicYearId',
     'academicPeriodId',
     'search',
+    'user_mode',
   ]
   return Object.fromEntries(
     Object.entries(query).filter(([key, value]) => allowed.includes(key) && value !== ''),

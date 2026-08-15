@@ -1,4 +1,4 @@
-import { computed, watch } from 'vue'
+import { computed, readonly, shallowRef, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -12,6 +12,7 @@ export function useAdministrationCreatePage(options) {
   const router = useRouter()
   const { t } = useI18n()
   const sessionStore = useAuthSessionStore()
+  const result = shallowRef(null)
   const { activeSchool } = storeToRefs(sessionStore)
   const tenantId = computed(() => (options.tenantOwned ? (activeSchool.value?.id ?? null) : null))
   const form = useAdminCreateForm({
@@ -32,13 +33,24 @@ export function useAdministrationCreatePage(options) {
 
   async function submit() {
     try {
-      await form.submit()
+      result.value = await form.submit()
       ElMessage.success(t('administration.common.success'))
-      await router.push(destination())
+      if (options.navigateOnSuccess !== false) await router.push(destination())
+      return result.value
     } catch {
       // Form composable owns normalized feedback.
     }
   }
 
-  return { form, submit, cancel: () => router.push(destination()), tenantId }
+  return {
+    form,
+    result: readonly(result),
+    submit,
+    cancel: () => router.push(destination()),
+    finish: () => router.push(destination()),
+    setResult(value) {
+      result.value = value
+    },
+    tenantId,
+  }
 }

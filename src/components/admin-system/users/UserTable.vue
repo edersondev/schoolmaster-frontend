@@ -6,6 +6,7 @@ import AdminStatusTag from '@/components/ui/admin/AdminStatusTag.vue'
 defineProps({
   rows: { type: Array, default: () => [] },
   canManage: { type: Boolean, default: false },
+  canEdit: { type: Boolean, default: undefined },
   actionResolver: { type: Function, default: () => [] },
   selectedIds: { type: Array, default: () => [] },
   bulkEnabled: { type: Boolean, default: false },
@@ -15,12 +16,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <ElTable
-    :data="rows"
-    class="w-full"
-    table-layout="auto"
-    @sort-change="emit('sort', $event)"
-  >
+  <ElTable :data="rows" class="w-full" table-layout="auto" @sort-change="emit('sort', $event)">
     <ElTableColumn v-if="bulkEnabled" :min-width="48">
       <template #default="{ row }">
         <ElCheckbox
@@ -37,7 +33,11 @@ const { t } = useI18n()
       :min-width="220"
     >
       <template #default="{ row }">
-        <button class="font-medium text-sm-brand hover:underline" type="button" @click="emit('view', row)">
+        <button
+          class="font-medium text-sm-brand hover:underline"
+          type="button"
+          @click="emit('view', row)"
+        >
           {{ row.fullName ?? '—' }}
         </button>
       </template>
@@ -52,11 +52,7 @@ const { t } = useI18n()
         <span class="text-sm-muted">{{ row.email ?? '—' }}</span>
       </template>
     </ElTableColumn>
-    <ElTableColumn
-      prop="status"
-      :label="t('administration.common.status')"
-      sortable="custom"
-    >
+    <ElTableColumn prop="status" :label="t('administration.common.status')" sortable="custom">
       <template #default="{ row }">
         <AdminStatusTag :status="row.status" compact />
       </template>
@@ -68,14 +64,11 @@ const { t } = useI18n()
         </span>
       </template>
     </ElTableColumn>
-    <ElTableColumn
-      v-if="canManage"
-      :label="t('administration.common.actions')"
-      :min-width="180"
-    >
+    <ElTableColumn v-if="canManage" :label="t('administration.common.actions')" :min-width="180">
       <template #default="{ row }">
         <div class="flex items-center gap-2">
           <ElButton
+            v-if="canEdit ?? canManage"
             link
             type="primary"
             data-test="edit-user"
@@ -83,7 +76,10 @@ const { t } = useI18n()
           >
             {{ t('administration.common.edit') }}
           </ElButton>
-          <AdminRowActions :actions="actionResolver(row)" @action="emit('lifecycle', { row, action: $event })" />
+          <AdminRowActions
+            :actions="actionResolver(row)"
+            @action="emit('lifecycle', { row, action: $event })"
+          />
         </div>
       </template>
     </ElTableColumn>

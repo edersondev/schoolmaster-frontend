@@ -33,6 +33,57 @@ describe('session bootstrap school restoration', () => {
     expect(store.isProtectedContentReady).toBe(true)
   })
 
+  it('preserves raw permission scope and does not flatten lifecycle authority', () => {
+    const store = useAuthSessionStore()
+    store.applySession(
+      mapAuthSession({
+        ...authSessionEnvelope.data,
+        roles: [],
+        permissions: [
+          {
+            id: 'permission-1',
+            code: 'account_lifecycle.manage',
+            name: 'Manage platform lifecycle',
+            scope: 'platform',
+            status: 'active',
+          },
+        ],
+      }),
+    )
+
+    expect(store.scopedPermissions).toEqual([
+      expect.objectContaining({
+        code: 'account_lifecycle.manage',
+        scope: 'platform',
+        status: 'active',
+      }),
+    ])
+    expect(store.hasScopedPermission('account_lifecycle.manage', 'platform')).toBe(true)
+    expect(store.hasScopedPermission('account_lifecycle.manage', 'school')).toBe(false)
+  })
+
+  it('exposes master authority only for exact active System Administrator role identity', () => {
+    const store = useAuthSessionStore()
+    const session = mapAuthSession({
+      ...authSessionEnvelope.data,
+      roles: [
+        {
+          id: 'role-1',
+          name: 'System Administrator',
+          scope: 'platform',
+          status: 'active',
+          permissions: [],
+        },
+      ],
+    })
+
+    store.applySession(session)
+    expect(store.hasActiveSystemAdministratorRole).toBe(true)
+
+    store.roles = [{ ...store.roles[0], name: 'system administrator' }]
+    expect(store.hasActiveSystemAdministratorRole).toBe(false)
+  })
+
   it('clears stale tenant data after a mismatch without a stored preference', async () => {
     const store = useAuthSessionStore()
     store.activeSchool = { id: 'stale' }

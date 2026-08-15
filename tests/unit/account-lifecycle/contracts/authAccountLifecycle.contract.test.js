@@ -23,9 +23,7 @@ describe('auth account lifecycle contract', () => {
       invitation_token: 'secret',
     })
 
-    expect(mapped).toEqual(
-      expect.objectContaining({ userId: 'user-1', schoolId: 'school-1' }),
-    )
+    expect(mapped).toEqual(expect.objectContaining({ userId: 'user-1', schoolId: 'school-1' }))
     expect(mapped.invitationToken).toBeUndefined()
   })
 
@@ -40,9 +38,9 @@ describe('auth account lifecycle contract', () => {
     expect(mapInvitationSetupRequest({ password: 'long-password' })).toEqual({
       password: 'long-password',
     })
-    expect(mapPasswordResetCompletionRequest({ token: ' token ', password: 'long-password' })).toEqual(
-      { token: 'token', password: 'long-password' },
-    )
+    expect(
+      mapPasswordResetCompletionRequest({ token: ' token ', password: 'long-password' }),
+    ).toEqual({ token: 'token', password: 'long-password' })
   })
 
   it('validates password and token boundaries', () => {
@@ -60,4 +58,3 @@ describe('auth account lifecycle contract', () => {
     })
   })
 })
-

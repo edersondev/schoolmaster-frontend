@@ -11,4 +11,3 @@ describe('invitation setup route', () => {
     expect(route.meta).toMatchObject({ guestLifecycle: true, layout: 'auth' })
   })
 })
-

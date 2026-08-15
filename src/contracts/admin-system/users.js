@@ -2,7 +2,7 @@ import { isPresent, isValidEmail, mapCommonRecord } from './administration'
 import { projectUpdatePayload } from './lifecycle'
 
 export function createUserForm() {
-  return { fullName: '', email: '', roleIds: [] }
+  return { fullName: '', email: '', roleIds: [], accountSetupMode: 'active' }
 }
 
 export function createUserDeleteForm(now = new Date()) {
@@ -27,6 +27,10 @@ export function validateUserForm(form = {}) {
 
   if (!Array.isArray(form.roleIds) || form.roleIds.length === 0) {
     errors.role_ids = ['Select at least one role.']
+  }
+
+  if (!['active', 'invitation'].includes(form.accountSetupMode ?? 'active')) {
+    errors.account_setup_mode = ['Select a supported account setup mode.']
   }
 
   return errors
@@ -55,7 +59,6 @@ export function mapUser(record) {
 
 export function mapUserForm(record = {}) {
   return {
-    ...createUserForm(),
     fullName: record.fullName ?? '',
     email: record.email ?? '',
     status: record.status ?? 'active',
@@ -64,15 +67,23 @@ export function mapUserForm(record = {}) {
 }
 
 export function mapUserCreateRequest(form) {
-  return { full_name: form.fullName, email: form.email, role_ids: [...form.roleIds] }
-}
-
-export function mapUserUpdateRequest(form) {
-  return projectUpdatePayload({
+  return {
     full_name: form.fullName,
     email: form.email,
     role_ids: [...form.roleIds],
-  }, 'users')
+    account_setup_mode: form.accountSetupMode ?? 'active',
+  }
+}
+
+export function mapUserUpdateRequest(form) {
+  return projectUpdatePayload(
+    {
+      full_name: form.fullName,
+      email: form.email,
+      role_ids: [...form.roleIds],
+    },
+    'users',
+  )
 }
 
 export function mapUserDeleteRequest(form) {

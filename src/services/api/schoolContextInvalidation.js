@@ -35,7 +35,10 @@ export function installSchoolContextInvalidationObserver({ client, store, router
         stamp?.generation === store.schoolContextGeneration
       ) {
         const currentRoute = router?.currentRoute?.value
-        const requiresSchoolContext = currentRoute?.meta?.requiresSchoolContext === true
+        const requiresSchoolContext =
+          currentRoute?.meta?.requiresSchoolContext === true ||
+          (currentRoute?.meta?.userLookupMode === true &&
+            currentRoute?.query?.user_mode === 'school')
         const canSelectSchool = store.isSystemAdministrator === true
 
         if (requiresSchoolContext && canSelectSchool) {

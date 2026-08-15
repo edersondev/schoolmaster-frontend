@@ -14,7 +14,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <section class="mx-auto flex w-full max-w-screen-2xl flex-col gap-4">
+  <section class="mx-auto flex min-w-0 w-full max-w-screen-2xl flex-col gap-4">
     <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h1 class="font-display text-2xl font-semibold text-sm-text">{{ title }}</h1>
       <RouterLink
@@ -35,7 +35,10 @@ const { t } = useI18n()
       @retry="$emit('retry')"
       @reset="$emit('reset')"
     />
-    <div v-else class="overflow-hidden rounded-xl border border-sm-border bg-sm-surface">
+    <div
+      v-else
+      class="w-full max-w-full overflow-x-auto rounded-xl border border-sm-border bg-sm-surface"
+    >
       <slot />
     </div>
     <div v-if="$slots.pagination && state === 'ready'" class="flex justify-end">

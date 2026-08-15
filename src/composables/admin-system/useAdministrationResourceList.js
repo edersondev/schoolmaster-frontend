@@ -10,9 +10,17 @@ export function useAdministrationResourceList(options) {
   const router = useRouter()
   const sessionStore = useAuthSessionStore()
   const { activeSchool } = storeToRefs(sessionStore)
-  const tenantId = computed(() => (options.tenantOwned ? (activeSchool.value?.id ?? null) : null))
+  const tenantId = computed(() =>
+    options.tenantId !== undefined
+      ? (toValue(options.tenantId) ?? null)
+      : options.tenantOwned
+        ? (activeSchool.value?.id ?? null)
+        : null,
+  )
   const { query, update } = useAdminListQuery({ resource: options.resource, route, router })
-  const enabled = computed(() => (options.enabled === undefined ? true : Boolean(toValue(options.enabled))))
+  const enabled = computed(() =>
+    options.enabled === undefined ? true : Boolean(toValue(options.enabled)),
+  )
   const requestQuery = computed(() =>
     options.sanitizeQuery ? options.sanitizeQuery(query.value) : query.value,
   )

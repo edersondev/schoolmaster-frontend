@@ -157,7 +157,14 @@ export function useAdminListQuery({ resource, route, router }) {
 
   async function update(patch) {
     const next = updateAdminListQuery(resource, query.value, patch)
-    await router.replace({ query: serializeAdminListQuery(resource, next) })
+    const routeQuery = toValue(route).query
+    const preservedQuery =
+      resource === 'users' && ['school', 'platform'].includes(routeQuery.user_mode)
+        ? { user_mode: routeQuery.user_mode }
+        : {}
+    await router.replace({
+      query: { ...preservedQuery, ...serializeAdminListQuery(resource, next) },
+    })
   }
 
   return { query, update }

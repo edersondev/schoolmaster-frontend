@@ -14,4 +14,3 @@ describe('account lifecycle auth integration', () => {
     expect(normalizeAuthError(lifecycleError(code, 403)).feedback.state).toBe(state)
   })
 })
-
