@@ -57,4 +57,31 @@ describe('administration routes', () => {
       query: { per_page: '100', academic_year_id: 'year-2' },
     })
   })
+
+  it('preserves academic-year filters when returning to the list', () => {
+    expect(
+      createReturnToListLocation(
+        {
+          meta: { returnListRoute: 'academicYearsList' },
+          query: {
+            page: '2',
+            name: 'Primary',
+            date_from: '2026-01-01',
+            date_to: '2026-12-31',
+            status: 'active',
+          },
+        },
+        'fallback',
+      ),
+    ).toEqual({
+      name: 'academicYearsList',
+      query: {
+        page: '2',
+        name: 'Primary',
+        date_from: '2026-01-01',
+        date_to: '2026-12-31',
+        status: 'active',
+      },
+    })
+  })
 })

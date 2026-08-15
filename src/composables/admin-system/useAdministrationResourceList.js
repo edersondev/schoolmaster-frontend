@@ -41,7 +41,13 @@ export function useAdministrationResourceList(options) {
     [requestQuery, tenantId, enabled],
     async ([nextQuery, schoolId, isEnabled], previous = []) => {
       const previousSchoolId = previous[1]
-      if (!isEnabled) return
+      const previousEnabled = previous[2]
+      if (!isEnabled) {
+        if (previousEnabled !== false) {
+          list.resetTenant()
+        }
+        return
+      }
       if (options.tenantOwned && !schoolId) return
       if (
         options.tenantOwned &&
