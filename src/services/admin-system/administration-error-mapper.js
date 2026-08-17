@@ -12,6 +12,7 @@ const CODE_TYPES = Object.freeze({
   validation_failed: 'validation',
   unavailable: 'unavailable',
   service_unavailable: 'unavailable',
+  temporary_unavailable: 'unavailable',
   stale_record: 'conflict',
   dependency_conflict: 'conflict',
   ineligible_transition: 'conflict',

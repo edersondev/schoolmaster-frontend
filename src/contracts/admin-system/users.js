@@ -2,7 +2,7 @@ import { isPresent, isValidEmail, mapCommonRecord } from './administration'
 import { projectUpdatePayload } from './lifecycle'
 
 export function createUserForm() {
-  return { fullName: '', email: '', roleIds: [], accountSetupMode: 'active' }
+  return { fullName: '', email: '', roleIds: [], accountSetupMode: 'invitation' }
 }
 
 export function createUserDeleteForm(now = new Date()) {

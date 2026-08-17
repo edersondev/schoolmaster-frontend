@@ -42,6 +42,37 @@ describe('admin account lifecycle service', () => {
     })
   })
 
+  it('normalizes invitation delivery failure as safe retryable unavailability', async () => {
+    const service = createAdminAccountLifecycleService(
+      createClient({
+        post: vi.fn().mockRejectedValue(
+          lifecycleError('temporary_unavailable', 503, {
+            provider: 'must-not-be-forwarded',
+          }),
+        ),
+      }),
+      () => 'token',
+    )
+
+    await expect(
+      service.createAccountInvitation(
+        {
+          scope: 'school',
+          schoolId,
+          fullName: 'Avery',
+          email: 'avery@example.com',
+          roleIds: ['role-1'],
+        },
+        { schoolId },
+      ),
+    ).rejects.toMatchObject({
+      type: 'unavailable',
+      code: 'temporary_unavailable',
+      recoveryAction: 'retry',
+      operationId: 'createAccountInvitation',
+    })
+  })
+
   it('uses exact lock, unlock, recovery, and reactivation requests with abort signals', async () => {
     const client = createClient({
       get: vi.fn().mockResolvedValue({ data: { data: { user_id: userId, status: 'none' } } }),
