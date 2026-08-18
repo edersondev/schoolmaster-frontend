@@ -1,9 +1,10 @@
 <script setup>
-import { computed } from 'vue'
+import { onMounted, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import { useInvitationSetup } from '@/composables/auth/useInvitationSetup'
+import { invitationTokenFromFragment } from '@/contracts/auth/account-lifecycle'
 import PasswordSetupForm from '@/components/auth/PasswordSetupForm.vue'
 import AccountLifecycleTokenState from '@/components/auth/AccountLifecycleTokenState.vue'
 import AccountLifecycleSuccessState from '@/components/auth/AccountLifecycleSuccessState.vue'
@@ -12,7 +13,7 @@ const route = useRoute()
 const router = useRouter()
 const store = useAuthSessionStore()
 const { t } = useI18n()
-const token = computed(() => route.params.invitationToken ?? route.query.token ?? '')
+const token = shallowRef(invitationTokenFromFragment(route.hash))
 const setup = useInvitationSetup({
   token,
   onSuccess: () => store.clearLifecycleSessionAssumptions(),
@@ -23,6 +24,11 @@ function recover(action) {
     router.push({ name: 'authLogin' })
   }
 }
+
+onMounted(() => {
+  if (!route.hash) return
+  router.replace({ path: route.path, query: route.query, hash: '' })
+})
 </script>
 
 <template>

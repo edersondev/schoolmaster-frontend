@@ -49,6 +49,10 @@ const pageContext = computed(() => ({
     label: t(`adminSystem.${item.label}`),
   })),
 }))
+const accountName = computed(() => {
+  const currentUser = sessionStore.currentUser
+  return currentUser?.fullName?.trim() || currentUser?.email?.trim() || ''
+})
 const routeViewProps = computed(() =>
   route.name === ADMIN_ROUTE_NAMES.dashboard ? { userPermissions: userPermissions.value } : {},
 )
@@ -119,6 +123,7 @@ async function onChooseSchool() {
         :notification-panel-open="notificationPanelOpen"
         :current-school="sessionStore.activeSchool"
         :can-switch-school="sessionStore.isSystemAdministrator"
+        :account-name="accountName"
         @toggle-navigation="toggleNavigation"
         @toggle-notifications="shellStore.toggleNotificationPanel"
         @account-command="onAccountCommand"

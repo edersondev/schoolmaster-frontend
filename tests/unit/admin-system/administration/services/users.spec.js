@@ -14,24 +14,14 @@ describe('users service', () => {
       Authorization: 'Bearer test-token',
       'X-School-Id': schoolId,
     })
-    await service.createUser({ fullName: 'A', email: 'a@b.test', roleIds: ['r'] }, { schoolId })
+    await service.createUser(
+      { fullName: 'A', email: 'a@b.test', roleIds: ['r'], accountSetupMode: 'active' },
+      { schoolId },
+    )
     expect(client.post.mock.calls[0][1]).toEqual({
       full_name: 'A',
       email: 'a@b.test',
       role_ids: ['r'],
-      account_setup_mode: 'active',
-    })
-
-    await service.createUser(
-      {
-        fullName: 'Invited',
-        email: 'invited@b.test',
-        roleIds: ['r'],
-        accountSetupMode: 'invitation',
-      },
-      { schoolId },
-    )
-    expect(client.post.mock.calls[1][1]).toMatchObject({
       account_setup_mode: 'invitation',
     })
   })

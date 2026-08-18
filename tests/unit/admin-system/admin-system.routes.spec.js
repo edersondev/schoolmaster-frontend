@@ -7,6 +7,7 @@ import {
   ADMIN_SYSTEM_LAYOUT,
 } from '@/contracts/admin-system/navigation'
 import { getAdminFallbackRoute } from '@/router'
+import { adminSystemMessages } from '@/locales/admin-system'
 
 describe('admin-system route metadata', () => {
   it('registers the dashboard route through the application router', () => {
@@ -46,5 +47,11 @@ describe('admin-system route metadata', () => {
         hasPermission: (permission) => permission === ADMIN_PERMISSIONS.viewRoles,
       }),
     ).toEqual({ name: ADMIN_ROUTE_NAMES.roles })
+  })
+
+  it('defines shell messages for user and role detail and edit route titles', () => {
+    expect(adminSystemMessages.navigation.userDetail).toBe('User detail')
+    expect(adminSystemMessages.navigation.roleDetail).toBe('Role detail')
+    expect(adminSystemMessages.navigation.editRole).toBe('Edit role')
   })
 })

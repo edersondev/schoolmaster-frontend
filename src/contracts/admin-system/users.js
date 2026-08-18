@@ -2,7 +2,7 @@ import { isPresent, isValidEmail, mapCommonRecord } from './administration'
 import { projectUpdatePayload } from './lifecycle'
 
 export function createUserForm() {
-  return { fullName: '', email: '', roleIds: [], accountSetupMode: 'active' }
+  return { fullName: '', email: '', roleIds: [] }
 }
 
 export function createUserDeleteForm(now = new Date()) {
@@ -27,10 +27,6 @@ export function validateUserForm(form = {}) {
 
   if (!Array.isArray(form.roleIds) || form.roleIds.length === 0) {
     errors.role_ids = ['Select at least one role.']
-  }
-
-  if (!['active', 'invitation'].includes(form.accountSetupMode ?? 'active')) {
-    errors.account_setup_mode = ['Select a supported account setup mode.']
   }
 
   return errors
@@ -71,7 +67,7 @@ export function mapUserCreateRequest(form) {
     full_name: form.fullName,
     email: form.email,
     role_ids: [...form.roleIds],
-    account_setup_mode: form.accountSetupMode ?? 'active',
+    account_setup_mode: 'invitation',
   }
 }
 

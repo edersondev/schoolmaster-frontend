@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 const school = { id: 'school-1', name: 'North Campus', status: 'active' }
+const emailedInvitationToken = 'email-invitation-token-abcdefghijklmnopqrstuvwxyz1234567890'
 const permissions = [
   ['users.view', 'school'],
   ['users.manage', 'school'],
@@ -44,6 +45,12 @@ async function mockLifecycleApis(page, { denied = false } = {}) {
     invitationRequests: 0,
     resendRequests: 0,
     userCreates: 0,
+    lastUserCreateMode: null,
+    setupRequests: 0,
+    setupRequestBody: null,
+    setupRequestPath: null,
+    loginRequests: 0,
+    hasSession: true,
   }
   const fulfill = (route, body, status = 200) =>
     route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
@@ -55,7 +62,27 @@ async function mockLifecycleApis(page, { denied = false } = {}) {
     const method = request.method()
     const schoolId = request.headers()['x-school-id'] ?? null
 
+    if (path === '/api/v1/account-invitations/setup' && method === 'POST') {
+      state.setupRequests += 1
+      state.setupRequestBody = request.postDataJSON()
+      state.setupRequestPath = path
+      return fulfill(route, {
+        data: { user_id: 'invited-1', school_id: school.id, status: 'active' },
+      })
+    }
+    if (path === '/api/v1/auth/login' && method === 'POST') {
+      state.loginRequests += 1
+      state.hasSession = true
+      return fulfill(route, session())
+    }
     if (path === '/api/v1/auth/me') {
+      if (!state.hasSession) {
+        return fulfill(
+          route,
+          { error: { code: 'unauthenticated', message: 'Unauthenticated.', details: {} } },
+          401,
+        )
+      }
       return fulfill(
         route,
         session(
@@ -80,6 +107,7 @@ async function mockLifecycleApis(page, { denied = false } = {}) {
     if (path === '/api/v1/users' && method === 'POST') {
       state.userCreates += 1
       const body = request.postDataJSON()
+      state.lastUserCreateMode = body.account_setup_mode
       const created = {
         ...user('invited-1', body.account_setup_mode === 'invitation' ? 'invited' : 'active'),
         full_name: body.full_name,
@@ -219,8 +247,8 @@ test('invitation-mode create persists once, invites explicitly, and reloads by U
   await page.goto('/admin/users/create')
   await page.getByLabel('Full name').fill('Invited User')
   await page.getByLabel('Email').fill('invited@example.test')
-  await page.getByLabel('Account setup').press('Enter')
-  await page.getByRole('option', { name: 'Invitation required' }).click()
+  await expect(page.getByLabel('Account setup')).toHaveCount(0)
+  await expect(page.getByText('Active immediately')).toHaveCount(0)
   await page.getByLabel('Roles').press('Enter')
   await page.getByRole('option', { name: 'Teacher' }).click()
   await page.keyboard.press('Escape')
@@ -228,6 +256,7 @@ test('invitation-mode create persists once, invites explicitly, and reloads by U
 
   await expect(page.getByText('The invited user was saved')).toBeVisible()
   expect(state.userCreates).toBe(1)
+  expect(state.lastUserCreateMode).toBe('invitation')
   expect(state.invitationRequests).toBe(0)
   await page.getByRole('button', { name: 'Create invitation' }).click()
   await expect(page.getByText('pending')).toBeVisible()
@@ -246,4 +275,27 @@ test('invitation-mode create persists once, invites explicitly, and reloads by U
   await page.reload()
   await expect(page.getByText('The invited user was saved')).toBeVisible()
   expect(state.userCreates).toBe(1)
+})
+
+test('emailed setup link activates account before normal sign in', async ({ page }) => {
+  const state = await mockLifecycleApis(page)
+
+  await page.goto(`/auth/account-invitations/setup#token=${emailedInvitationToken}`)
+  await expect(page).toHaveURL(/\/auth\/account-invitations\/setup$/)
+  await page.getByLabel('Password').fill('correct-horse-battery-staple')
+  await page.getByRole('button', { name: 'Set password' }).click()
+  await expect(page.getByText('Password setup complete')).toBeVisible()
+  expect(state.setupRequests).toBe(1)
+  expect(state.setupRequestPath).toBe('/api/v1/account-invitations/setup')
+  expect(state.setupRequestBody).toEqual({
+    invitation_token: emailedInvitationToken,
+    password: 'correct-horse-battery-staple',
+  })
+
+  state.hasSession = false
+  await page.goto('/auth/login')
+  await page.getByLabel('Email address').fill('invited@example.test')
+  await page.getByLabel('Password').fill('correct-horse-battery-staple')
+  await page.getByRole('button', { name: 'Sign in' }).click()
+  await expect.poll(() => state.loginRequests).toBe(1)
 })

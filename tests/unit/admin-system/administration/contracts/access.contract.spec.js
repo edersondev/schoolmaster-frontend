@@ -24,11 +24,20 @@ describe('access contracts', () => {
         full_name: 'A',
         email: 'a@b.test',
         role_ids: [],
-        account_setup_mode: 'active',
+        account_setup_mode: 'invitation',
       },
     )
     expect(mapRoleCreateRequest({ ...createRoleForm(), name: 'Admin' }).scope).toBe('school')
     expect(isSchoolPermission({ scope: 'school', status: 'active' })).toBe(true)
+  })
+
+  it('keeps setup mode out of frontend state and always maps invitation setup', () => {
+    expect(createUserForm()).not.toHaveProperty('accountSetupMode')
+    expect(mapUserCreateRequest({ ...createUserForm(), accountSetupMode: 'active' })).toMatchObject(
+      {
+        account_setup_mode: 'invitation',
+      },
+    )
   })
 
   it('maps user edit and soft-delete payloads to approved API fields', () => {

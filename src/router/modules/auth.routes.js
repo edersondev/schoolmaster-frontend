@@ -40,7 +40,7 @@ export const authRoutes = [
         },
       },
       {
-        path: 'account-invitations/:invitationToken/setup',
+        path: 'account-invitations/setup',
         name: AUTH_ROUTE_NAMES.invitationSetup,
         component: () => import('@/pages/auth/InvitationSetupPage.vue'),
         meta: {

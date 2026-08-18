@@ -3,7 +3,7 @@ import { createAuthAccountLifecycleService } from '@/services/auth/accountLifecy
 import { createClient, lifecycleError, validToken } from '../fixtures'
 
 describe('auth account lifecycle service', () => {
-  it('completes invitation setup with token path and password body', async () => {
+  it('completes invitation setup with a secret-free path and token in the body', async () => {
     const client = createClient({
       post: vi.fn().mockResolvedValue({
         data: { data: { user_id: 'user-1', status: 'active', action: 'setup' } },
@@ -18,8 +18,8 @@ describe('auth account lifecycle service', () => {
       }),
     ).resolves.toMatchObject({ userId: 'user-1' })
     expect(client.post).toHaveBeenCalledWith(
-      `/api/v1/account-invitations/${validToken}/setup`,
-      { password: 'valid-password' },
+      '/api/v1/account-invitations/setup',
+      { invitation_token: validToken, password: 'valid-password' },
       expect.any(Object),
     )
   })

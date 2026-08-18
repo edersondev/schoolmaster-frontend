@@ -23,6 +23,7 @@ const props = defineProps({
   },
   currentSchool: { type: Object, default: null },
   canSwitchSchool: { type: Boolean, default: false },
+  accountName: { type: String, default: '' },
 })
 
 const emit = defineEmits([
@@ -32,6 +33,9 @@ const emit = defineEmits([
   'choose-school',
 ])
 const { t } = useI18n()
+const displayAccountName = computed(
+  () => props.accountName.trim() || t('adminSystem.shell.accountLabel'),
+)
 
 const navigationIcon = computed(() => {
   if (props.isMobile) {
@@ -95,10 +99,10 @@ function onAccountCommand(command) {
         <button
           type="button"
           class="admin-header__account"
-          :aria-label="t('adminSystem.shell.accountLabel')"
+          :aria-label="t('adminSystem.shell.accountMenuLabel', { name: displayAccountName })"
         >
           <ElIcon><User /></ElIcon>
-          <span>{{ t('adminSystem.shell.accountLabel') }}</span>
+          <span>{{ displayAccountName }}</span>
           <ElIcon class="admin-header__account-chevron"><ArrowDown /></ElIcon>
         </button>
 

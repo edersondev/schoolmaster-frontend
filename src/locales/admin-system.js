@@ -1,7 +1,8 @@
 export const adminSystemMessages = {
   shell: {
     title: 'System Administration',
-    accountLabel: 'System Administrator',
+    accountLabel: 'Account',
+    accountMenuLabel: 'Account menu for {name}',
     sidebarToggle: 'Toggle sidebar',
     drawerToggle: 'Open navigation',
     closeDrawer: 'Close navigation',
@@ -20,9 +21,12 @@ export const adminSystemMessages = {
     editSchool: 'Edit school',
     users: 'Users',
     createUser: 'Create user',
+    userDetail: 'User detail',
     editUser: 'Edit user',
     roles: 'Roles',
     createRole: 'Create role',
+    roleDetail: 'Role detail',
+    editRole: 'Edit role',
     permissions: 'Permissions',
     academicYears: 'Academic years',
     createAcademicYear: 'Create academic year',

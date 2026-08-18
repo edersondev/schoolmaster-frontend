@@ -76,7 +76,6 @@ onMounted(async () => {
       :roles="roleLookup.options.value"
       :roles-loading="roleLookup.status.value === 'loading'"
       :lookup-meta="roleLookup.meta.value"
-      show-account-setup-mode
       @lookup-page="roleLookup.setPage"
     />
   </AdminFormPage>

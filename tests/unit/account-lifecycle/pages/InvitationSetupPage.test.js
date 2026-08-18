@@ -4,8 +4,12 @@ import InvitationSetupPage from '@/pages/auth/InvitationSetupPage.vue'
 import { lifecyclePlugins, validToken } from '../fixtures'
 
 vi.mock('vue-router', () => ({
-  useRoute: () => ({ params: { invitationToken: validToken }, query: {} }),
-  useRouter: () => ({ push: vi.fn() }),
+  useRoute: () => ({
+    path: '/auth/account-invitations/setup',
+    hash: `#token=${validToken}`,
+    query: {},
+  }),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   RouterLink: { template: '<a><slot /></a>' },
 }))
 

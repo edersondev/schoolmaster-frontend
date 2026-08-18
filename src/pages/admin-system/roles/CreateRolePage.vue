@@ -7,7 +7,7 @@ import {
   validateRoleForm,
 } from '@/contracts/admin-system/access'
 import { createRole } from '@/services/admin-system/roles'
-import { listPermissions } from '@/services/admin-system/permissions'
+import { listAllPermissions } from '@/services/admin-system/permissions'
 import { useAdministrationCreatePage } from '@/composables/admin-system/useAdministrationCreatePage'
 import { useAdminLookup } from '@/composables/admin-system/useAdminLookup'
 import AdminFormPage from '@/components/ui/admin/AdminFormPage.vue'
@@ -23,10 +23,11 @@ const page = useAdministrationCreatePage({
 })
 const selectedPermissionIds = computed(() => page.form.values.permissionIds)
 const permissionLookup = useAdminLookup({
-  loader: listPermissions,
+  loader: listAllPermissions,
   tenantId: page.tenantId,
   selectedIds: selectedPermissionIds,
   operationId: 'listPermissions',
+  perPage: 100,
 })
 const schoolPermissions = computed(() => permissionLookup.options.value.filter(isSchoolPermission))
 onMounted(() => permissionLookup.load(1))
@@ -45,8 +46,6 @@ onMounted(() => permissionLookup.load(1))
       :errors="page.form.fieldErrors.value"
       :permissions="schoolPermissions"
       :permissions-loading="permissionLookup.status.value === 'loading'"
-      :lookup-meta="permissionLookup.meta.value"
-      @lookup-page="permissionLookup.setPage"
     />
   </AdminFormPage>
 </template>

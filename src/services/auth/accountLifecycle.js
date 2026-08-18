@@ -11,7 +11,7 @@ import { createSafeErrorDiagnostic } from '@/services/api/errorDiagnostics'
 import { normalizeAuthError, normalizeAuthSuccess } from './authErrorMapper'
 
 export const AUTH_ACCOUNT_LIFECYCLE_ENDPOINTS = Object.freeze({
-  invitationSetup: (token) => `/api/v1/account-invitations/${encodeURIComponent(token)}/setup`,
+  invitationSetup: '/api/v1/account-invitations/setup',
   passwordResetRequests: '/api/v1/auth/password-reset-requests',
   passwordResets: '/api/v1/auth/password-resets',
 })
@@ -94,9 +94,8 @@ export function createAuthAccountLifecycleService(client) {
   return {
     async completeAccountInvitation(input, options = {}) {
       try {
-        const token = String(input.invitationToken ?? input.token ?? '').trim()
         const response = await client.post(
-          AUTH_ACCOUNT_LIFECYCLE_ENDPOINTS.invitationSetup(token),
+          AUTH_ACCOUNT_LIFECYCLE_ENDPOINTS.invitationSetup,
           mapInvitationSetupRequest(input),
           { signal: options.signal },
         )
@@ -168,10 +167,10 @@ const accountLifecycleHttpClient = axios.create({
   withCredentials: true,
 })
 
-export const authAccountLifecycleService =
-  createAuthAccountLifecycleService(accountLifecycleHttpClient)
+export const authAccountLifecycleService = createAuthAccountLifecycleService(
+  accountLifecycleHttpClient,
+)
 
 export { normalizeAuthError }
 
 export default authAccountLifecycleService
-

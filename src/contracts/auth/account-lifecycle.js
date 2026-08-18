@@ -177,8 +177,16 @@ export function mapAccountLifecycleResult(data = {}) {
 
 export function mapInvitationSetupRequest(input = {}) {
   return {
+    invitation_token: String(input.invitationToken ?? input.token ?? '').trim(),
     password: String(input.password ?? ''),
   }
+}
+
+export function invitationTokenFromFragment(fragment = '') {
+  const rawFragment = String(fragment)
+  if (!rawFragment.startsWith('#')) return ''
+  const value = rawFragment.slice(1)
+  return String(new URLSearchParams(value).get('token') ?? '').trim()
 }
 
 export function mapPasswordResetRequest(input = {}) {
@@ -213,4 +221,3 @@ export function isMalformedLifecycleToken(token) {
   const value = String(token ?? '').trim()
   return value.length < 32 || value.length > 255 || /\s/.test(value)
 }
-

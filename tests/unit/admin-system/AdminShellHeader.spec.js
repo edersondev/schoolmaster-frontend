@@ -3,7 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import AdminShellHeader from '@/components/admin-system/shell/AdminShellHeader.vue'
 import { adminGlobalPlugins } from './shell.fixtures'
 
-function mountHeader() {
+function mountHeader(props = {}) {
   return mount(AdminShellHeader, {
     attachTo: document.body,
     props: {
@@ -14,6 +14,8 @@ function mountHeader() {
       isMobile: false,
       isSidebarCollapsed: false,
       notificationPanelOpen: false,
+      accountName: 'Avery Stone',
+      ...props,
     },
     global: {
       plugins: adminGlobalPlugins(),
@@ -24,6 +26,17 @@ function mountHeader() {
 describe('AdminShellHeader', () => {
   afterEach(() => {
     document.body.innerHTML = ''
+  })
+
+  it('shows the current user name instead of a role label', () => {
+    const wrapper = mountHeader()
+    const account = wrapper.get('.admin-header__account')
+
+    expect(account.text()).toContain('Avery Stone')
+    expect(account.text()).not.toContain('System Administrator')
+    expect(account.attributes('aria-label')).toBe('Account menu for Avery Stone')
+
+    wrapper.unmount()
   })
 
   it('emits an account command when the logout action is selected', async () => {

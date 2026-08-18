@@ -4,13 +4,18 @@ import { ElMessage } from 'element-plus'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { createRoleForm, mapRoleForm, validateRoleForm } from '@/contracts/admin-system/access'
+import {
+  createRoleForm,
+  isSchoolPermission,
+  mapRoleForm,
+  validateRoleForm,
+} from '@/contracts/admin-system/access'
 import { useAdminDetail } from '@/composables/admin-system/useAdminDetail'
 import { useAdminLookup } from '@/composables/admin-system/useAdminLookup'
 import { useAdminUpdateForm } from '@/composables/admin-system/useAdminUpdateForm'
 import { useUnsavedChangesGuard } from '@/composables/admin-system/useUnsavedChangesGuard'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
-import { listPermissions } from '@/services/admin-system/permissions'
+import { listAllPermissions } from '@/services/admin-system/permissions'
 import { getRole, updateRole } from '@/services/admin-system/roles'
 import { createReturnToListLocation } from '@/router/modules/administration-route'
 import AdminFeedbackState from '@/components/ui/admin/AdminFeedbackState.vue'
@@ -42,12 +47,13 @@ const form = useAdminUpdateForm({
 })
 const selectedPermissionIds = computed(() => form.values.permissionIds)
 const permissionLookup = useAdminLookup({
-  loader: listPermissions,
+  loader: listAllPermissions,
   tenantId,
   selectedIds: selectedPermissionIds,
   operationId: 'listPermissions',
-  status: 'active',
+  perPage: 100,
 })
+const schoolPermissions = computed(() => permissionLookup.options.value.filter(isSchoolPermission))
 
 useUnsavedChangesGuard({ isDirty: form.isDirty, submitted: form.submitted })
 
@@ -63,7 +69,9 @@ async function submit() {
     await form.submit()
     ElMessage.success(t('administration.common.updateSuccess'))
     await router.push(destination())
-  } catch {}
+  } catch {
+    // Form state already contains normalized submission feedback.
+  }
 }
 
 function cancel() {
@@ -77,10 +85,21 @@ watch([roleId, tenantId], loadRole, { immediate: true })
 </script>
 
 <template>
-  <section v-if="detail.status.value !== 'ready'" class="mx-auto flex w-full max-w-3xl flex-col gap-4">
-    <h1 class="font-display text-2xl font-semibold text-sm-text">{{ t('administration.roles.editTitle') }}</h1>
-    <AdminFeedbackState :state="detail.status.value" :feedback="detail.error.value" @retry="loadRole" />
-    <div class="flex justify-end"><ElButton @click="cancel">{{ t('administration.common.cancel') }}</ElButton></div>
+  <section
+    v-if="detail.status.value !== 'ready'"
+    class="mx-auto flex w-full max-w-3xl flex-col gap-4"
+  >
+    <h1 class="font-display text-2xl font-semibold text-sm-text">
+      {{ t('administration.roles.editTitle') }}
+    </h1>
+    <AdminFeedbackState
+      :state="detail.status.value"
+      :feedback="detail.error.value"
+      @retry="loadRole"
+    />
+    <div class="flex justify-end">
+      <ElButton @click="cancel">{{ t('administration.common.cancel') }}</ElButton>
+    </div>
   </section>
   <AdminFormPage
     v-else
@@ -95,10 +114,8 @@ watch([roleId, tenantId], loadRole, { immediate: true })
     <RoleEditFields
       v-model="form.values"
       :errors="form.fieldErrors.value"
-      :permissions="permissionLookup.options.value"
+      :permissions="schoolPermissions"
       :permissions-loading="permissionLookup.status.value === 'loading'"
-      :lookup-meta="permissionLookup.meta.value"
-      @lookup-page="permissionLookup.setPage"
     />
   </AdminFormPage>
 </template>
