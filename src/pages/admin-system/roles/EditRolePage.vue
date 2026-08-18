@@ -10,7 +10,7 @@ import { useAdminLookup } from '@/composables/admin-system/useAdminLookup'
 import { useAdminUpdateForm } from '@/composables/admin-system/useAdminUpdateForm'
 import { useUnsavedChangesGuard } from '@/composables/admin-system/useUnsavedChangesGuard'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
-import { listPermissions } from '@/services/admin-system/permissions'
+import { listAllPermissions } from '@/services/admin-system/permissions'
 import { getRole, updateRole } from '@/services/admin-system/roles'
 import { createReturnToListLocation } from '@/router/modules/administration-route'
 import AdminFeedbackState from '@/components/ui/admin/AdminFeedbackState.vue'
@@ -42,10 +42,11 @@ const form = useAdminUpdateForm({
 })
 const selectedPermissionIds = computed(() => form.values.permissionIds)
 const permissionLookup = useAdminLookup({
-  loader: listPermissions,
+  loader: listAllPermissions,
   tenantId,
   selectedIds: selectedPermissionIds,
   operationId: 'listPermissions',
+  perPage: 100,
 })
 
 useUnsavedChangesGuard({ isDirty: form.isDirty, submitted: form.submitted })
@@ -109,8 +110,6 @@ watch([roleId, tenantId], loadRole, { immediate: true })
       :errors="form.fieldErrors.value"
       :permissions="permissionLookup.options.value"
       :permissions-loading="permissionLookup.status.value === 'loading'"
-      :lookup-meta="permissionLookup.meta.value"
-      @lookup-page="permissionLookup.setPage"
     />
   </AdminFormPage>
 </template>

@@ -246,12 +246,8 @@ test('invitation-mode create persists once, invites explicitly, and reloads by U
   await page.goto('/admin/users/create')
   await page.getByLabel('Full name').fill('Invited User')
   await page.getByLabel('Email').fill('invited@example.test')
-  await page.getByLabel('Account setup').press('Enter')
-  await expect(page.getByRole('option', { name: 'Invitation required' })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  )
-  await page.keyboard.press('Escape')
+  await expect(page.getByLabel('Account setup')).toHaveCount(0)
+  await expect(page.getByText('Active immediately')).toHaveCount(0)
   await page.getByLabel('Roles').press('Enter')
   await page.getByRole('option', { name: 'Teacher' }).click()
   await page.keyboard.press('Escape')

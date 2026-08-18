@@ -100,7 +100,7 @@ async function mountPage(query = '') {
           props: ['modelValue'],
           emits: ['update:modelValue'],
           template:
-            "<button data-test=\"fill\" @click=\"$emit('update:modelValue', { fullName: 'Invited User', email: 'invited@example.test', roleIds: ['role-1'], accountSetupMode: 'invitation' })\">Fill</button>",
+            "<button data-test=\"fill\" @click=\"$emit('update:modelValue', { fullName: 'Invited User', email: 'invited@example.test', roleIds: ['role-1'] })\">Fill</button>",
         },
         UserInvitationPanel: { template: '<section data-test="invitation-panel" />' },
       },
@@ -129,17 +129,14 @@ describe('CreateUser account invitation flow', () => {
       fullName: 'Invited User',
       email: 'invited@example.test',
       roleIds: ['role-1'],
-      accountSetupMode: 'invitation',
     })
     await wrapper.vm.$nextTick()
     await wrapper.get('[data-test="submit"]').trigger('click')
     await flushPromises()
 
     expect(createUser).toHaveBeenCalledTimes(1)
-    expect(createUser.mock.calls[0][0]).toMatchObject({
-      accountSetupMode: 'invitation',
-      email: 'invited@example.test',
-    })
+    expect(createUser.mock.calls[0][0]).toMatchObject({ email: 'invited@example.test' })
+    expect(createUser.mock.calls[0][0]).not.toHaveProperty('accountSetupMode')
     expect(router.currentRoute.value.name).toBe('userCreate')
     expect(router.currentRoute.value.query).toEqual({ created_user_id: 'invited-1' })
     expect(wrapper.find('[data-test="invitation-panel"]').exists()).toBe(true)

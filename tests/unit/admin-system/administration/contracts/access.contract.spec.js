@@ -31,11 +31,11 @@ describe('access contracts', () => {
     expect(isSchoolPermission({ scope: 'school', status: 'active' })).toBe(true)
   })
 
-  it('defaults fresh user forms to invitation while preserving explicit active setup', () => {
-    expect(createUserForm().accountSetupMode).toBe('invitation')
+  it('keeps setup mode out of frontend state and always maps invitation setup', () => {
+    expect(createUserForm()).not.toHaveProperty('accountSetupMode')
     expect(mapUserCreateRequest({ ...createUserForm(), accountSetupMode: 'active' })).toMatchObject(
       {
-        account_setup_mode: 'active',
+        account_setup_mode: 'invitation',
       },
     )
   })
