@@ -167,29 +167,17 @@ describe('access administration components', () => {
             emits: ['update:modelValue', 'closed'],
             template: '<section><slot /><slot name="footer" /></section>',
           },
-          ElTable: {
-            name: 'ElTable',
-            props: ['data', 'emptyText'],
-            template: '<div><slot /></div>',
-          },
-          ElTableColumn: {
-            name: 'ElTableColumn',
-            props: ['prop', 'label'],
-            template: '<span />',
-          },
         },
       },
     })
     expect(dialog.findComponent({ name: 'ElDialog' }).props('title')).toBe('Director permissions')
-    expect(dialog.findComponent({ name: 'ElTable' }).props('data')).toEqual(role.permissions)
-    expect(
-      dialog.findAllComponents({ name: 'ElTableColumn' }).map((column) => ({
-        prop: column.props('prop'),
-        label: column.props('label'),
-      })),
-    ).toEqual([
-      { prop: 'code', label: 'Permission name' },
-      { prop: 'name', label: 'Description' },
-    ])
+    expect(dialog.find('table').exists()).toBe(false)
+    expect(dialog.find('ul').exists()).toBe(false)
+    expect(dialog.get('[data-test="permission-grid"]').classes()).toEqual(
+      expect.arrayContaining(['grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-4']),
+    )
+    expect(dialog.findAll('[data-test="permission-card"]')).toHaveLength(2)
+    expect(dialog.findAll('[data-test="permission-card"]')[0].text()).toContain('users.view')
+    expect(dialog.findAll('[data-test="permission-card"]')[0].text()).toContain('View users')
   })
 })
