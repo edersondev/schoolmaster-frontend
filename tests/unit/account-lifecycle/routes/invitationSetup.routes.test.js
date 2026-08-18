@@ -7,7 +7,7 @@ describe('invitation setup route', () => {
       (entry) => entry.name === AUTH_ROUTE_NAMES.invitationSetup,
     )
 
-    expect(route.path).toBe('account-invitations/:invitationToken/setup')
+    expect(route.path).toBe('account-invitations/setup')
     expect(route.meta).toMatchObject({ guestLifecycle: true, layout: 'auth' })
   })
 })

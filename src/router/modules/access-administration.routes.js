@@ -86,7 +86,7 @@ export const accessAdministrationRoutes = [
     name: 'userCreate',
     component: () => import('@/pages/admin-system/users/CreateUserPage.vue'),
     title: 'navigation.createUser',
-    permissions: ['users.view', 'users.manage', 'roles.view'],
+    permissions: ['users.view', 'users.manage', 'roles.view', 'account_lifecycle.manage'],
   }),
   createAdministrationRoute({
     path: 'users/:userId',

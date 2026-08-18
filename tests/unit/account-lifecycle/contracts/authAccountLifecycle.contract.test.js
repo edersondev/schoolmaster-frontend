@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createAccountLifecycleFeedbackState,
   isMalformedLifecycleToken,
+  invitationTokenFromFragment,
   mapAccountInvitation,
   mapInvitationSetupRequest,
   mapPasswordResetCompletionRequest,
@@ -35,12 +36,20 @@ describe('auth account lifecycle contract', () => {
         delivery_metadata: { ip: 'blocked' },
       }),
     ).toEqual({ email: 'avery@example.com' })
-    expect(mapInvitationSetupRequest({ password: 'long-password' })).toEqual({
+    expect(
+      mapInvitationSetupRequest({ invitationToken: ' token ', password: 'long-password' }),
+    ).toEqual({
+      invitation_token: 'token',
       password: 'long-password',
     })
     expect(
       mapPasswordResetCompletionRequest({ token: ' token ', password: 'long-password' }),
     ).toEqual({ token: 'token', password: 'long-password' })
+  })
+
+  it('reads invitation proof only from the URL fragment', () => {
+    expect(invitationTokenFromFragment('#token=fragment-token')).toBe('fragment-token')
+    expect(invitationTokenFromFragment('?token=query-token')).toBe('')
   })
 
   it('validates password and token boundaries', () => {

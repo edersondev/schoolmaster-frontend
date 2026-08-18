@@ -4,7 +4,12 @@ import { ElMessage } from 'element-plus'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { createRoleForm, mapRoleForm, validateRoleForm } from '@/contracts/admin-system/access'
+import {
+  createRoleForm,
+  isSchoolPermission,
+  mapRoleForm,
+  validateRoleForm,
+} from '@/contracts/admin-system/access'
 import { useAdminDetail } from '@/composables/admin-system/useAdminDetail'
 import { useAdminLookup } from '@/composables/admin-system/useAdminLookup'
 import { useAdminUpdateForm } from '@/composables/admin-system/useAdminUpdateForm'
@@ -48,6 +53,7 @@ const permissionLookup = useAdminLookup({
   operationId: 'listPermissions',
   perPage: 100,
 })
+const schoolPermissions = computed(() => permissionLookup.options.value.filter(isSchoolPermission))
 
 useUnsavedChangesGuard({ isDirty: form.isDirty, submitted: form.submitted })
 
@@ -108,7 +114,7 @@ watch([roleId, tenantId], loadRole, { immediate: true })
     <RoleEditFields
       v-model="form.values"
       :errors="form.fieldErrors.value"
-      :permissions="permissionLookup.options.value"
+      :permissions="schoolPermissions"
       :permissions-loading="permissionLookup.status.value === 'loading'"
     />
   </AdminFormPage>

@@ -21,7 +21,7 @@ describe('access administration page flows', () => {
     ).toBe(true)
     expect(
       accessAdministrationRoutes.find((route) => route.name === 'userCreate').meta.permissions,
-    ).toEqual(['users.view', 'users.manage', 'roles.view'])
+    ).toEqual(['users.view', 'users.manage', 'roles.view', 'account_lifecycle.manage'])
     expect(
       accessAdministrationRoutes.find((route) => route.name === 'userEdit').meta.permissions,
     ).toEqual(['users.view', 'users.manage', 'roles.view'])

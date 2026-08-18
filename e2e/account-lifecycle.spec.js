@@ -47,6 +47,8 @@ async function mockLifecycleApis(page, { denied = false } = {}) {
     userCreates: 0,
     lastUserCreateMode: null,
     setupRequests: 0,
+    setupRequestBody: null,
+    setupRequestPath: null,
     loginRequests: 0,
     hasSession: true,
   }
@@ -60,11 +62,10 @@ async function mockLifecycleApis(page, { denied = false } = {}) {
     const method = request.method()
     const schoolId = request.headers()['x-school-id'] ?? null
 
-    if (
-      path === `/api/v1/account-invitations/${emailedInvitationToken}/setup` &&
-      method === 'POST'
-    ) {
+    if (path === '/api/v1/account-invitations/setup' && method === 'POST') {
       state.setupRequests += 1
+      state.setupRequestBody = request.postDataJSON()
+      state.setupRequestPath = path
       return fulfill(route, {
         data: { user_id: 'invited-1', school_id: school.id, status: 'active' },
       })
@@ -279,11 +280,17 @@ test('invitation-mode create persists once, invites explicitly, and reloads by U
 test('emailed setup link activates account before normal sign in', async ({ page }) => {
   const state = await mockLifecycleApis(page)
 
-  await page.goto(`/auth/account-invitations/${emailedInvitationToken}/setup`)
+  await page.goto(`/auth/account-invitations/setup#token=${emailedInvitationToken}`)
+  await expect(page).toHaveURL(/\/auth\/account-invitations\/setup$/)
   await page.getByLabel('Password').fill('correct-horse-battery-staple')
   await page.getByRole('button', { name: 'Set password' }).click()
   await expect(page.getByText('Password setup complete')).toBeVisible()
   expect(state.setupRequests).toBe(1)
+  expect(state.setupRequestPath).toBe('/api/v1/account-invitations/setup')
+  expect(state.setupRequestBody).toEqual({
+    invitation_token: emailedInvitationToken,
+    password: 'correct-horse-battery-staple',
+  })
 
   state.hasSession = false
   await page.goto('/auth/login')
