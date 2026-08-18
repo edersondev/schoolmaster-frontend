@@ -8,7 +8,18 @@ export function createPermissionsService(client) {
     listOperationId: 'listPermissions',
     mapRecord: mapPermission,
   })
-  return { listPermissions: service.list }
+
+  function listPermissions(query = {}, options = {}) {
+    return service.list(
+      {
+        page: query.page,
+        perPage: query.perPage,
+      },
+      options,
+    )
+  }
+
+  return { listPermissions }
 }
 
 export const { listPermissions } = createPermissionsService()

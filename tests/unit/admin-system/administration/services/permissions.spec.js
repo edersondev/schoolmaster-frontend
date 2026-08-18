@@ -9,7 +9,12 @@ describe('permissions service', () => {
     })
     const service = createPermissionsService(client)
     expect(service.createPermission).toBeUndefined()
-    await service.listPermissions({ page: 1, perPage: 25 })
-    expect(client.get).toHaveBeenCalledOnce()
+    await service.listPermissions({ page: 1, perPage: 25, status: 'active' })
+    expect(client.get).toHaveBeenCalledWith(
+      '/api/v1/permissions',
+      expect.objectContaining({
+        params: { page: 1, per_page: 25 },
+      }),
+    )
   })
 })

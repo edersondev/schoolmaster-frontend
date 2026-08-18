@@ -46,7 +46,6 @@ const permissionLookup = useAdminLookup({
   tenantId,
   selectedIds: selectedPermissionIds,
   operationId: 'listPermissions',
-  status: 'active',
 })
 
 useUnsavedChangesGuard({ isDirty: form.isDirty, submitted: form.submitted })
@@ -63,7 +62,9 @@ async function submit() {
     await form.submit()
     ElMessage.success(t('administration.common.updateSuccess'))
     await router.push(destination())
-  } catch {}
+  } catch {
+    // Form state already contains normalized submission feedback.
+  }
 }
 
 function cancel() {
@@ -77,10 +78,21 @@ watch([roleId, tenantId], loadRole, { immediate: true })
 </script>
 
 <template>
-  <section v-if="detail.status.value !== 'ready'" class="mx-auto flex w-full max-w-3xl flex-col gap-4">
-    <h1 class="font-display text-2xl font-semibold text-sm-text">{{ t('administration.roles.editTitle') }}</h1>
-    <AdminFeedbackState :state="detail.status.value" :feedback="detail.error.value" @retry="loadRole" />
-    <div class="flex justify-end"><ElButton @click="cancel">{{ t('administration.common.cancel') }}</ElButton></div>
+  <section
+    v-if="detail.status.value !== 'ready'"
+    class="mx-auto flex w-full max-w-3xl flex-col gap-4"
+  >
+    <h1 class="font-display text-2xl font-semibold text-sm-text">
+      {{ t('administration.roles.editTitle') }}
+    </h1>
+    <AdminFeedbackState
+      :state="detail.status.value"
+      :feedback="detail.error.value"
+      @retry="loadRole"
+    />
+    <div class="flex justify-end">
+      <ElButton @click="cancel">{{ t('administration.common.cancel') }}</ElButton>
+    </div>
   </section>
   <AdminFormPage
     v-else
