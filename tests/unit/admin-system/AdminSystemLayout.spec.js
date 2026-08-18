@@ -114,6 +114,30 @@ describe('AdminSystemLayout', () => {
     expect(wrapper.find('nav').text()).toContain('Users')
   })
 
+  it('passes the current login user name to the header with an email fallback', async () => {
+    const { wrapper } = await mountLayout()
+    const sessionStore = useAuthSessionStore()
+
+    sessionStore.currentUser = {
+      id: 'user-1',
+      fullName: 'Avery Stone',
+      email: 'avery@example.test',
+    }
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findComponent(AdminShellHeader).props('accountName')).toBe('Avery Stone')
+    expect(wrapper.find('.admin-header__account').text()).not.toContain('System Administrator')
+
+    sessionStore.currentUser = {
+      id: 'user-1',
+      fullName: ' ',
+      email: 'avery@example.test',
+    }
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findComponent(AdminShellHeader).props('accountName')).toBe('avery@example.test')
+  })
+
   it('does not pass user-permissions into routed pages that do not declare the prop', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const fragmentRoute = {

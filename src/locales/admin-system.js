@@ -1,7 +1,8 @@
 export const adminSystemMessages = {
   shell: {
     title: 'System Administration',
-    accountLabel: 'System Administrator',
+    accountLabel: 'Account',
+    accountMenuLabel: 'Account menu for {name}',
     sidebarToggle: 'Toggle sidebar',
     drawerToggle: 'Open navigation',
     closeDrawer: 'Close navigation',
