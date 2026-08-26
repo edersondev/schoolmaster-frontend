@@ -7,6 +7,7 @@ import { lifecyclePlugins, schoolId } from '../fixtures'
 
 const createUser = vi.fn()
 const getUser = vi.fn()
+const restoreUser = vi.fn()
 const listRoles = vi.fn().mockResolvedValue({
   items: [{ id: 'role-1', name: 'Teacher', status: 'active' }],
   meta: { page: 1, perPage: 25, total: 1 },
@@ -15,6 +16,7 @@ const listRoles = vi.fn().mockResolvedValue({
 vi.mock('@/services/admin-system/users', () => ({
   createUser: (...args) => createUser(...args),
   getUser: (...args) => getUser(...args),
+  restoreUser: (...args) => restoreUser(...args),
 }))
 vi.mock('@/services/admin-system/roles', () => ({
   listRoles: (...args) => listRoles(...args),
@@ -31,6 +33,9 @@ vi.mock('@/composables/admin-system/useAdministrationCreatePage', async () => {
         pending: shallowRef(false),
         fieldErrors: shallowRef({}),
         formError: shallowRef(null),
+        clearErrors: vi.fn(),
+        invalidate: vi.fn(),
+        reset: vi.fn(),
       }
 
       return {
@@ -135,6 +140,7 @@ describe('CreateUser account invitation flow', () => {
     await flushPromises()
 
     expect(createUser).toHaveBeenCalledTimes(1)
+    expect(restoreUser).not.toHaveBeenCalled()
     expect(createUser.mock.calls[0][0]).toMatchObject({ email: 'invited@example.test' })
     expect(createUser.mock.calls[0][0]).not.toHaveProperty('accountSetupMode')
     expect(router.currentRoute.value.name).toBe('userCreate')

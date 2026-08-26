@@ -10,6 +10,7 @@ export function useAdminCreateForm(options) {
   const status = shallowRef('idle')
   const submitted = shallowRef(false)
   let pendingPromise = null
+  let requestSequence = 0
   let cleanSnapshot = JSON.stringify(initial)
 
   const isDirty = computed(() => !submitted.value && JSON.stringify(values) !== cleanSnapshot)
@@ -46,14 +47,17 @@ export function useAdminCreateForm(options) {
       throw feedback
     }
     status.value = 'submitting'
-    pendingPromise = Promise.resolve(options.submitter(structuredClone(toRaw(values))))
+    const requestId = ++requestSequence
+    const request = Promise.resolve(options.submitter(structuredClone(toRaw(values))))
       .then((result) => {
+        if (requestId !== requestSequence) return null
         status.value = 'succeeded'
         submitted.value = true
         cleanSnapshot = JSON.stringify(values)
         return result
       })
       .catch((cause) => {
+        if (requestId !== requestSequence) return null
         const feedback = normalizeAdministrationError(cause, {
           operationId: options.operationId,
           routeName: options.routeName,
@@ -64,18 +68,27 @@ export function useAdminCreateForm(options) {
         throw feedback
       })
       .finally(() => {
-        pendingPromise = null
+        if (requestId === requestSequence) pendingPromise = null
       })
-    return pendingPromise
+    pendingPromise = request
+    return request
   }
 
   function reset(nextValues = initial) {
+    requestSequence += 1
+    pendingPromise = null
     Object.keys(values).forEach((key) => delete values[key])
     Object.assign(values, structuredClone(nextValues))
     cleanSnapshot = JSON.stringify(values)
     submitted.value = false
     status.value = 'idle'
     clearErrors()
+  }
+
+  function invalidate() {
+    requestSequence += 1
+    pendingPromise = null
+    if (status.value === 'submitting') status.value = 'idle'
   }
 
   return {
@@ -88,6 +101,7 @@ export function useAdminCreateForm(options) {
     pending,
     submit,
     reset,
+    invalidate,
     clearErrors,
   }
 }

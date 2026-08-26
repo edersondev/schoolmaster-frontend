@@ -75,4 +75,27 @@ describe('users service', () => {
       }),
     )
   })
+
+  it('restores a tenant user with the published path, body, and school header', async () => {
+    const client = createAdminClient({
+      post: vi.fn().mockResolvedValue({
+        data: { data: { resource_type: 'users', action: 'restore', affected_ids: ['1'] } },
+      }),
+    })
+    const service = createUsersService(client, () => 'test-token')
+
+    await service.restoreUser(
+      '1',
+      { effectiveAt: '2026-06-27', reason: 'Approved recovery' },
+      { schoolId },
+    )
+
+    expect(client.post).toHaveBeenCalledWith(
+      '/api/v1/users/1/restore',
+      { effective_at: '2026-06-27', reason: 'Approved recovery' },
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer test-token', 'X-School-Id': schoolId },
+      }),
+    )
+  })
 })

@@ -1,4 +1,4 @@
-import { computed, readonly, shallowRef, watch } from 'vue'
+import { computed, onScopeDispose, readonly, shallowRef, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -23,6 +23,7 @@ export function useAdministrationCreatePage(options) {
     submitter: (values) => options.submitter(values, { schoolId: tenantId.value }),
   })
   useUnsavedChangesGuard({ isDirty: form.isDirty, submitted: form.submitted })
+  onScopeDispose(form.invalidate)
   if (options.tenantOwned) {
     watch(tenantId, (schoolId, previousSchoolId) => {
       if (previousSchoolId && schoolId !== previousSchoolId) form.reset()
@@ -42,11 +43,16 @@ export function useAdministrationCreatePage(options) {
     }
   }
 
+  function cancel() {
+    form.invalidate()
+    return router.push(destination())
+  }
+
   return {
     form,
     result: readonly(result),
     submit,
-    cancel: () => router.push(destination()),
+    cancel,
     finish: () => router.push(destination()),
     setResult(value) {
       result.value = value

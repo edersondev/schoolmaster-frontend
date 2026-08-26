@@ -1,8 +1,5 @@
 import { computed, reactive, readonly, shallowRef } from 'vue'
-import {
-  formatDateInput,
-  validateLifecycleActionForm,
-} from '@/contracts/admin-system/lifecycle'
+import { formatDateInput, validateLifecycleActionForm } from '@/contracts/admin-system/lifecycle'
 import { normalizeAdministrationError } from '@/services/admin-system/administration-error-mapper'
 
 export function useAdminLifecycleAction(options = {}) {
@@ -16,9 +13,13 @@ export function useAdminLifecycleAction(options = {}) {
   const form = reactive({ effectiveAt: formatDateInput(), reason: '' })
   let requestSequence = 0
 
-  const isDirty = computed(() => open.value && Boolean(form.reason || form.effectiveAt !== formatDateInput()))
+  const isDirty = computed(
+    () => open.value && Boolean(form.reason || form.effectiveAt !== formatDateInput()),
+  )
 
   function launch(nextTarget, nextAction) {
+    requestSequence += 1
+    pending.value = false
     target.value = nextTarget
     action.value = nextAction
     form.effectiveAt = formatDateInput()
@@ -29,7 +30,7 @@ export function useAdminLifecycleAction(options = {}) {
     open.value = true
   }
 
-  function close() {
+  function resetState({ clearOutcome = false } = {}) {
     open.value = false
     target.value = null
     action.value = null
@@ -37,6 +38,19 @@ export function useAdminLifecycleAction(options = {}) {
     form.reason = ''
     fieldErrors.value = {}
     formError.value = null
+    if (clearOutcome) outcome.value = null
+  }
+
+  function invalidate() {
+    requestSequence += 1
+    pending.value = false
+    resetState({ clearOutcome: true })
+  }
+
+  function close() {
+    requestSequence += 1
+    pending.value = false
+    resetState()
   }
 
   async function submit() {
@@ -90,6 +104,7 @@ export function useAdminLifecycleAction(options = {}) {
     isDirty,
     launch,
     close,
+    invalidate,
     submit,
   }
 }
