@@ -21,6 +21,7 @@ export const ADMIN_RECOVERY_ACTIONS = Object.freeze({
   signIn: 'sign-in',
   resetFilters: 'reset-filters',
   return: 'return',
+  restoreUser: 'restore-user',
   none: 'none',
 })
 

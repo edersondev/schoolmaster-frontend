@@ -114,6 +114,11 @@ export const administrationMessages = {
     detailTitle: 'User detail',
     deleteTitle: 'Delete user',
     deleteMessage: 'Delete {name}? Provide the effective date and a reason to confirm.',
+    recovery: {
+      warning: 'An existing user can be restored.',
+      restoreAction: 'Restore existing user',
+      resourceLabel: 'existing user',
+    },
   },
   roles: {
     title: 'Roles',

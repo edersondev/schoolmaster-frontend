@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { normalizeAdministrationError } from '@/services/admin-system/administration-error-mapper'
 import { validationError } from '../administration.fixtures'
+import {
+  genericDuplicateConflict,
+  malformedRecoveryConflicts,
+  recoverableConflict,
+  recoveryUserId,
+} from '../../user-recovery/fixtures/recoveryFeedback'
 
 describe('administration error mapper', () => {
   it('maps validation safely with request id and no raw payload', () => {
@@ -62,5 +68,70 @@ describe('administration error mapper', () => {
         recoveryAction: 'sign-in',
       }),
     )
+  })
+
+  it('projects only an exact valid recoverable conflict into safe recovery state', () => {
+    const feedback = normalizeAdministrationError(recoverableConflict(), {
+      operationId: 'createUser',
+      routeName: 'userCreate',
+    })
+
+    expect(feedback).toEqual({
+      type: 'conflict',
+      code: 'recoverable_user_conflict',
+      status: 409,
+      messageKey: 'administration.users.recovery.warning',
+      recoveryAction: 'restore-user',
+      recoveryUserId,
+      fieldErrors: {},
+      conflictKind: null,
+      operationId: 'createUser',
+      routeName: 'userCreate',
+      requestId: 'req-recovery',
+    })
+    expect(feedback).not.toHaveProperty('message')
+    expect(feedback).not.toHaveProperty('details')
+    expect(JSON.stringify(feedback)).not.toContain('Must not be projected')
+    expect(JSON.stringify(feedback)).not.toContain('Unsafe backend recovery message')
+  })
+
+  it('keeps generic unavailable-email validation non-recoverable', () => {
+    const feedback = normalizeAdministrationError(genericDuplicateConflict(), {
+      operationId: 'createUser',
+    })
+
+    expect(feedback).toMatchObject({
+      type: 'validation',
+      fieldErrors: { email: ['This email is unavailable.'] },
+    })
+    expect(feedback).not.toHaveProperty('recoveryAction')
+    expect(feedback).not.toHaveProperty('recoveryUserId')
+  })
+
+  it.each(malformedRecoveryConflicts)(
+    'fails malformed, flat, or unsupported recovery payloads closed',
+    (cause) => {
+      const feedback = normalizeAdministrationError(cause, { operationId: 'createUser' })
+
+      expect(feedback.messageKey).toBe('common.conflict')
+      expect(feedback).not.toHaveProperty('recoveryAction')
+      expect(feedback).not.toHaveProperty('recoveryUserId')
+      expect(JSON.stringify(feedback)).not.toContain(recoveryUserId)
+    },
+  )
+
+  it('ignores unexpected exact-response fields without projecting them', () => {
+    const feedback = normalizeAdministrationError(
+      recoverableConflict({
+        error: { audit: { deletedBy: 'hidden-admin' } },
+        details: { tenant_id: 'hidden-tenant', deletion_reason: 'hidden-reason' },
+      }),
+      { operationId: 'createUser' },
+    )
+
+    expect(feedback.recoveryUserId).toBe(recoveryUserId)
+    expect(JSON.stringify(feedback)).not.toContain('hidden-admin')
+    expect(JSON.stringify(feedback)).not.toContain('hidden-tenant')
+    expect(JSON.stringify(feedback)).not.toContain('hidden-reason')
   })
 })

@@ -1,17 +1,20 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { createUserForm, validateUserForm } from '@/contracts/admin-system/users'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
-import { createUser, getUser } from '@/services/admin-system/users'
+import { createUser, getUser, restoreUser } from '@/services/admin-system/users'
 import { listRoles } from '@/services/admin-system/roles'
 import { useAdministrationCreatePage } from '@/composables/admin-system/useAdministrationCreatePage'
 import { useAdminLookup } from '@/composables/admin-system/useAdminLookup'
+import { useUserCreationRecovery } from '@/composables/admin-system/useUserCreationRecovery'
 import AdminFormPage from '@/components/ui/admin/AdminFormPage.vue'
+import AdminLifecycleDialog from '@/components/ui/admin/AdminLifecycleDialog.vue'
 import UserForm from '@/components/admin-system/users/UserForm.vue'
 import UserInvitationPanel from '@/components/admin-system/users/UserInvitationPanel.vue'
+import UserRecoveryAlert from '@/components/admin-system/users/UserRecoveryAlert.vue'
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
@@ -28,6 +31,34 @@ const page = useAdministrationCreatePage({
 })
 const selectedRoleIds = computed(() => page.form.values.roleIds)
 const tenantId = computed(() => activeSchool.value?.id ?? null)
+const authorizationContext = computed(() =>
+  JSON.stringify({
+    generation: sessionStore.schoolContextGeneration,
+    status: sessionStore.status,
+    permissions: scopedPermissions.value
+      .map(({ code, scope, status }) => `${code}:${scope}:${status}`)
+      .sort(),
+  }),
+)
+const recovery = useUserCreationRecovery({
+  email: computed(() => page.form.values.email),
+  schoolId: page.tenantId,
+  actorId: computed(() => currentUser.value?.id ?? null),
+  authorizationGeneration: authorizationContext,
+  routeName: computed(() => route.name),
+  restoreUser,
+  onRestored: async ({ userId }) => {
+    page.form.reset()
+    await router.push({
+      name: 'userDetail',
+      params: { userId },
+      query: { user_mode: 'school' },
+    })
+  },
+})
+const formError = computed(() =>
+  recovery.visible.value ? null : (recovery.feedback.value ?? page.form.formError.value),
+)
 const roleLookup = useAdminLookup({
   loader: listRoles,
   tenantId: page.tenantId,
@@ -35,7 +66,34 @@ const roleLookup = useAdminLookup({
   operationId: 'listRoles',
   status: 'active',
 })
+
+watch(
+  () => page.form.formError.value,
+  (feedback) => {
+    if (feedback) recovery.accept(feedback)
+  },
+)
+
+watch(
+  [
+    () => page.form.values.email,
+    page.tenantId,
+    () => currentUser.value?.id ?? null,
+    authorizationContext,
+    () => route.name,
+  ],
+  () => {
+    page.form.invalidate()
+    recovery.invalidateIfContextChanged()
+    page.form.clearErrors()
+  },
+  { flush: 'sync' },
+)
 async function submit() {
+  if (recovery.visible.value) {
+    recovery.invalidate()
+    page.form.clearErrors()
+  }
   const user = await page.submit()
   if (!user) return
   if (user.status !== 'invited') {
@@ -46,6 +104,19 @@ async function submit() {
     name: 'userCreate',
     query: { ...route.query, created_user_id: user.id },
   })
+}
+
+async function submitRecovery() {
+  try {
+    await recovery.submit()
+  } catch {
+    // Recovery composable owns normalized validation and terminal feedback.
+  }
+}
+
+function cancel() {
+  recovery.invalidate()
+  page.cancel()
 }
 
 onMounted(async () => {
@@ -66,10 +137,15 @@ onMounted(async () => {
     :title="t('administration.users.createTitle')"
     :pending="page.form.pending.value"
     :field-errors="page.form.fieldErrors.value"
-    :form-error="page.form.formError.value"
+    :form-error="formError"
     @submit="submit"
-    @cancel="page.cancel"
+    @cancel="cancel"
   >
+    <UserRecoveryAlert
+      :visible="recovery.visible.value"
+      :pending="recovery.pending.value"
+      @restore="recovery.open"
+    />
     <UserForm
       v-model="page.form.values"
       :errors="page.form.fieldErrors.value"
@@ -103,4 +179,15 @@ onMounted(async () => {
       }}</ElButton>
     </div>
   </section>
+  <AdminLifecycleDialog
+    v-model:open="recovery.dialogOpen.value"
+    v-model:values="recovery.dialogValues"
+    :action="recovery.dialogAction.value"
+    :resource-label="t('administration.users.recovery.resourceLabel')"
+    :pending="recovery.pending.value"
+    :field-errors="recovery.dialogFieldErrors.value"
+    :form-error="recovery.dialogFormError.value"
+    @submit="submitRecovery"
+    @cancel="recovery.cancel"
+  />
 </template>
