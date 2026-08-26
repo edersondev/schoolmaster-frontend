@@ -42,6 +42,7 @@ async function mockLifecycleApis(page, { denied = false } = {}) {
   const state = {
     users: [user()],
     lifecycleRequests: [],
+    passwordDeliveryRequests: [],
     invitationRequests: 0,
     resendRequests: 0,
     userCreates: 0,
@@ -144,6 +145,30 @@ async function mockLifecycleApis(page, { denied = false } = {}) {
         data: { user_id: lockMatch[1], status: 'active', action: 'account_unlocked' },
       })
     }
+    const passwordDeliveryMatch = path.match(/^\/api\/v1\/users\/([^/]+)\/password-delivery$/)
+    if (passwordDeliveryMatch && method === 'POST') {
+      state.passwordDeliveryRequests.push({
+        path,
+        method,
+        schoolId,
+        body: request.postData() ?? null,
+      })
+      return fulfill(
+        route,
+        {
+          data: {
+            status: 'requested',
+            delivery_channel: 'email',
+            delivery_requested_at: '2026-08-26T12:00:00Z',
+            token: 'forbidden-delivery-token',
+            password_url: 'https://private.test/forbidden-delivery-token',
+            email: 'private-target@example.test',
+            provider_diagnostic: 'private-provider-diagnostic',
+          },
+        },
+        201,
+      )
+    }
     if (path === '/api/v1/account-invitations' && method === 'POST') {
       state.invitationRequests += 1
       return fulfill(
@@ -238,6 +263,50 @@ test('denied lifecycle authority unmounts sections and sends zero lifecycle requ
   await expect(page.getByText('Account lifecycle actions')).toHaveCount(0)
   await expect(page.getByText('Account lock')).toHaveCount(0)
   expect(state.lifecycleRequests).toHaveLength(0)
+  expect(state.passwordDeliveryRequests).toHaveLength(0)
+})
+
+test('authorized password delivery stays secret-free and clears on target route change', async ({
+  page,
+}) => {
+  const state = await mockLifecycleApis(page)
+  state.users.push(user('user-2'))
+  await page.goto('/admin/users/user-1?user_mode=school')
+
+  const deliveryButton = page.getByRole('button', { name: 'Send password link' })
+  await deliveryButton.focus()
+  await page.keyboard.press('Enter')
+  const deliveryResult = page.locator('[data-test="password-delivery-result"]')
+  await expect(deliveryResult).toContainText('Password email submission accepted.')
+  await expect(deliveryButton).toBeFocused()
+
+  expect(state.passwordDeliveryRequests).toEqual([
+    {
+      path: '/api/v1/users/user-1/password-delivery',
+      method: 'POST',
+      schoolId: school.id,
+      body: null,
+    },
+  ])
+  const forbidden = [
+    'forbidden-delivery-token',
+    'private-target@example.test',
+    'private-provider-diagnostic',
+    'password_url',
+  ]
+  const rendered = await page.locator('body').innerText()
+  const browserStorage = await page.evaluate(() =>
+    JSON.stringify({ ...window.localStorage, ...window.sessionStorage }),
+  )
+  for (const value of forbidden) {
+    expect(rendered).not.toContain(value)
+    expect(browserStorage).not.toContain(value)
+    expect(page.url()).not.toContain(value)
+  }
+
+  await page.goto('/admin/users/user-2?user_mode=school')
+  await expect(page.getByRole('heading', { name: 'Avery Stone' })).toBeVisible()
+  await expect(deliveryResult).toHaveCount(0)
 })
 
 test('invitation-mode create persists once, invites explicitly, and reloads by UUID only', async ({

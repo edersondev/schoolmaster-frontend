@@ -8,11 +8,13 @@ describe('PasswordResetCompletionForm', () => {
     const wrapper = mount(PasswordResetCompletionForm, { global: { plugins: lifecyclePlugins() } })
 
     await wrapper.get('input[name="password"]').setValue('short')
+    expect(wrapper.get('input[name="password"]').attributes('autocomplete')).toBe('new-password')
     await wrapper.get('button').trigger('click')
     expect(wrapper.text()).toContain('Use at least 12 characters')
 
     await wrapper.get('input[name="password"]').setValue('valid-password')
     await wrapper.get('button').trigger('click')
     expect(wrapper.emitted('submit')[0][0]).toEqual({ password: 'valid-password' })
+    expect(wrapper.html()).not.toContain('token')
   })
 })

@@ -37,7 +37,11 @@ describe('useAccountLifecycleActions permissions', () => {
 
     permissions.value = [{ code: 'account_lifecycle.manage', scope: 'school', status: 'active' }]
     await nextTick()
-    expect(lifecycle.eligibility.value).toMatchObject({ blocked: false, canLock: true })
+    expect(lifecycle.eligibility.value).toMatchObject({
+      blocked: false,
+      canLock: true,
+      canDeliverPassword: true,
+    })
     expect(service.getAccountLock).toHaveBeenCalledTimes(1)
 
     service.getAccountLock.mockClear()
@@ -50,6 +54,7 @@ describe('useAccountLifecycleActions permissions', () => {
     activeSchoolId.value = 'other-school'
     await nextTick()
     expect(lifecycle.eligibility.value.blocked).toBe(true)
+    expect(lifecycle.delivery.value).toBeNull()
     expect(service.getAccountLock).not.toHaveBeenCalled()
   })
 })

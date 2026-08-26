@@ -10,11 +10,13 @@ import { listRoles } from '@/services/admin-system/roles'
 import { useAdministrationCreatePage } from '@/composables/admin-system/useAdministrationCreatePage'
 import { useAdminLookup } from '@/composables/admin-system/useAdminLookup'
 import { useUserCreationRecovery } from '@/composables/admin-system/useUserCreationRecovery'
+import { useAccountLifecycleActions } from '@/composables/admin-system/useAccountLifecycleActions'
 import AdminFormPage from '@/components/ui/admin/AdminFormPage.vue'
 import AdminLifecycleDialog from '@/components/ui/admin/AdminLifecycleDialog.vue'
 import UserForm from '@/components/admin-system/users/UserForm.vue'
 import UserInvitationPanel from '@/components/admin-system/users/UserInvitationPanel.vue'
 import UserRecoveryAlert from '@/components/admin-system/users/UserRecoveryAlert.vue'
+import AccountLifecycleActions from '@/components/admin-system/users/AccountLifecycleActions.vue'
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
@@ -66,6 +68,21 @@ const roleLookup = useAdminLookup({
   operationId: 'listRoles',
   status: 'active',
 })
+const postCreateLifecycle = useAccountLifecycleActions({
+  target: page.result,
+  schoolId: tenantId,
+  actorId: computed(() => currentUser.value?.id ?? null),
+  permissions: scopedPermissions,
+  roles,
+  routeName: computed(() => route.name),
+  refreshTarget: async () => {
+    const createdUserId = page.result.value?.id
+    if (!createdUserId) return null
+    const user = await getUser(createdUserId, { schoolId: tenantId.value })
+    page.setResult(user)
+    return user
+  },
+})
 
 watch(
   () => page.form.formError.value,
@@ -96,7 +113,7 @@ async function submit() {
   }
   const user = await page.submit()
   if (!user) return
-  if (user.status !== 'invited') {
+  if (!['active', 'invited'].includes(user.status)) {
     await page.finish()
     return
   }
@@ -104,6 +121,14 @@ async function submit() {
     name: 'userCreate',
     query: { ...route.query, created_user_id: user.id },
   })
+}
+
+async function requestPasswordDelivery() {
+  try {
+    await postCreateLifecycle.requestPasswordDelivery()
+  } catch {
+    /* composable owns safe feedback */
+  }
 }
 
 async function submitRecovery() {
@@ -130,7 +155,7 @@ onMounted(async () => {
   if (!persistedUserId || page.result.value) return
   try {
     const user = await getUser(persistedUserId, { schoolId: tenantId.value })
-    if (user?.status === 'invited') page.setResult(user)
+    if (['active', 'invited'].includes(user?.status)) page.setResult(user)
   } catch {
     // Exact-tenant re-fetch owns authorization; invalid route intent is ignored.
   }
@@ -165,7 +190,13 @@ onMounted(async () => {
       {{ t('administration.users.createTitle') }}
     </h1>
     <ElAlert
-      :title="t('accountLifecycle.invitation.createdUser')"
+      :title="
+        t(
+          page.result.value.status === 'active'
+            ? 'accountLifecycle.delivery.createdUser'
+            : 'accountLifecycle.invitation.createdUser',
+        )
+      "
       type="success"
       :closable="false"
       show-icon
@@ -177,6 +208,15 @@ onMounted(async () => {
       :actor-id="currentUser?.id"
       :permissions="scopedPermissions"
       :roles="roles"
+    />
+    <AccountLifecycleActions
+      v-if="page.result.value.status === 'active'"
+      delivery-only
+      :eligibility="postCreateLifecycle.eligibility.value"
+      :delivery="postCreateLifecycle.delivery.value"
+      :delivery-pending="postCreateLifecycle.deliveryPending.value"
+      :delivery-error="postCreateLifecycle.deliveryError.value"
+      @password-delivery="requestPasswordDelivery"
     />
     <div class="flex justify-end">
       <ElButton type="primary" @click="page.finish">{{

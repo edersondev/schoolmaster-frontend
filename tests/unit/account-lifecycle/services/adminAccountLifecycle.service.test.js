@@ -140,4 +140,55 @@ describe('admin account lifecycle service', () => {
 
     expect(client.get.mock.calls[0][1].headers).not.toHaveProperty('X-School-Id')
   })
+
+  it('posts no body for password delivery and maps only safe result data', async () => {
+    const client = createClient({
+      post: vi.fn().mockResolvedValue({
+        data: {
+          data: {
+            status: 'requested',
+            delivery_channel: 'email',
+            delivery_requested_at: '2026-08-26T12:00:00Z',
+            token: 'must-not-survive',
+          },
+        },
+      }),
+    })
+    const service = createAdminAccountLifecycleService(client, () => 'token')
+    const controller = new AbortController()
+
+    await expect(
+      service.requestUserPasswordDelivery(userId, {
+        schoolId,
+        signal: controller.signal,
+      }),
+    ).resolves.toEqual({
+      status: 'requested',
+      deliveryChannel: 'email',
+      deliveryRequestedAt: '2026-08-26T12:00:00Z',
+    })
+    expect(client.post).toHaveBeenCalledWith(
+      `/api/v1/users/${userId}/password-delivery`,
+      undefined,
+      expect.objectContaining({
+        signal: controller.signal,
+        headers: expect.objectContaining({ 'X-School-Id': schoolId }),
+      }),
+    )
+  })
+
+  it('maps password delivery limits and unavailability to safe retry states', async () => {
+    const limited = createAdminAccountLifecycleService(
+      createClient({
+        post: vi.fn().mockRejectedValue(lifecycleError('password_delivery_rate_limited', 429)),
+      }),
+      () => 'token',
+    )
+
+    await expect(limited.requestUserPasswordDelivery(userId, { schoolId })).rejects.toMatchObject({
+      type: 'rate-limited',
+      operationId: 'requestUserPasswordDelivery',
+      recoveryAction: 'retry',
+    })
+  })
 })

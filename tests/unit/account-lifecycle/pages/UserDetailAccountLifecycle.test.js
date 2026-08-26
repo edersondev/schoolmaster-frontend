@@ -17,6 +17,9 @@ const accountLifecycle = vi.hoisted(() => ({
   lock: { value: { status: 'none' } },
   loading: { value: false },
   pending: { value: false },
+  delivery: { value: null },
+  deliveryPending: { value: false },
+  deliveryError: { value: null },
   error: { value: null },
   fieldErrors: { value: {} },
   open: { value: false },
@@ -27,6 +30,7 @@ const accountLifecycle = vi.hoisted(() => ({
   launch: vi.fn(),
   close: vi.fn(),
   submit: vi.fn(),
+  requestPasswordDelivery: vi.fn(),
 }))
 
 vi.mock('@/composables/admin-system/useAdminDetail', () => ({ useAdminDetail: () => detail }))
@@ -115,7 +119,8 @@ async function mountPage(blocked = false, mode = 'school') {
           template: '<section v-if="!hidden" data-test="lock-panel" />',
         },
         AccountLifecycleActions: {
-          template: '<button data-test="lifecycle-action" @click="$emit(\'action\', \'lock\')" />',
+          template:
+            '<div><button data-test="lifecycle-action" @click="$emit(\'action\', \'lock\')" /><button data-test="password-delivery" @click="$emit(\'password-delivery\')" /></div>',
         },
         AdminLifecycleDialog: true,
         AdminAccountLifecycleDialog: true,
@@ -134,6 +139,8 @@ describe('UserDetail account lifecycle integration', () => {
     expect(wrapper.find('[data-test="lock-panel"]').exists()).toBe(true)
     await wrapper.get('[data-test="lifecycle-action"]').trigger('click')
     expect(accountLifecycle.launch).toHaveBeenCalledWith('lock')
+    await wrapper.get('[data-test="password-delivery"]').trigger('click')
+    expect(accountLifecycle.requestPasswordDelivery).toHaveBeenCalledTimes(1)
   })
 
   it('unmounts all lifecycle panels when denied', async () => {
