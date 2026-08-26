@@ -25,13 +25,6 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 npm install
 ```
 
-## Spec Kit
-
-This repository contains the active specification artifacts under `specs/`,
-including the repo-local Spec Kit state in `.specify/`. Keep
-`.specify/feature.json` uncommitted and point it at the feature directory you
-are actively working on in this workspace.
-
 ### Compile and Hot-Reload for Development
 
 ```sh
