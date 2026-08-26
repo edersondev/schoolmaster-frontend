@@ -119,6 +119,11 @@ function cancel() {
   page.cancel()
 }
 
+function cancelRecovery() {
+  recovery.cancel()
+  page.form.clearErrors()
+}
+
 onMounted(async () => {
   roleLookup.load(1)
   const persistedUserId = String(route.query.created_user_id ?? '')
@@ -188,6 +193,6 @@ onMounted(async () => {
     :field-errors="recovery.dialogFieldErrors.value"
     :form-error="recovery.dialogFormError.value"
     @submit="submitRecovery"
-    @cancel="recovery.cancel"
+    @cancel="cancelRecovery"
   />
 </template>

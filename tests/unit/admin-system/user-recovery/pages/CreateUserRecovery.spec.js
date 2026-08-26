@@ -141,6 +141,25 @@ describe('CreateUser recoverable conflict', () => {
     expect(createUser).toHaveBeenCalledTimes(1)
   })
 
+  it('clears recoverable create feedback when the restore dialog is cancelled', async () => {
+    createUser.mockRejectedValue(recoverableConflict())
+    const { wrapper } = await mountPage()
+    Object.assign(wrapper.findComponent({ name: 'UserForm' }).props('modelValue'), {
+      fullName: 'Draft',
+      email: 'joao@test.com.br',
+      roleIds: ['role-1'],
+    })
+
+    await wrapper.get('[data-test="submit"]').trigger('click')
+    await flushPromises()
+    await wrapper.get('button.el-button').trigger('click')
+    await wrapper.get('[data-test="restore-cancel"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('Restore existing user')
+    expect(wrapper.find('[data-test="generic-feedback"]').exists()).toBe(false)
+  })
+
   it('reuses lifecycle confirmation and navigates to authoritative school detail', async () => {
     createUser.mockRejectedValue(recoverableConflict())
     restoreUser.mockResolvedValue({ status: 'active' })
