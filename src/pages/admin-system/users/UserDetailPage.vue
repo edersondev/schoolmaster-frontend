@@ -92,11 +92,12 @@ const lifecycle = useAdminLifecycleAction({
 })
 const accountLifecycle = useAccountLifecycleActions({
   target: detail.record,
+  targetId: userId,
   schoolId: tenantId,
   actorId: computed(() => currentUser.value?.id ?? null),
   permissions: scopedPermissions,
   roles,
-  routeName: computed(() => route.name),
+  routeIdentity: computed(() => route.fullPath),
   refreshTarget: detail.load,
 })
 async function submitLifecycle() {

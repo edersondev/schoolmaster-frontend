@@ -84,7 +84,9 @@ describe('useAccountLifecycleActions outcomes', () => {
 
   it('deduplicates password delivery and discards stale route responses', async () => {
     let resolveDelivery
-    const routeName = shallowRef('userDetail')
+    const target = shallowRef(userRecord)
+    const targetId = shallowRef(userRecord.id)
+    const routeIdentity = shallowRef(`/admin/users/${userRecord.id}?user_mode=school`)
     const service = {
       getAccountLock: vi.fn().mockResolvedValue({ status: 'none' }),
       requestUserPasswordDelivery: vi.fn(
@@ -99,10 +101,11 @@ describe('useAccountLifecycleActions outcomes', () => {
       {
         setup() {
           lifecycle = useAccountLifecycleActions({
-            target: shallowRef(userRecord),
+            target,
+            targetId,
             actorId: shallowRef('admin-1'),
             schoolId: shallowRef(schoolId),
-            routeName,
+            routeIdentity,
             permissions: shallowRef(permission),
             service,
           })
@@ -118,8 +121,12 @@ describe('useAccountLifecycleActions outcomes', () => {
     const second = lifecycle.requestPasswordDelivery()
     expect(service.requestUserPasswordDelivery).toHaveBeenCalledTimes(1)
 
-    routeName.value = 'usersList'
+    targetId.value = 'new-user'
+    routeIdentity.value = '/admin/users/new-user?user_mode=school'
     await nextTick()
+    await expect(lifecycle.requestPasswordDelivery()).resolves.toBeNull()
+    expect(service.requestUserPasswordDelivery).toHaveBeenCalledTimes(1)
+    expect(lifecycle.eligibility.value.blocked).toBe(true)
     resolveDelivery({
       status: 'requested',
       deliveryChannel: 'email',

@@ -74,7 +74,7 @@ const postCreateLifecycle = useAccountLifecycleActions({
   actorId: computed(() => currentUser.value?.id ?? null),
   permissions: scopedPermissions,
   roles,
-  routeName: computed(() => route.name),
+  routeIdentity: computed(() => route.fullPath),
   refreshTarget: async () => {
     const createdUserId = page.result.value?.id
     if (!createdUserId) return null

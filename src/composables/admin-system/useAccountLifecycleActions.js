@@ -10,11 +10,12 @@ import { adminAccountLifecycleService } from '@/services/admin-system/accountLif
 
 export function useAccountLifecycleActions({
   target,
+  targetId = null,
   schoolId,
   actorId = null,
   permissions = [],
   roles = [],
-  routeName = null,
+  routeIdentity = null,
   refreshTarget = null,
   service = adminAccountLifecycleService,
 } = {}) {
@@ -38,10 +39,19 @@ export function useAccountLifecycleActions({
   let pendingDelivery = null
 
   const currentTarget = computed(() => toValue(target))
+  const expectedTargetId = computed(() => {
+    const value = toValue(targetId)
+    return value === null || value === undefined ? null : String(value)
+  })
+  const targetMatchesRoute = computed(
+    () =>
+      expectedTargetId.value === null ||
+      String(currentTarget.value?.id ?? '') === expectedTargetId.value,
+  )
   const tenantId = computed(() => toValue(schoolId))
   const eligibility = computed(() =>
     deriveAccountLifecycleEligibility({
-      target: currentTarget.value,
+      target: targetMatchesRoute.value ? currentTarget.value : null,
       lock: lock.value,
       actorId: toValue(actorId),
       permissions: toValue(permissions) ?? [],
@@ -216,11 +226,12 @@ export function useAccountLifecycleActions({
   watch(
     [
       currentTarget,
+      expectedTargetId,
       tenantId,
       () => toValue(actorId),
       () => JSON.stringify(toValue(permissions) ?? []),
       () => JSON.stringify(toValue(roles) ?? []),
-      () => toValue(routeName),
+      () => toValue(routeIdentity),
     ],
     () => {
       invalidate()
