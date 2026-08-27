@@ -1,9 +1,10 @@
 <script setup>
-import { computed } from 'vue'
+import { onMounted, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import { usePasswordResetCompletion } from '@/composables/auth/usePasswordResetCompletion'
+import { passwordResetTokenFromFragment } from '@/contracts/auth/account-lifecycle'
 import PasswordResetCompletionForm from '@/components/auth/PasswordResetCompletionForm.vue'
 import AccountLifecycleTokenState from '@/components/auth/AccountLifecycleTokenState.vue'
 import AccountLifecycleSuccessState from '@/components/auth/AccountLifecycleSuccessState.vue'
@@ -12,7 +13,7 @@ const route = useRoute()
 const router = useRouter()
 const store = useAuthSessionStore()
 const { t } = useI18n()
-const token = computed(() => route.params.token ?? route.query.token ?? '')
+const token = shallowRef(passwordResetTokenFromFragment(route.hash))
 const completion = usePasswordResetCompletion({
   token,
   onSuccess: () => store.clearLifecycleSessionAssumptions(),
@@ -26,6 +27,11 @@ function recover(action) {
     router.push({ name: 'authForgotPassword' })
   }
 }
+
+onMounted(() => {
+  if (!route.hash) return
+  router.replace({ path: route.path, query: route.query, hash: '' })
+})
 </script>
 
 <template>
@@ -61,4 +67,3 @@ function recover(action) {
     </template>
   </article>
 </template>
-

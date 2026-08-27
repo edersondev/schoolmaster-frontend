@@ -3,6 +3,7 @@ import {
   createAccountLifecycleFeedbackState,
   isMalformedLifecycleToken,
   invitationTokenFromFragment,
+  passwordResetTokenFromFragment,
   mapAccountInvitation,
   mapInvitationSetupRequest,
   mapPasswordResetCompletionRequest,
@@ -50,6 +51,11 @@ describe('auth account lifecycle contract', () => {
   it('reads invitation proof only from the URL fragment', () => {
     expect(invitationTokenFromFragment('#token=fragment-token')).toBe('fragment-token')
     expect(invitationTokenFromFragment('?token=query-token')).toBe('')
+  })
+
+  it('reads password reset proof only from the URL fragment', () => {
+    expect(passwordResetTokenFromFragment('#token=fragment-token')).toBe('fragment-token')
+    expect(passwordResetTokenFromFragment('?token=query-token')).toBe('')
   })
 
   it('validates password and token boundaries', () => {

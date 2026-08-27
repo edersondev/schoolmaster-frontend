@@ -182,12 +182,15 @@ export function mapInvitationSetupRequest(input = {}) {
   }
 }
 
-export function invitationTokenFromFragment(fragment = '') {
+export function lifecycleTokenFromFragment(fragment = '') {
   const rawFragment = String(fragment)
   if (!rawFragment.startsWith('#')) return ''
   const value = rawFragment.slice(1)
   return String(new URLSearchParams(value).get('token') ?? '').trim()
 }
+
+export const invitationTokenFromFragment = lifecycleTokenFromFragment
+export const passwordResetTokenFromFragment = lifecycleTokenFromFragment
 
 export function mapPasswordResetRequest(input = {}) {
   return {
