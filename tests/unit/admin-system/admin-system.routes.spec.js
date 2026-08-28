@@ -8,6 +8,7 @@ import {
 } from '@/contracts/admin-system/navigation'
 import { getAdminFallbackRoute } from '@/router'
 import { adminSystemMessages } from '@/locales/admin-system'
+import { administrationLifecycleMessages } from '@/locales/administration-lifecycle'
 
 describe('admin-system route metadata', () => {
   it('registers the dashboard route through the application router', () => {
@@ -49,9 +50,16 @@ describe('admin-system route metadata', () => {
     ).toEqual({ name: ADMIN_ROUTE_NAMES.roles })
   })
 
-  it('defines shell messages for user and role detail and edit route titles', () => {
+  it('defines shell messages for administration detail and edit route titles', () => {
+    expect(adminSystemMessages.navigation.schoolDetail).toBe('School detail')
     expect(adminSystemMessages.navigation.userDetail).toBe('User detail')
     expect(adminSystemMessages.navigation.roleDetail).toBe('Role detail')
     expect(adminSystemMessages.navigation.editRole).toBe('Edit role')
+    expect(adminSystemMessages.navigation.academicYearDetail).toBe('Academic year detail')
+    expect(adminSystemMessages.navigation.editAcademicPeriod).toBe('Edit academic period')
+  })
+
+  it('defines lifecycle messages for user statuses', () => {
+    expect(administrationLifecycleMessages.status.invited).toBe('Invited')
   })
 })

@@ -1,6 +1,7 @@
 export const administrationLifecycleMessages = {
   status: {
     active: 'Active',
+    invited: 'Invited',
     inactive: 'Inactive',
     pending: 'Pending',
     archived: 'Archived',
