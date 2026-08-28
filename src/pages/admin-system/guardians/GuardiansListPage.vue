@@ -5,10 +5,20 @@ import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
-import { deriveBulkLifecycleActions, deriveLifecycleActions } from '@/composables/admin-system/useAdminActionEligibility'
+import {
+  deriveBulkLifecycleActions,
+  deriveLifecycleActions,
+} from '@/composables/admin-system/useAdminActionEligibility'
 import { useAdminLifecycleAction } from '@/composables/admin-system/useAdminLifecycleAction'
 import { useAdminBulkLifecycle } from '@/composables/admin-system/useAdminBulkLifecycle'
-import { activateGuardian, bulkLifecycleGuardians, deactivateGuardian, deleteGuardian, listGuardians, restoreGuardian } from '@/services/admin-system/guardians'
+import {
+  activateGuardian,
+  bulkLifecycleGuardians,
+  deactivateGuardian,
+  deleteGuardian,
+  listGuardians,
+  restoreGuardian,
+} from '@/services/admin-system/guardians'
 import { useAdministrationResourceList } from '@/composables/admin-system/useAdministrationResourceList'
 import AdminListPage from '@/components/ui/admin/AdminListPage.vue'
 import AdminLifecycleDialog from '@/components/ui/admin/AdminLifecycleDialog.vue'
@@ -29,17 +39,79 @@ const list = useAdministrationResourceList({
   tenantOwned: true,
 })
 const canManage = computed(() => list.can(['guardians.view', 'guardians.manage']))
-const lifecycle = useAdminLifecycleAction({ routeName: route.name, submitter: ({ target, action, values }) => ({ activate: activateGuardian, deactivate: deactivateGuardian, delete: deleteGuardian, restore: restoreGuardian })[action](target.id, values, { schoolId: tenantId.value }), onSuccess: async () => { ElMessage.success(t('administration.common.updateSuccess')); await list.load(list.query.value) } })
-const bulk = useAdminBulkLifecycle({ operationId: 'bulkLifecycleGuardians', routeName: route.name, submitter: (input) => bulkLifecycleGuardians(input, { schoolId: tenantId.value }), onSuccess: async () => { ElMessage.success(t('administration.common.updateSuccess')); await list.load(list.query.value) } })
-const bulkActions = computed(() => deriveBulkLifecycleActions({ resource: 'guardians', selectedSummaries: bulk.selectedSummaries.value, permissions: sessionStore.permissionCodes, schoolReady: Boolean(tenantId.value) }))
-watch([tenantId, () => sessionStore.permissionCodes.join('|'), () => list.query.value.page, () => list.query.value.perPage, () => list.query.value.status, () => list.query.value.search], () => bulk.clearSelection())
-function lifecycleActions(row) { return deriveLifecycleActions({ resource: 'guardians', status: row.status, permissions: sessionStore.permissionCodes, schoolReady: Boolean(tenantId.value) }) }
-function onView(row) { router.push({ name: 'guardianDetail', params: { guardianId: row.id }, query: route.query }) }
-function onEdit(row) { router.push({ name: 'guardianEdit', params: { guardianId: row.id }, query: route.query }) }
-function onLifecycle({ row, action }) { lifecycle.launch(row, action) }
-function onToggleSelection({ row, checked }) { bulk.toggle(row, checked) }
-async function submitLifecycle() { try { await lifecycle.submit() } catch {} }
-async function submitBulkLifecycle() { try { await bulk.submit(bulk.action.value) } catch {} }
+const lifecycle = useAdminLifecycleAction({
+  routeName: route.name,
+  submitter: ({ target, action, values }) =>
+    ({
+      activate: activateGuardian,
+      deactivate: deactivateGuardian,
+      delete: deleteGuardian,
+      restore: restoreGuardian,
+    })[action](target.id, values, { schoolId: tenantId.value }),
+  onSuccess: async () => {
+    ElMessage.success(t('administration.common.updateSuccess'))
+    await list.load(list.query.value)
+  },
+})
+const bulk = useAdminBulkLifecycle({
+  operationId: 'bulkLifecycleGuardians',
+  routeName: route.name,
+  submitter: (input) => bulkLifecycleGuardians(input, { schoolId: tenantId.value }),
+  onSuccess: async () => {
+    ElMessage.success(t('administration.common.updateSuccess'))
+    await list.load(list.query.value)
+  },
+})
+const bulkActions = computed(() =>
+  deriveBulkLifecycleActions({
+    resource: 'guardians',
+    selectedSummaries: bulk.selectedSummaries.value,
+    permissions: sessionStore.permissionCodes,
+    schoolReady: Boolean(tenantId.value),
+  }),
+)
+watch(
+  [
+    tenantId,
+    () => sessionStore.permissionCodes.join('|'),
+    () => list.query.value.page,
+    () => list.query.value.perPage,
+    () => list.query.value.fullName,
+    () => list.query.value.contactEmail,
+    () => list.query.value.status,
+  ],
+  () => bulk.clearSelection(),
+)
+function lifecycleActions(row) {
+  return deriveLifecycleActions({
+    resource: 'guardians',
+    status: row.status,
+    permissions: sessionStore.permissionCodes,
+    schoolReady: Boolean(tenantId.value),
+  })
+}
+function onView(row) {
+  router.push({ name: 'guardianDetail', params: { guardianId: row.id }, query: route.query })
+}
+function onEdit(row) {
+  router.push({ name: 'guardianEdit', params: { guardianId: row.id }, query: route.query })
+}
+function onLifecycle({ row, action }) {
+  lifecycle.launch(row, action)
+}
+function onToggleSelection({ row, checked }) {
+  bulk.toggle(row, checked)
+}
+async function submitLifecycle() {
+  try {
+    await lifecycle.submit()
+  } catch {}
+}
+async function submitBulkLifecycle() {
+  try {
+    await bulk.submit(bulk.action.value)
+  } catch {}
+}
 </script>
 <template>
   <AdminListPage
@@ -53,12 +125,35 @@ async function submitBulkLifecycle() { try { await bulk.submit(bulk.action.value
   >
     <template #filters
       ><GuardianFilters
+        :full-name="list.query.value.fullName"
+        :contact-email="list.query.value.contactEmail"
         :status="list.query.value.status"
-        @update:status="list.updateQuery({ status: $event })"
+        @submit="list.updateQuery($event)"
         @reset="list.resetFilters"
     /></template>
-    <AdminBulkActionBar :selected-count="bulk.selectedCount.value" :actions="bulkActions" :over-limit="bulk.overLimit.value" :pending="bulk.pending.value" @action="(action) => { bulk.action.value = action }" @clear="bulk.clearSelection" />
-    <GuardianTable :rows="list.items.value" :can-manage="canManage" :action-resolver="lifecycleActions" :selected-ids="bulk.selectedIds.value" bulk-enabled @view="onView" @edit="onEdit" @lifecycle="onLifecycle" @toggle-selection="onToggleSelection" />
+    <AdminBulkActionBar
+      :selected-count="bulk.selectedCount.value"
+      :actions="bulkActions"
+      :over-limit="bulk.overLimit.value"
+      :pending="bulk.pending.value"
+      @action="
+        (action) => {
+          bulk.action.value = action
+        }
+      "
+      @clear="bulk.clearSelection"
+    />
+    <GuardianTable
+      :rows="list.items.value"
+      :can-manage="canManage"
+      :action-resolver="lifecycleActions"
+      :selected-ids="bulk.selectedIds.value"
+      bulk-enabled
+      @view="onView"
+      @edit="onEdit"
+      @lifecycle="onLifecycle"
+      @toggle-selection="onToggleSelection"
+    />
     <template #pagination
       ><AdminPagination
         :page="list.meta.value.page"
@@ -68,6 +163,40 @@ async function submitBulkLifecycle() { try { await bulk.submit(bulk.action.value
         @update:per-page="list.updateQuery({ perPage: $event })"
     /></template>
   </AdminListPage>
-  <AdminLifecycleDialog v-model:open="lifecycle.open.value" v-model:values="lifecycle.form" :action="lifecycle.action.value" :resource-label="lifecycle.target.value?.fullName ?? ''" resource-type="guardians" :current-status="lifecycle.target.value?.status ?? ''" :pending="lifecycle.pending.value" :field-errors="lifecycle.fieldErrors.value" :form-error="lifecycle.formError.value" @submit="submitLifecycle" @cancel="lifecycle.close" />
-  <AdminLifecycleDialog v-if="bulk.selectedCount.value > 0 && bulk.action.value" :open="Boolean(bulk.action.value)" @update:open="(open) => { if (!open) bulk.action.value = null }" v-model:values="bulk.form" :action="bulk.action.value" resource-type="guardians" bulk :selected-count="bulk.selectedCount.value" :pending="bulk.pending.value" :field-errors="bulk.fieldErrors.value" :form-error="bulk.formError.value" @submit="submitBulkLifecycle" @cancel="() => { bulk.action.value = null }" />
+  <AdminLifecycleDialog
+    v-model:open="lifecycle.open.value"
+    v-model:values="lifecycle.form"
+    :action="lifecycle.action.value"
+    :resource-label="lifecycle.target.value?.fullName ?? ''"
+    resource-type="guardians"
+    :current-status="lifecycle.target.value?.status ?? ''"
+    :pending="lifecycle.pending.value"
+    :field-errors="lifecycle.fieldErrors.value"
+    :form-error="lifecycle.formError.value"
+    @submit="submitLifecycle"
+    @cancel="lifecycle.close"
+  />
+  <AdminLifecycleDialog
+    v-if="bulk.selectedCount.value > 0 && bulk.action.value"
+    :open="Boolean(bulk.action.value)"
+    @update:open="
+      (open) => {
+        if (!open) bulk.action.value = null
+      }
+    "
+    v-model:values="bulk.form"
+    :action="bulk.action.value"
+    resource-type="guardians"
+    bulk
+    :selected-count="bulk.selectedCount.value"
+    :pending="bulk.pending.value"
+    :field-errors="bulk.fieldErrors.value"
+    :form-error="bulk.formError.value"
+    @submit="submitBulkLifecycle"
+    @cancel="
+      () => {
+        bulk.action.value = null
+      }
+    "
+  />
 </template>

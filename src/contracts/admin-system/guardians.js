@@ -1,10 +1,6 @@
-import {
-  compactPayload,
-  isPresent,
-  isValidEmail,
-  mapCommonRecord,
-} from './administration'
+import { compactPayload, isPresent, isValidEmail, mapCommonRecord } from './administration'
 import { projectUpdatePayload } from './lifecycle'
+import { normalizePhone } from '@/utils/phone'
 
 export function createGuardianForm() {
   return {
@@ -51,7 +47,7 @@ export function mapGuardianCreateRequest(form) {
     full_name: form.fullName,
     relationship_type: form.relationshipType,
     contact_email: form.contactEmail,
-    contact_phone: form.contactPhone,
+    contact_phone: normalizePhone(form.contactPhone),
     student_profile_ids: form.studentProfileIds?.length ? [...form.studentProfileIds] : undefined,
   })
 }
@@ -71,7 +67,7 @@ export function mapGuardianUpdateRequest(form) {
       full_name: form.fullName,
       relationship_type: form.relationshipType,
       contact_email: form.contactEmail,
-      contact_phone: form.contactPhone,
+      contact_phone: normalizePhone(form.contactPhone),
     }),
     'guardians',
   )

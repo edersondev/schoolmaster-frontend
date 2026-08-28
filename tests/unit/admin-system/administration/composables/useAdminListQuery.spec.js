@@ -24,4 +24,46 @@ describe('useAdminListQuery helpers', () => {
       1,
     )
   })
+
+  it('allows only Guardian full-name, contact-email, and status filters', () => {
+    expect(
+      parseAdminListQuery('guardians', {
+        page: '2',
+        full_name: '  Maria  ',
+        contact_email: ' guardian@example ',
+        status: 'active',
+        relationship_type: 'parent',
+        search: 'ignored',
+      }),
+    ).toEqual({
+      page: 2,
+      perPage: 25,
+      fullName: 'Maria',
+      contactEmail: 'guardian@example',
+      status: 'active',
+    })
+
+    expect(
+      serializeAdminListQuery('guardians', {
+        page: 2,
+        perPage: 50,
+        fullName: 'Maria',
+        contactEmail: 'guardian@example',
+        status: 'inactive',
+      }),
+    ).toEqual({
+      page: '2',
+      per_page: '50',
+      full_name: 'Maria',
+      contact_email: 'guardian@example',
+      status: 'inactive',
+    })
+
+    expect(
+      parseAdminListQuery('guardians', {
+        full_name: 'a'.repeat(256),
+        relationship_type: 'parent',
+      }),
+    ).toEqual({ page: 1, perPage: 25 })
+  })
 })

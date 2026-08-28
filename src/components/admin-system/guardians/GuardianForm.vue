@@ -1,5 +1,6 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
+import PhoneField from '@/components/ui/PhoneField.vue'
 
 const model = defineModel({ type: Object, required: true })
 defineProps({
@@ -26,7 +27,7 @@ const { t } = useI18n()
       ><ElInput v-model="model.contactEmail" type="email"
     /></ElFormItem>
     <ElFormItem :label="t('administration.common.phone')" :error="errors.contact_phone?.[0]"
-      ><ElInput v-model="model.contactPhone"
+      ><PhoneField v-model="model.contactPhone"
     /></ElFormItem>
     <ElFormItem
       v-if="canLookupStudents"

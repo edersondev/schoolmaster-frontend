@@ -24,6 +24,8 @@ export function mapListParams(query = {}) {
       date_from: query.dateFrom,
       date_to: query.dateTo,
       search: query.search,
+      full_name: query.fullName,
+      contact_email: query.contactEmail,
       inep_code: query.inepCode,
       document: query.document,
       name: query.name,

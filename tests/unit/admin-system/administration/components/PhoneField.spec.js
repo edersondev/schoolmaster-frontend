@@ -4,6 +4,15 @@ import PhoneField from '@/components/ui/PhoneField.vue'
 import { administrationPlugins } from '../administration.fixtures'
 
 describe('PhoneField', () => {
+  it('formats an existing unmasked phone with the shared mask', () => {
+    const wrapper = mount(PhoneField, {
+      props: { modelValue: '11987654321' },
+      global: { plugins: administrationPlugins() },
+    })
+
+    expect(wrapper.get('input').element.value).toBe('(11) 98765-4321')
+  })
+
   it('shows the placeholder and emits unmasked digits from the mask event', async () => {
     const wrapper = mount(PhoneField, {
       props: { modelValue: '' },

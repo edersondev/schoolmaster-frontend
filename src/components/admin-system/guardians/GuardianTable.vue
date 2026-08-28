@@ -2,8 +2,15 @@
 import AdminDataTable from '@/components/ui/admin/AdminDataTable.vue'
 import AdminRowActions from '@/components/ui/admin/AdminRowActions.vue'
 import AdminStatusTag from '@/components/ui/admin/AdminStatusTag.vue'
+import { formatPhone } from '@/utils/phone'
 import { useI18n } from 'vue-i18n'
-defineProps({ rows: { type: Array, default: () => [] }, canManage: { type: Boolean, default: false }, actionResolver: { type: Function, default: () => [] }, selectedIds: { type: Array, default: () => [] }, bulkEnabled: { type: Boolean, default: false } })
+defineProps({
+  rows: { type: Array, default: () => [] },
+  canManage: { type: Boolean, default: false },
+  actionResolver: { type: Function, default: () => [] },
+  selectedIds: { type: Array, default: () => [] },
+  bulkEnabled: { type: Boolean, default: false },
+})
 defineEmits(['view', 'edit', 'lifecycle', 'toggle-selection'])
 const { t } = useI18n()
 const columns = [
@@ -18,9 +25,33 @@ const columns = [
 </script>
 <template>
   <AdminDataTable :rows="rows" :columns="columns">
-    <template #fullName="{ row }"><button class="font-medium text-sm-brand hover:underline" type="button" @click="$emit('view', row)">{{ row.fullName ?? '—' }}</button></template>
-    <template #select="{ row }"><ElCheckbox v-if="bulkEnabled" :model-value="selectedIds.includes(row.id)" :aria-label="`Select ${row.fullName ?? row.id}`" @update:model-value="$emit('toggle-selection', { row, checked: $event })" /></template>
+    <template #fullName="{ row }"
+      ><button
+        class="font-medium text-sm-brand hover:underline"
+        type="button"
+        @click="$emit('view', row)"
+      >
+        {{ row.fullName ?? '—' }}
+      </button></template
+    >
+    <template #select="{ row }"
+      ><ElCheckbox
+        v-if="bulkEnabled"
+        :model-value="selectedIds.includes(row.id)"
+        :aria-label="`Select ${row.fullName ?? row.id}`"
+        @update:model-value="$emit('toggle-selection', { row, checked: $event })"
+    /></template>
     <template #status="{ row }"><AdminStatusTag :status="row.status" compact /></template>
-    <template #actions="{ row }"><div v-if="canManage" class="flex items-center gap-2"><ElButton link type="primary" @click="$emit('edit', row)">{{ t('administration.common.edit') }}</ElButton><AdminRowActions :actions="actionResolver(row)" @action="$emit('lifecycle', { row, action: $event })" /></div></template>
+    <template #contactPhone="{ row }">{{ formatPhone(row.contactPhone) || '—' }}</template>
+    <template #actions="{ row }"
+      ><div v-if="canManage" class="flex items-center gap-2">
+        <ElButton link type="primary" @click="$emit('edit', row)">{{
+          t('administration.common.edit')
+        }}</ElButton
+        ><AdminRowActions
+          :actions="actionResolver(row)"
+          @action="$emit('lifecycle', { row, action: $event })"
+        /></div
+    ></template>
   </AdminDataTable>
 </template>

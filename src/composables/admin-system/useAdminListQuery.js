@@ -21,6 +21,7 @@ export const SCHOOL_LIST_FILTER_KEYS = Object.freeze([
   'pedagogicalApproachId',
 ])
 export const ACADEMIC_YEAR_FILTER_KEYS = Object.freeze(['name', 'dateFrom', 'dateTo', 'status'])
+export const GUARDIAN_LIST_FILTER_KEYS = Object.freeze(['fullName', 'contactEmail', 'status'])
 
 const SCHOOL_TEXT_FILTERS = Object.freeze([
   'inepCode',
@@ -36,11 +37,14 @@ const SCHOOL_LOOKUP_FILTERS = Object.freeze([
   'managementTypeId',
   'pedagogicalApproachId',
 ])
+const GUARDIAN_TEXT_FILTERS = Object.freeze(['fullName', 'contactEmail'])
 const QUERY_PARAMS = Object.freeze({
   perPage: 'per_page',
   academicYearId: 'academic_year_id',
   dateFrom: 'date_from',
   dateTo: 'date_to',
+  fullName: 'full_name',
+  contactEmail: 'contact_email',
   inepCode: 'inep_code',
   administrativeTypeId: 'administrative_type_id',
   legalNatureId: 'legal_nature_id',
@@ -65,7 +69,7 @@ export const ADMIN_QUERY_CONFIG = Object.freeze({
     dateRange: true,
   },
   'academic-periods': { status: true, academicYearId: true },
-  guardians: { status: true },
+  guardians: { status: true, guardianFilters: true },
 })
 
 function positiveInteger(value, fallback) {
@@ -146,6 +150,12 @@ export function parseAdminListQuery(resource, query = {}) {
       if (value) parsed[key] = value
     }
   }
+  if (config.guardianFilters) {
+    for (const key of GUARDIAN_TEXT_FILTERS) {
+      const value = nonEmptyString(queryValue(query, key))
+      if (value && value.length <= 255) parsed[key] = value
+    }
+  }
   return parsed
 }
 
@@ -165,6 +175,11 @@ export function serializeAdminListQuery(resource, query = {}) {
       if (parsed[key]) serialized[QUERY_PARAMS[key] ?? key] = parsed[key]
     }
     for (const key of SCHOOL_LOOKUP_FILTERS) {
+      if (parsed[key]) serialized[QUERY_PARAMS[key]] = parsed[key]
+    }
+  }
+  if (ADMIN_QUERY_CONFIG[resource]?.guardianFilters) {
+    for (const key of GUARDIAN_TEXT_FILTERS) {
       if (parsed[key]) serialized[QUERY_PARAMS[key]] = parsed[key]
     }
   }

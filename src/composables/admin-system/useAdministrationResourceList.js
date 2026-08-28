@@ -5,6 +5,7 @@ import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 import { useAdminList } from './useAdminList'
 import {
   ACADEMIC_YEAR_FILTER_KEYS,
+  GUARDIAN_LIST_FILTER_KEYS,
   SCHOOL_LIST_FILTER_KEYS,
   useAdminListQuery,
 } from './useAdminListQuery'
@@ -72,6 +73,11 @@ export function useAdministrationResourceList(options) {
     }
     if (options.resource === 'academic-years') {
       for (const key of ACADEMIC_YEAR_FILTER_KEYS) {
+        patch[key] = ''
+      }
+    }
+    if (options.resource === 'guardians') {
+      for (const key of GUARDIAN_LIST_FILTER_KEYS) {
         patch[key] = ''
       }
     }
