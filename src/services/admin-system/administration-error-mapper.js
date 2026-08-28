@@ -15,6 +15,7 @@ const CODE_TYPES = Object.freeze({
   unavailable: 'unavailable',
   service_unavailable: 'unavailable',
   temporary_unavailable: 'unavailable',
+  password_delivery_rate_limited: 'rate-limited',
   stale_record: 'conflict',
   dependency_conflict: 'conflict',
   ineligible_transition: 'conflict',
@@ -30,6 +31,7 @@ const TYPE_MESSAGES = Object.freeze({
   'inactive-context': 'common.inactiveContext',
   'not-found': 'common.notFound',
   unavailable: 'common.unavailable',
+  'rate-limited': 'accountLifecycle.delivery.rateLimited',
   unknown: 'common.unknownError',
 })
 
@@ -37,6 +39,7 @@ const TYPE_RECOVERY = Object.freeze({
   unauthorized: ADMIN_RECOVERY_ACTIONS.signIn,
   'tenant-mismatch': ADMIN_RECOVERY_ACTIONS.chooseSchool,
   unavailable: ADMIN_RECOVERY_ACTIONS.retry,
+  'rate-limited': ADMIN_RECOVERY_ACTIONS.retry,
   unknown: ADMIN_RECOVERY_ACTIONS.retry,
   'not-found': ADMIN_RECOVERY_ACTIONS.return,
 })

@@ -17,6 +17,9 @@ const accountLifecycle = vi.hoisted(() => ({
   lock: { value: { status: 'none' } },
   loading: { value: false },
   pending: { value: false },
+  delivery: { value: null },
+  deliveryPending: { value: false },
+  deliveryError: { value: null },
   error: { value: null },
   fieldErrors: { value: {} },
   open: { value: false },
@@ -27,11 +30,16 @@ const accountLifecycle = vi.hoisted(() => ({
   launch: vi.fn(),
   close: vi.fn(),
   submit: vi.fn(),
+  requestPasswordDelivery: vi.fn(),
 }))
+const accountLifecycleOptions = vi.hoisted(() => ({ value: null }))
 
 vi.mock('@/composables/admin-system/useAdminDetail', () => ({ useAdminDetail: () => detail }))
 vi.mock('@/composables/admin-system/useAccountLifecycleActions', () => ({
-  useAccountLifecycleActions: () => accountLifecycle,
+  useAccountLifecycleActions: (options) => {
+    accountLifecycleOptions.value = options
+    return accountLifecycle
+  },
 }))
 vi.mock('@/composables/admin-system/useAdminActionEligibility', () => ({
   deriveLifecycleActions: () => [],
@@ -98,7 +106,7 @@ async function mountPage(blocked = false, mode = 'school') {
   await router.push(`/admin/users/${userRecord.id}?user_mode=${mode}`)
   await router.isReady()
 
-  return mount(UserDetailPage, {
+  const wrapper = mount(UserDetailPage, {
     global: {
       plugins: [...plugins, router],
       stubs: {
@@ -115,29 +123,37 @@ async function mountPage(blocked = false, mode = 'school') {
           template: '<section v-if="!hidden" data-test="lock-panel" />',
         },
         AccountLifecycleActions: {
-          template: '<button data-test="lifecycle-action" @click="$emit(\'action\', \'lock\')" />',
+          template:
+            '<div><button data-test="lifecycle-action" @click="$emit(\'action\', \'lock\')" /><button data-test="password-delivery" @click="$emit(\'password-delivery\')" /></div>',
         },
         AdminLifecycleDialog: true,
         AdminAccountLifecycleDialog: true,
       },
     },
   })
+
+  return { router, wrapper }
 }
 
 describe('UserDetail account lifecycle integration', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    accountLifecycleOptions.value = null
+  })
 
   it('mounts authorized panels and delegates action intent', async () => {
-    const wrapper = await mountPage(false)
+    const { wrapper } = await mountPage(false)
 
     expect(wrapper.find('[data-test="invitation-panel"]').exists()).toBe(true)
     expect(wrapper.find('[data-test="lock-panel"]').exists()).toBe(true)
     await wrapper.get('[data-test="lifecycle-action"]').trigger('click')
     expect(accountLifecycle.launch).toHaveBeenCalledWith('lock')
+    await wrapper.get('[data-test="password-delivery"]').trigger('click')
+    expect(accountLifecycle.requestPasswordDelivery).toHaveBeenCalledTimes(1)
   })
 
   it('unmounts all lifecycle panels when denied', async () => {
-    const wrapper = await mountPage(true)
+    const { wrapper } = await mountPage(true)
 
     expect(wrapper.find('[data-test="invitation-panel"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="lock-panel"]').exists()).toBe(false)
@@ -145,8 +161,24 @@ describe('UserDetail account lifecycle integration', () => {
   })
 
   it('does not expose the school-only editor for a platform user', async () => {
-    const wrapper = await mountPage(false, 'platform')
+    const { wrapper } = await mountPage(false, 'platform')
 
     expect(wrapper.find('[data-test="detail-edit"]').exists()).toBe(false)
+  })
+
+  it('tracks the full route identity and exact target parameter', async () => {
+    const { router } = await mountPage(false)
+
+    expect(accountLifecycleOptions.value.targetId.value).toBe(userRecord.id)
+    expect(accountLifecycleOptions.value.routeIdentity.value).toBe(
+      `/admin/users/${userRecord.id}?user_mode=school`,
+    )
+
+    await router.push('/admin/users/new-user?user_mode=school')
+
+    expect(accountLifecycleOptions.value.targetId.value).toBe('new-user')
+    expect(accountLifecycleOptions.value.routeIdentity.value).toBe(
+      '/admin/users/new-user?user_mode=school',
+    )
   })
 })

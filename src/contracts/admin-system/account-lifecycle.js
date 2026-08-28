@@ -14,6 +14,7 @@ export const ACCOUNT_LIFECYCLE_OPERATION_IDS = Object.freeze({
   unlock: 'unlockAccount',
   reactivate: 'reactivateAccount',
   resendInvitation: 'resendAccountInvitation',
+  requestPasswordDelivery: 'requestUserPasswordDelivery',
 })
 
 export const ACCOUNT_LIFECYCLE_ACTIONS = Object.freeze({
@@ -122,6 +123,16 @@ export function mapAdminAccountLifecycleResult(data = {}) {
   }
 }
 
+export function mapPasswordDeliveryRequestResult(data = {}) {
+  const deliveryChannel = firstValue(data, 'delivery_channel', 'deliveryChannel')
+
+  return {
+    status: data.status === 'requested' ? 'requested' : null,
+    deliveryChannel: deliveryChannel === 'email' ? 'email' : null,
+    deliveryRequestedAt: firstValue(data, 'delivery_requested_at', 'deliveryRequestedAt'),
+  }
+}
+
 export function validateAccountLifecycleAction({ action, reason } = {}) {
   const errors = {}
   const trimmedReason = String(reason ?? '').trim()
@@ -182,6 +193,7 @@ export function deriveAccountLifecycleEligibility({
     blocked,
     canReviewLock: !blocked && !invitedTarget,
     canInvite: !blocked && invitedTarget,
+    canDeliverPassword: !blocked && activeTarget && lockStatus !== 'active',
     canLock: !blocked && activeTarget && lockStatus !== 'active',
     canUnlock: !blocked && activeTarget && lockStatus === 'active',
     canRecover: !blocked && activeTarget && lockStatus === 'active',

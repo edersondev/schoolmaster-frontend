@@ -7,6 +7,7 @@ import {
   mapAccountInvitationCreateRequest,
   mapAccountLifecycleActionRequest,
   mapAccountLock,
+  mapPasswordDeliveryRequestResult,
   validateAccountLifecycleAction,
 } from '@/contracts/admin-system/account-lifecycle'
 
@@ -16,6 +17,26 @@ describe('admin account lifecycle contract', () => {
     expect(BLOCKED_ADMIN_INVITATION_RESEND).toMatchObject({
       blocked: true,
       operationId: 'resendAccountInvitation',
+    })
+    expect(ACCOUNT_LIFECYCLE_OPERATION_IDS.requestPasswordDelivery).toBe(
+      'requestUserPasswordDelivery',
+    )
+  })
+
+  it('maps only the approved password delivery result fields', () => {
+    expect(
+      mapPasswordDeliveryRequestResult({
+        status: 'requested',
+        delivery_channel: 'email',
+        delivery_requested_at: '2026-08-26T12:00:00Z',
+        token: 'forbidden',
+        email: 'forbidden@example.test',
+        provider: { id: 'forbidden' },
+      }),
+    ).toEqual({
+      status: 'requested',
+      deliveryChannel: 'email',
+      deliveryRequestedAt: '2026-08-26T12:00:00Z',
     })
   })
 
@@ -91,7 +112,7 @@ describe('admin account lifecycle contract', () => {
           { code: ACCOUNT_LIFECYCLE_PERMISSIONS.manage, scope: 'school', status: 'active' },
         ],
       }),
-    ).toMatchObject({ hasAuthority: true, blocked: false, canLock: true })
+    ).toMatchObject({ hasAuthority: true, blocked: false, canLock: true, canDeliverPassword: true })
   })
 
   it('recognizes only the exact active System Administrator role as master authority', () => {
@@ -162,7 +183,13 @@ describe('admin account lifecycle contract', () => {
         target: { id: 'active-1', schoolId: 'school-1', status: 'active' },
         lock: { status: 'active' },
       }),
-    ).toMatchObject({ canLock: false, canUnlock: true, canRecover: true, canReactivate: false })
+    ).toMatchObject({
+      canLock: false,
+      canUnlock: true,
+      canRecover: true,
+      canReactivate: false,
+      canDeliverPassword: false,
+    })
     expect(
       deriveAccountLifecycleEligibility({
         ...base,

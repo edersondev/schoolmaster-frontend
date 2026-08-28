@@ -7,6 +7,7 @@ import {
   mapAccountLifecycleActionRequest,
   mapAccountLock,
   mapAdminAccountLifecycleResult,
+  mapPasswordDeliveryRequestResult,
 } from '@/contracts/admin-system/account-lifecycle'
 import { authService } from '@/services/auth/authService'
 import { createSafeErrorDiagnostic } from '@/services/api/errorDiagnostics'
@@ -21,6 +22,7 @@ export const ADMIN_ACCOUNT_LIFECYCLE_ENDPOINTS = Object.freeze({
   accountLock: (userId) => `/api/v1/users/${encodeURIComponent(userId)}/account-lock`,
   accountReactivation: (userId) =>
     `/api/v1/users/${encodeURIComponent(userId)}/account-reactivation`,
+  passwordDelivery: (userId) => `/api/v1/users/${encodeURIComponent(userId)}/password-delivery`,
 })
 
 function envelopeData(response) {
@@ -122,6 +124,19 @@ export function createAdminAccountLifecycleService(
         throw normalize(error, ACCOUNT_LIFECYCLE_OPERATION_IDS.reactivate)
       }
     },
+
+    async requestUserPasswordDelivery(userId, options = {}) {
+      try {
+        const response = await client.post(
+          ADMIN_ACCOUNT_LIFECYCLE_ENDPOINTS.passwordDelivery(userId),
+          undefined,
+          config(options),
+        )
+        return mapPasswordDeliveryRequestResult(envelopeData(response))
+      } catch (error) {
+        throw normalize(error, ACCOUNT_LIFECYCLE_OPERATION_IDS.requestPasswordDelivery)
+      }
+    },
   }
 }
 
@@ -133,4 +148,5 @@ export const {
   lockAccount,
   unlockAccount,
   reactivateAccount,
+  requestUserPasswordDelivery,
 } = adminAccountLifecycleService

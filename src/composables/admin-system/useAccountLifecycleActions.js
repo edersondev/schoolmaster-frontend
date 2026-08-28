@@ -10,10 +10,12 @@ import { adminAccountLifecycleService } from '@/services/admin-system/accountLif
 
 export function useAccountLifecycleActions({
   target,
+  targetId = null,
   schoolId,
   actorId = null,
   permissions = [],
   roles = [],
+  routeIdentity = null,
   refreshTarget = null,
   service = adminAccountLifecycleService,
 } = {}) {
@@ -26,16 +28,30 @@ export function useAccountLifecycleActions({
   const open = shallowRef(false)
   const action = shallowRef('')
   const reason = shallowRef('')
+  const delivery = shallowRef(null)
+  const deliveryPending = shallowRef(false)
+  const deliveryError = shallowRef(null)
   let generation = 0
   let lockController = null
   let actionController = null
+  let deliveryController = null
   let pendingSubmission = null
+  let pendingDelivery = null
 
   const currentTarget = computed(() => toValue(target))
+  const expectedTargetId = computed(() => {
+    const value = toValue(targetId)
+    return value === null || value === undefined ? null : String(value)
+  })
+  const targetMatchesRoute = computed(
+    () =>
+      expectedTargetId.value === null ||
+      String(currentTarget.value?.id ?? '') === expectedTargetId.value,
+  )
   const tenantId = computed(() => toValue(schoolId))
   const eligibility = computed(() =>
     deriveAccountLifecycleEligibility({
-      target: currentTarget.value,
+      target: targetMatchesRoute.value ? currentTarget.value : null,
       lock: lock.value,
       actorId: toValue(actorId),
       permissions: toValue(permissions) ?? [],
@@ -152,23 +168,70 @@ export function useAccountLifecycleActions({
     }
   }
 
+  async function requestPasswordDelivery() {
+    if (pendingDelivery) return pendingDelivery
+    const user = currentTarget.value
+    if (!user || !eligibility.value.canDeliverPassword) return null
+
+    const currentGeneration = generation
+    deliveryController?.abort()
+    const controller = new AbortController()
+    deliveryController = controller
+    const options = { schoolId: tenantId.value ?? undefined, signal: controller.signal }
+
+    const submission = (async () => {
+      deliveryPending.value = true
+      deliveryError.value = null
+      delivery.value = null
+      try {
+        const response = await service.requestUserPasswordDelivery(user.id, options)
+        if (currentGeneration !== generation || controller.signal.aborted) return null
+        delivery.value = response
+        ElMessage.success(t('accountLifecycle.delivery.accepted'))
+        return response
+      } catch (requestError) {
+        if (currentGeneration !== generation || controller.signal.aborted) return null
+        deliveryError.value = requestError
+        throw requestError
+      } finally {
+        if (currentGeneration === generation && deliveryController === controller) {
+          deliveryPending.value = false
+        }
+      }
+    })()
+    pendingDelivery = submission
+
+    try {
+      return await submission
+    } finally {
+      if (pendingDelivery === submission) pendingDelivery = null
+    }
+  }
+
   function invalidate() {
     generation += 1
     lockController?.abort()
     actionController?.abort()
+    deliveryController?.abort()
     loading.value = false
     pending.value = false
+    deliveryPending.value = false
     lock.value = null
+    delivery.value = null
+    deliveryError.value = null
+    pendingDelivery = null
     close()
   }
 
   watch(
     [
       currentTarget,
+      expectedTargetId,
       tenantId,
       () => toValue(actorId),
       () => JSON.stringify(toValue(permissions) ?? []),
       () => JSON.stringify(toValue(roles) ?? []),
+      () => toValue(routeIdentity),
     ],
     () => {
       invalidate()
@@ -187,11 +250,15 @@ export function useAccountLifecycleActions({
     open,
     action,
     reason,
+    delivery,
+    deliveryPending,
+    deliveryError,
     eligibility,
     loadLock,
     launch,
     close,
     submit,
+    requestPasswordDelivery,
     invalidate,
   }
 }

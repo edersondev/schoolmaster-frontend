@@ -69,6 +69,15 @@ export const accountLifecycleMessages = {
     successTitle: 'Password reset complete',
     successMessage: 'Sign in with the new password.',
   },
+  delivery: {
+    action: 'Send password link',
+    createdUser: 'The active user was saved. You can send a password link now or finish later.',
+    accepted: 'Password email submission accepted.',
+    conflict: 'This account is not eligible for password delivery.',
+    rateLimited: 'Password delivery is temporarily limited. Try again later.',
+    unavailable: 'Password email is temporarily unavailable. Try again.',
+    denied: 'Password delivery is not available in the current workspace.',
+  },
   lock: {
     title: 'Account lock',
     empty: 'No active administrative lock is visible in this scope.',

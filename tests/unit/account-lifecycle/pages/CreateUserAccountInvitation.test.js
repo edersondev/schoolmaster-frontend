@@ -12,6 +12,13 @@ const listRoles = vi.fn().mockResolvedValue({
   items: [{ id: 'role-1', name: 'Teacher', status: 'active' }],
   meta: { page: 1, perPage: 25, total: 1 },
 })
+const accountLifecycle = vi.hoisted(() => ({
+  delivery: { value: null },
+  deliveryPending: { value: false },
+  deliveryError: { value: null },
+  eligibility: { value: { blocked: false, canDeliverPassword: true } },
+  requestPasswordDelivery: vi.fn(),
+}))
 
 vi.mock('@/services/admin-system/users', () => ({
   createUser: (...args) => createUser(...args),
@@ -20,6 +27,9 @@ vi.mock('@/services/admin-system/users', () => ({
 }))
 vi.mock('@/services/admin-system/roles', () => ({
   listRoles: (...args) => listRoles(...args),
+}))
+vi.mock('@/composables/admin-system/useAccountLifecycleActions', () => ({
+  useAccountLifecycleActions: () => accountLifecycle,
 }))
 vi.mock('@/composables/admin-system/useAdministrationCreatePage', async () => {
   const { reactive, shallowRef } = await import('vue')
@@ -66,6 +76,13 @@ const invitedUser = {
   status: 'invited',
   roles: [{ id: 'role-1' }],
 }
+const activeUser = {
+  ...invitedUser,
+  id: 'active-1',
+  fullName: 'Active User',
+  email: 'active@example.test',
+  status: 'active',
+}
 
 async function mountPage(query = '') {
   const plugins = lifecyclePlugins()
@@ -108,6 +125,11 @@ async function mountPage(query = '') {
             "<button data-test=\"fill\" @click=\"$emit('update:modelValue', { fullName: 'Invited User', email: 'invited@example.test', roleIds: ['role-1'] })\">Fill</button>",
         },
         UserInvitationPanel: { template: '<section data-test="invitation-panel" />' },
+        AccountLifecycleActions: {
+          props: { deliveryOnly: { type: Boolean, default: false } },
+          template:
+            '<button v-if="deliveryOnly" data-test="password-delivery" @click="$emit(\'password-delivery\')" />',
+        },
       },
     },
   })
@@ -156,5 +178,24 @@ describe('CreateUser account invitation flow', () => {
     expect(createUser).not.toHaveBeenCalled()
     expect(wrapper.find('[data-test="invitation-panel"]').exists()).toBe(true)
     expect(wrapper.text()).not.toContain('ignored@example.test')
+  })
+
+  it('keeps an active created user in explicit post-create password delivery phase', async () => {
+    createUser.mockResolvedValue(activeUser)
+    const { wrapper } = await mountPage()
+
+    wrapper.findComponent({ name: 'UserForm' }).vm.$emit('update:modelValue', {
+      fullName: 'Active User',
+      email: 'active@example.test',
+      roleIds: ['role-1'],
+    })
+    await wrapper.vm.$nextTick()
+    await wrapper.get('[data-test="submit"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="invitation-panel"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="password-delivery"]').exists()).toBe(true)
+    await wrapper.get('[data-test="password-delivery"]').trigger('click')
+    expect(accountLifecycle.requestPasswordDelivery).toHaveBeenCalledTimes(1)
   })
 })

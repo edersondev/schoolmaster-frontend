@@ -81,4 +81,61 @@ describe('useAccountLifecycleActions outcomes', () => {
 
     expect(lifecycle.lock.value).toBeNull()
   })
+
+  it('deduplicates password delivery and discards stale route responses', async () => {
+    let resolveDelivery
+    const target = shallowRef(userRecord)
+    const targetId = shallowRef(userRecord.id)
+    const routeIdentity = shallowRef(`/admin/users/${userRecord.id}?user_mode=school`)
+    const service = {
+      getAccountLock: vi.fn().mockResolvedValue({ status: 'none' }),
+      requestUserPasswordDelivery: vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveDelivery = resolve
+          }),
+      ),
+    }
+    let lifecycle
+    mount(
+      {
+        setup() {
+          lifecycle = useAccountLifecycleActions({
+            target,
+            targetId,
+            actorId: shallowRef('admin-1'),
+            schoolId: shallowRef(schoolId),
+            routeIdentity,
+            permissions: shallowRef(permission),
+            service,
+          })
+          return {}
+        },
+        template: '<div />',
+      },
+      { global: { plugins: lifecyclePlugins() } },
+    )
+    await nextTick()
+
+    const first = lifecycle.requestPasswordDelivery()
+    const second = lifecycle.requestPasswordDelivery()
+    expect(service.requestUserPasswordDelivery).toHaveBeenCalledTimes(1)
+
+    targetId.value = 'new-user'
+    routeIdentity.value = '/admin/users/new-user?user_mode=school'
+    await nextTick()
+    await expect(lifecycle.requestPasswordDelivery()).resolves.toBeNull()
+    expect(service.requestUserPasswordDelivery).toHaveBeenCalledTimes(1)
+    expect(lifecycle.eligibility.value.blocked).toBe(true)
+    resolveDelivery({
+      status: 'requested',
+      deliveryChannel: 'email',
+      deliveryRequestedAt: '2026-08-26T12:00:00Z',
+    })
+
+    await expect(first).resolves.toBeNull()
+    await expect(second).resolves.toBeNull()
+    expect(lifecycle.delivery.value).toBeNull()
+    expect(lifecycle.deliveryPending.value).toBe(false)
+  })
 })

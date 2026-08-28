@@ -10,5 +10,8 @@ describe('password reset routes', () => {
     expect(
       children.find((entry) => entry.name === AUTH_ROUTE_NAMES.passwordResetCompletion).meta,
     ).toMatchObject({ guestLifecycle: true })
+    expect(
+      children.find((entry) => entry.name === AUTH_ROUTE_NAMES.passwordResetCompletion).path,
+    ).toBe('password-resets')
   })
 })

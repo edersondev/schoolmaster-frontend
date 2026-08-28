@@ -92,10 +92,12 @@ const lifecycle = useAdminLifecycleAction({
 })
 const accountLifecycle = useAccountLifecycleActions({
   target: detail.record,
+  targetId: userId,
   schoolId: tenantId,
   actorId: computed(() => currentUser.value?.id ?? null),
   permissions: scopedPermissions,
   roles,
+  routeIdentity: computed(() => route.fullPath),
   refreshTarget: detail.load,
 })
 async function submitLifecycle() {
@@ -110,6 +112,13 @@ async function submitAccountLifecycle() {
     await accountLifecycle.submit()
   } catch {
     /* composable owns feedback */
+  }
+}
+async function requestPasswordDelivery() {
+  try {
+    await accountLifecycle.requestPasswordDelivery()
+  } catch {
+    /* composable owns safe feedback */
   }
 }
 
@@ -154,8 +163,12 @@ watch(
         v-if="!accountLifecycle.eligibility.value.blocked"
         :eligibility="accountLifecycle.eligibility.value"
         :pending="accountLifecycle.pending.value"
+        :delivery="accountLifecycle.delivery.value"
+        :delivery-pending="accountLifecycle.deliveryPending.value"
+        :delivery-error="accountLifecycle.deliveryError.value"
         @action="accountLifecycle.launch"
         @refresh="accountLifecycle.loadLock"
+        @password-delivery="requestPasswordDelivery"
       />
     </template>
   </AdminDetailPage>

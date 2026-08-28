@@ -49,7 +49,7 @@ export const authRoutes = [
         },
       },
       {
-        path: 'password-resets/:token',
+        path: 'password-resets',
         name: AUTH_ROUTE_NAMES.passwordResetCompletion,
         component: () => import('@/pages/auth/PasswordResetCompletionPage.vue'),
         meta: {
