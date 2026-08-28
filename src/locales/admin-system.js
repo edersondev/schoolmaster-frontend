@@ -37,6 +37,8 @@ export const adminSystemMessages = {
     editAcademicPeriod: 'Edit academic period',
     guardians: 'Guardians',
     createGuardian: 'Create guardian',
+    guardianDetail: 'Guardian detail',
+    editGuardian: 'Edit guardian',
     studentProfiles: 'Students',
     classSections: 'Class sections',
     teacherAssignments: 'Teacher assignments',

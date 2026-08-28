@@ -57,6 +57,8 @@ describe('admin-system route metadata', () => {
     expect(adminSystemMessages.navigation.editRole).toBe('Edit role')
     expect(adminSystemMessages.navigation.academicYearDetail).toBe('Academic year detail')
     expect(adminSystemMessages.navigation.editAcademicPeriod).toBe('Edit academic period')
+    expect(adminSystemMessages.navigation.guardianDetail).toBe('Guardian detail')
+    expect(adminSystemMessages.navigation.editGuardian).toBe('Edit guardian')
   })
 
   it('defines lifecycle messages for user statuses', () => {
