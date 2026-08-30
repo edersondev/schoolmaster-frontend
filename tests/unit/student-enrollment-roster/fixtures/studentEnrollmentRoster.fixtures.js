@@ -55,12 +55,32 @@ export function axiosResponse(data) {
   return { data }
 }
 
+export function studentEnrollmentRosterI18n() {
+  return createI18n({
+    legacy: false,
+    locale: 'en',
+    messages: {
+      en: {
+        administration: administrationMessages,
+        administrationLifecycle: administrationLifecycleMessages,
+        studentEnrollmentRoster: studentEnrollmentRosterMessages,
+      },
+    },
+  })
+}
+
 export function validationError(field = 'name') {
   return {
     response: {
       status: 422,
-      data: { error: { code: 'validation_failed', details: { errors: { [field]: ['Required'] } } } },
+      data: {
+        error: { code: 'validation_failed', details: { errors: { [field]: ['Required'] } } },
+      },
       headers: { 'x-request-id': 'req-1' },
     },
   }
 }
+import { createI18n } from 'vue-i18n'
+import { administrationMessages } from '@/locales/administration'
+import { administrationLifecycleMessages } from '@/locales/administration-lifecycle'
+import { studentEnrollmentRosterMessages } from '@/locales/student-enrollment-roster'

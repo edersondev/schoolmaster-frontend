@@ -12,12 +12,8 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
-    <ElFormItem
-      v-if="showStatus"
-      :label="t('administration.common.status')"
-      class="!mb-0 min-w-48"
-    >
+  <ElForm label-position="top" class="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <ElFormItem v-if="showStatus" :label="t('administration.common.status')" class="!mb-0 min-w-48">
       <ElSelect
         :model-value="status"
         :aria-label="t('administration.common.status')"
@@ -56,5 +52,5 @@ const { t } = useI18n()
       </template>
       <ElButton @click="$emit('reset')">{{ t('administration.common.resetFilters') }}</ElButton>
     </ElFormItem>
-  </div>
+  </ElForm>
 </template>

@@ -24,8 +24,14 @@ const messageKey = computed(
       conflict: 'common.conflict',
       'tenant-mismatch': 'common.tenantMismatch',
       'inactive-context': 'common.inactiveContext',
+      'inactive-school': 'common.inactiveContext',
+      'inactive-record': 'common.inactiveRecord',
       'not-found': 'common.notFound',
       unavailable: 'common.unavailable',
+      'temporary-unavailable': 'common.unavailable',
+      'unsupported-filter': 'common.unsupportedQuery',
+      'unsupported-sort': 'common.unsupportedQuery',
+      'unsupported-page-size': 'common.unsupportedQuery',
       unauthorized: 'common.sessionExpired',
     }[props.state] ??
     'common.unknownError',
@@ -51,7 +57,10 @@ const messageKey = computed(
       :closable="false"
       show-icon
     />
-    <div v-if="state === 'unavailable' || state === 'unknown'" class="flex gap-2">
+    <div
+      v-if="['unavailable', 'temporary-unavailable', 'unknown'].includes(state)"
+      class="flex gap-2"
+    >
       <ElButton type="primary" @click="emit('retry')">{{
         t('administration.common.retry')
       }}</ElButton>
@@ -64,7 +73,17 @@ const messageKey = computed(
     >
       {{ t('administration.common.signIn') }}
     </RouterLink>
-    <ElButton v-if="state === 'filtered-empty'" @click="emit('reset')">
+    <ElButton
+      v-if="
+        [
+          'filtered-empty',
+          'unsupported-filter',
+          'unsupported-sort',
+          'unsupported-page-size',
+        ].includes(state)
+      "
+      @click="emit('reset')"
+    >
       {{ t('administration.common.resetFilters') }}
     </ElButton>
   </section>

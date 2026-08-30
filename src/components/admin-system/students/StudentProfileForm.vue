@@ -1,43 +1,67 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+
 const model = defineModel({ type: Object, default: () => ({}) })
 defineProps({
-  pending: { type: Boolean, default: false },
   fieldErrors: { type: Object, default: () => ({}) },
 })
-const emit = defineEmits(['submit'])
+const { t } = useI18n()
 </script>
 
 <template>
-  <ElForm label-position="top" class="grid gap-4 md:grid-cols-2" @submit.prevent="emit('submit')">
-    <ElFormItem label="Registration number" :error="fieldErrors.registration_number?.[0]">
+  <div class="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+    <ElFormItem
+      :label="t('studentEnrollmentRoster.students.registrationNumber')"
+      required
+      :error="fieldErrors.registration_number?.[0]"
+    >
       <ElInput v-model="model.registrationNumber" autocomplete="off" />
     </ElFormItem>
-    <ElFormItem label="Enrollment date" :error="fieldErrors.enrolled_at?.[0]">
-      <ElDatePicker v-model="model.enrolledAt" class="w-full" type="date" value-format="YYYY-MM-DD" />
+    <ElFormItem
+      :label="t('studentEnrollmentRoster.students.enrollmentDate')"
+      required
+      :error="fieldErrors.enrolled_at?.[0]"
+    >
+      <ElDatePicker
+        v-model="model.enrolledAt"
+        class="w-full"
+        type="date"
+        value-format="YYYY-MM-DD"
+      />
     </ElFormItem>
-    <ElFormItem label="First name" :error="fieldErrors.first_name?.[0]">
+    <ElFormItem
+      :label="t('studentEnrollmentRoster.students.firstName')"
+      required
+      :error="fieldErrors.first_name?.[0]"
+    >
       <ElInput v-model="model.firstName" autocomplete="given-name" />
     </ElFormItem>
-    <ElFormItem label="Last name" :error="fieldErrors.last_name?.[0]">
+    <ElFormItem
+      :label="t('studentEnrollmentRoster.students.lastName')"
+      required
+      :error="fieldErrors.last_name?.[0]"
+    >
       <ElInput v-model="model.lastName" autocomplete="family-name" />
     </ElFormItem>
-    <ElFormItem label="Date of birth">
-      <ElDatePicker v-model="model.dateOfBirth" class="w-full" type="date" value-format="YYYY-MM-DD" />
+    <ElFormItem :label="t('studentEnrollmentRoster.students.dateOfBirth')">
+      <ElDatePicker
+        v-model="model.dateOfBirth"
+        class="w-full"
+        type="date"
+        value-format="YYYY-MM-DD"
+      />
     </ElFormItem>
-    <ElFormItem label="Status">
+    <ElFormItem :label="t('administration.common.status')">
       <ElSelect v-model="model.status" class="w-full">
-        <ElOption label="Active" value="active" />
-        <ElOption label="Inactive" value="inactive" />
+        <ElOption :label="t('administration.common.active')" value="active" />
+        <ElOption :label="t('administration.common.inactive')" value="inactive" />
       </ElSelect>
     </ElFormItem>
-    <ElFormItem label="Contact email">
-      <ElInput v-model="model.contactEmail" autocomplete="email" />
+    <ElFormItem :label="t('studentEnrollmentRoster.students.contactEmail')">
+      <ElInput v-model="model.contactEmail" type="email" autocomplete="email" />
     </ElFormItem>
-    <ElFormItem label="Contact phone">
+    <ElFormItem :label="t('studentEnrollmentRoster.students.contactPhone')">
       <ElInput v-model="model.contactPhone" autocomplete="tel" />
     </ElFormItem>
-    <div class="md:col-span-2 flex justify-end">
-      <ElButton type="primary" native-type="submit" :loading="pending">Save</ElButton>
-    </div>
-  </ElForm>
+  </div>
 </template>

@@ -10,7 +10,9 @@ import { useStudentAdvancedResponse } from '@/composables/assessments/useStudent
 const route = useRoute()
 const access = useAdvancedAssessmentAccess()
 const response = useStudentAdvancedResponse({ options: access.options.value })
-const feedback = computed(() => (access.canSubmit.value.allowed ? response.state.feedback : access.canSubmit.value.feedback))
+const feedback = computed(() =>
+  access.canSubmit.value.allowed ? response.state.feedback : access.canSubmit.value.feedback,
+)
 
 onMounted(() => {
   if (!access.canSubmit.value.allowed) {
@@ -23,16 +25,37 @@ onMounted(() => {
 
 <template>
   <section class="space-y-5">
-    <AdvancedAssessmentStatusRegion :busy="response.state.loading || response.state.pending" :feedback="feedback" />
-    <StudentResponseSubmitStatus :due-date-passed="response.dueDatePassed.value" :submitted="Boolean(response.state.submitted)" :pending="response.state.pending" />
-    <StudentAdvancedQuestionList
-      :questions="response.questions.value"
-      :text-answers="response.state.textAnswers"
-      :disabled="!response.canSubmit.value"
-      @update-text="response.setTextAnswer"
-      @select-file="response.setFileAnswer"
-      @invalid-file="response.state.feedback = { type: 'validation', gate: $event }"
+    <AdvancedAssessmentStatusRegion
+      :busy="response.state.loading || response.state.pending"
+      :feedback="feedback"
     />
-    <ElButton type="primary" :disabled="!response.canSubmit.value" :loading="response.state.pending" @click="response.submit">Submit</ElButton>
+    <StudentResponseSubmitStatus
+      :due-date-passed="response.dueDatePassed.value"
+      :submitted="Boolean(response.state.submitted)"
+      :pending="response.state.pending"
+    />
+    <ElForm
+      :model="response.state.textAnswers"
+      label-position="top"
+      class="space-y-4"
+      @submit.prevent="response.submit"
+    >
+      <StudentAdvancedQuestionList
+        :questions="response.questions.value"
+        :text-answers="response.state.textAnswers"
+        :disabled="!response.canSubmit.value"
+        @update-text="response.setTextAnswer"
+        @select-file="response.setFileAnswer"
+        @invalid-file="response.state.feedback = { type: 'validation', gate: $event }"
+      />
+      <ElButton
+        type="primary"
+        native-type="submit"
+        :disabled="!response.canSubmit.value"
+        :loading="response.state.pending"
+      >
+        Submit
+      </ElButton>
+    </ElForm>
   </section>
 </template>

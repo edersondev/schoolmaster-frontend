@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   useRosterMemberships: vi.fn(),
   loadDetail: vi.fn().mockResolvedValue({ id: 'section-1' }),
   save: vi.fn().mockResolvedValue({ id: 'section-1' }),
+  push: vi.fn(),
 }))
 
 vi.mock('vue-router', () => ({
@@ -13,6 +14,7 @@ vi.mock('vue-router', () => ({
     params: { classSectionId: 'section-1' },
     query: { academicPeriodId: 'period-1' },
   }),
+  useRouter: () => ({ push: mocks.push }),
 }))
 
 vi.mock('@/stores/auth/sessionStore', () => ({
@@ -25,6 +27,7 @@ vi.mock('@/composables/admin-system/useClassSections', () => ({
     error: { value: null },
     detail: { value: { id: 'section-1' } },
     fieldErrors: { value: {} },
+    pending: { value: false },
     form: {},
     loadDetail: mocks.loadDetail,
     save: mocks.save,

@@ -22,8 +22,11 @@ onMounted(() => {
 
 <template>
   <section class="space-y-5">
-    <AdvancedAssessmentStatusRegion :busy="authoring.state.loading" :feedback="authoring.state.feedback" />
-    <ElForm class="space-y-4" @submit.prevent>
+    <AdvancedAssessmentStatusRegion
+      :busy="authoring.state.loading"
+      :feedback="authoring.state.feedback"
+    />
+    <ElForm label-position="top" class="space-y-4" @submit.prevent>
       <ElFormItem label="Title">
         <ElInput v-model="authoring.state.draft.title" />
       </ElFormItem>
@@ -39,7 +42,9 @@ onMounted(() => {
       <div class="flex flex-wrap gap-2">
         <ElButton @click="authoring.addQuestion('long_text')">Add long text</ElButton>
         <ElButton @click="authoring.addQuestion('file_response')">Add file response</ElButton>
-        <ElButton type="primary" :loading="authoring.state.pending" @click="authoring.save">Save questionnaire</ElButton>
+        <ElButton type="primary" :loading="authoring.state.pending" @click="authoring.save"
+          >Save questionnaire</ElButton
+        >
       </div>
     </ElForm>
   </section>
