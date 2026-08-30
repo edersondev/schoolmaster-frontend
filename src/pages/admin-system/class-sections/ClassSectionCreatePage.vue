@@ -1,17 +1,35 @@
 <script setup>
-import { onMounted } from 'vue'
+import { computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAcademicPeriodScope } from '@/composables/admin-system/useAcademicPeriodScope'
 import { useClassSections } from '@/composables/admin-system/useClassSections'
 import ClassSectionForm from '@/components/admin-system/class-sections/ClassSectionForm.vue'
 import AdminFormPage from '@/components/ui/admin/AdminFormPage.vue'
 
 const router = useRouter()
 const route = useRoute()
+const scope = useAcademicPeriodScope()
 const sections = useClassSections({ autoLoad: false })
+const metadataOptions = computed(() => ({
+  course: collectMetadataOptions('course'),
+  classroom: collectMetadataOptions('classroom'),
+  section: collectMetadataOptions('section'),
+  group: collectMetadataOptions('group'),
+}))
 
-onMounted(() => {
-  sections.form.academicPeriodId = String(route.query.academicPeriodId ?? '')
-})
+watch(
+  () => scope.selectedAcademicPeriodId.value,
+  async (academicPeriodId) => {
+    sections.form.academicPeriodId = academicPeriodId
+    if (!academicPeriodId) return
+    await sections.load({ academicPeriodId, perPage: 100 })
+  },
+  { immediate: true },
+)
+
+function collectMetadataOptions(field) {
+  return [...new Set(sections.items.value.map((section) => section[field]).filter(Boolean))].sort()
+}
 
 async function submit() {
   const record = await sections.save()
@@ -37,6 +55,13 @@ function cancel() {
     @submit="submit"
     @cancel="cancel"
   >
-    <ClassSectionForm v-model="sections.form" :field-errors="sections.fieldErrors.value" />
+    <ClassSectionForm
+      v-model="sections.form"
+      :field-errors="sections.fieldErrors.value"
+      :period-options="scope.periods.value"
+      :periods-loading="scope.loading.value"
+      :metadata-options="metadataOptions"
+      @academic-period-change="scope.selectPeriod"
+    />
   </AdminFormPage>
 </template>
