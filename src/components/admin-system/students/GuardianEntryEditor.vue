@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Delete } from '@element-plus/icons-vue'
+import PhoneField from '@/components/ui/PhoneField.vue'
 import { GUARDIAN_ENTRY_MODES } from '@/contracts/admin-system/student-guardian-tabs'
 
 const props = defineProps({
@@ -144,10 +145,9 @@ watch(
           :label="t('studentGuardianTabs.guardians.phone')"
           :error="error('contact_phone')"
         >
-          <ElInput
+          <PhoneField
             :model-value="entry.contactPhone"
             :disabled="disabled"
-            autocomplete="tel"
             @update:model-value="emit('update', { contactPhone: $event })"
           />
         </ElFormItem>
