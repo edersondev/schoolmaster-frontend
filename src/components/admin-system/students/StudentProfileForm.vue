@@ -24,7 +24,7 @@ const { t } = useI18n()
     >
       <ElDatePicker
         v-model="model.enrolledAt"
-        class="w-full"
+        class="!w-full"
         type="date"
         value-format="YYYY-MM-DD"
       />
@@ -46,7 +46,7 @@ const { t } = useI18n()
     <ElFormItem :label="t('studentEnrollmentRoster.students.dateOfBirth')">
       <ElDatePicker
         v-model="model.dateOfBirth"
-        class="w-full"
+        class="!w-full"
         type="date"
         value-format="YYYY-MM-DD"
       />
