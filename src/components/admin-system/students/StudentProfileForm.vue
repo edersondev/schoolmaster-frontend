@@ -1,5 +1,6 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
+import PhoneField from '@/components/ui/PhoneField.vue'
 
 const model = defineModel({ type: Object, default: () => ({}) })
 defineProps({
@@ -61,7 +62,7 @@ const { t } = useI18n()
       <ElInput v-model="model.contactEmail" type="email" autocomplete="email" />
     </ElFormItem>
     <ElFormItem :label="t('studentEnrollmentRoster.students.contactPhone')">
-      <ElInput v-model="model.contactPhone" autocomplete="tel" />
+      <PhoneField v-model="model.contactPhone" />
     </ElFormItem>
   </div>
 </template>
