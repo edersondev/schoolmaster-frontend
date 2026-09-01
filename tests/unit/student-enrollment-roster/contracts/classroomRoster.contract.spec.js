@@ -3,6 +3,8 @@ import {
   ROSTER_BATCH_LIMIT,
   createRosterMembershipBatchDraft,
   mapClassSection,
+  mapClassSectionCreateRequest,
+  mapClassSectionUpdateRequest,
   mapRosterBatchAddRequest,
   mapRosterBatchEndRequest,
   uniqueIds,
@@ -12,15 +14,75 @@ import { classSection } from '../fixtures/studentEnrollmentRoster.fixtures'
 
 describe('classroom roster contract', () => {
   it('maps sections and caps batch membership requests', () => {
-    expect(mapClassSection(classSection)).toMatchObject({ id: 'section-1', academicPeriodId: 'period-1' })
+    expect(mapClassSection(classSection)).toMatchObject({
+      id: 'section-1',
+      academicPeriodId: 'period-1',
+    })
     expect(ROSTER_BATCH_LIMIT).toBe(100)
     expect(uniqueIds(['a', 'a', 'b'])).toEqual(['a', 'b'])
   })
 
+  it('normalizes class-section metadata between select values and API blocks', () => {
+    expect(
+      mapClassSection({
+        ...classSection,
+        course: { code: 'MATH', name: 'Mathematics' },
+        classroom: { name: 'Room 101' },
+        section: { name: 'Grade 1' },
+        group: { name: 'Morning' },
+      }),
+    ).toMatchObject({
+      course: 'Mathematics',
+      classroom: 'Room 101',
+      section: 'Grade 1',
+      group: 'Morning',
+    })
+
+    expect(
+      mapClassSectionCreateRequest({
+        academicPeriodId: 'period-1',
+        code: 'MATH-1',
+        name: 'Math 1',
+        course: 'Mathematics',
+        classroom: 'Room 101',
+        section: 'Grade 1',
+        group: 'Morning',
+      }),
+    ).toEqual({
+      academic_period_id: 'period-1',
+      code: 'MATH-1',
+      name: 'Math 1',
+      course: { name: 'Mathematics' },
+      classroom: { name: 'Room 101' },
+      section: { name: 'Grade 1' },
+      group: { name: 'Morning' },
+    })
+
+    expect(mapClassSectionUpdateRequest({ code: 'MATH-1', name: 'Math 1', course: '' })).toEqual({
+      code: 'MATH-1',
+      name: 'Math 1',
+      course: null,
+    })
+  })
+
   it('projects add/end batch payloads', () => {
-    const add = createRosterMembershipBatchDraft({ academicPeriodId: 'period-1', effectiveStartDate: '2026-02-01', studentProfileIds: ['s1'] })
+    const add = createRosterMembershipBatchDraft({
+      academicPeriodId: 'period-1',
+      effectiveStartDate: '2026-02-01',
+      studentProfileIds: ['s1'],
+    })
     expect(validateRosterBatchAddDraft(add)).toEqual({})
-    expect(mapRosterBatchAddRequest(add)).toEqual({ academic_period_id: 'period-1', effective_start_date: '2026-02-01', student_profile_ids: ['s1'] })
-    expect(mapRosterBatchEndRequest({ effectiveEndDate: '2026-03-01', reason: 'end', rosterMembershipIds: ['m1'] })).toEqual({ effective_end_date: '2026-03-01', reason: 'end', roster_membership_ids: ['m1'] })
+    expect(mapRosterBatchAddRequest(add)).toEqual({
+      academic_period_id: 'period-1',
+      effective_start_date: '2026-02-01',
+      student_profile_ids: ['s1'],
+    })
+    expect(
+      mapRosterBatchEndRequest({
+        effectiveEndDate: '2026-03-01',
+        reason: 'end',
+        rosterMembershipIds: ['m1'],
+      }),
+    ).toEqual({ effective_end_date: '2026-03-01', reason: 'end', roster_membership_ids: ['m1'] })
   })
 })

@@ -38,7 +38,12 @@ function clear() {
 </script>
 
 <template>
-  <form class="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end" @submit.prevent="submit">
+  <ElForm
+    :model="filters"
+    label-position="top"
+    class="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end"
+    @submit.prevent="submit"
+  >
     <label class="grid gap-2" for="school-selection-name">
       <span class="text-sm font-semibold">{{ t('auth.schoolSelection.nameLabel') }}</span>
       <ElInput
@@ -76,5 +81,5 @@ function clear() {
         {{ t('auth.schoolSelection.clear') }}
       </ElButton>
     </div>
-  </form>
+  </ElForm>
 </template>

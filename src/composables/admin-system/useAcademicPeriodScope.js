@@ -71,10 +71,14 @@ export function useAcademicPeriodScope(options = {}) {
     },
   )
 
-  watch(tenantId, (value, previous) => {
-    if (value !== previous) resetForTenantChange()
-    if (value) load()
-  }, { immediate: true })
+  watch(
+    tenantId,
+    (value, previous) => {
+      if (previous !== undefined && value !== previous) resetForTenantChange()
+      if (value) load()
+    },
+    { immediate: true },
+  )
 
   return {
     periods,

@@ -1,39 +1,59 @@
-import { createAdministrationRoute } from './administration-route'
+import { ADMIN_SYSTEM_LAYOUT } from '@/contracts/admin-system/navigation'
+
+const redirectToCreateStudent = (to) => ({
+  name: 'studentProfileCreate',
+  query: {
+    redirected_from: to.name,
+  },
+})
 
 export const guardianRoutes = [
-  createAdministrationRoute({
+  {
     path: 'guardians',
     name: 'guardiansList',
-    component: () => import('@/pages/admin-system/guardians/GuardiansListPage.vue'),
-    title: 'navigation.guardians',
-    permissions: ['guardians.view'],
-    order: 80,
-  }),
-  createAdministrationRoute({
+    redirect: redirectToCreateStudent,
+    meta: {
+      layout: ADMIN_SYSTEM_LAYOUT,
+      requiresAuth: true,
+      requiresSchoolContext: true,
+      title: 'studentGuardianTabs.redirect.guardians',
+      permissions: ['guardians.view'],
+    },
+  },
+  {
     path: 'guardians/create',
     name: 'guardianCreate',
-    component: () => import('@/pages/admin-system/guardians/CreateGuardianPage.vue'),
-    title: 'navigation.createGuardian',
-    permissions: ['guardians.view', 'guardians.manage'],
-  }),
-  createAdministrationRoute({
+    redirect: redirectToCreateStudent,
+    meta: {
+      layout: ADMIN_SYSTEM_LAYOUT,
+      requiresAuth: true,
+      requiresSchoolContext: true,
+      title: 'studentGuardianTabs.redirect.createGuardian',
+      permissions: ['guardians.view', 'guardians.manage'],
+    },
+  },
+  {
     path: 'guardians/:guardianId',
     name: 'guardianDetail',
-    component: () => import('@/pages/admin-system/guardians/GuardianDetailPage.vue'),
-    title: 'navigation.guardianDetail',
-    permissions: ['guardians.view'],
-    returnListRoute: 'guardiansList',
-    mode: 'detail',
-    resource: 'guardians',
-  }),
-  createAdministrationRoute({
+    redirect: redirectToCreateStudent,
+    meta: {
+      layout: ADMIN_SYSTEM_LAYOUT,
+      requiresAuth: true,
+      requiresSchoolContext: true,
+      title: 'studentGuardianTabs.redirect.guardianDetail',
+      permissions: ['guardians.view'],
+    },
+  },
+  {
     path: 'guardians/:guardianId/edit',
     name: 'guardianEdit',
-    component: () => import('@/pages/admin-system/guardians/EditGuardianPage.vue'),
-    title: 'navigation.editGuardian',
-    permissions: ['guardians.view', 'guardians.manage'],
-    returnListRoute: 'guardiansList',
-    mode: 'edit',
-    resource: 'guardians',
-  }),
+    redirect: redirectToCreateStudent,
+    meta: {
+      layout: ADMIN_SYSTEM_LAYOUT,
+      requiresAuth: true,
+      requiresSchoolContext: true,
+      title: 'studentGuardianTabs.redirect.editGuardian',
+      permissions: ['guardians.view', 'guardians.manage'],
+    },
+  },
 ]

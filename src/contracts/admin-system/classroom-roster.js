@@ -22,12 +22,30 @@ export const CLASSROOM_ROSTER_FEEDBACK = Object.freeze({
   temporaryUnavailable: 'temporary-unavailable',
 })
 
+const CLASS_SECTION_METADATA_FIELDS = ['course', 'classroom', 'section', 'group']
+
 export function createAcademicPeriodScope(overrides = {}) {
-  return { academicPeriodId: '', label: '', status: '', isCurrent: false, routeQuery: {}, ...overrides }
+  return {
+    academicPeriodId: '',
+    label: '',
+    status: '',
+    isCurrent: false,
+    routeQuery: {},
+    ...overrides,
+  }
 }
 
 export function createClassSectionDraft(overrides = {}) {
-  return { academicPeriodId: '', code: '', name: '', course: '', classroom: '', section: '', group: '', ...overrides }
+  return {
+    academicPeriodId: '',
+    code: '',
+    name: '',
+    course: '',
+    classroom: '',
+    section: '',
+    group: '',
+    ...overrides,
+  }
 }
 
 export function createRosterMembershipBatchDraft(overrides = {}) {
@@ -44,7 +62,8 @@ export function createRosterMembershipBatchDraft(overrides = {}) {
 
 export function validateClassSectionDraft(form = {}) {
   const errors = {}
-  if (!isPresent(form.academicPeriodId)) errors.academic_period_id = ['Academic period is required.']
+  if (!isPresent(form.academicPeriodId))
+    errors.academic_period_id = ['Academic period is required.']
   if (!isPresent(form.code)) errors.code = ['Code is required.']
   if (!isPresent(form.name)) errors.name = ['Name is required.']
   return errors
@@ -52,11 +71,13 @@ export function validateClassSectionDraft(form = {}) {
 
 export function validateRosterBatchAddDraft(form = {}) {
   const errors = {}
-  if (!isPresent(form.academicPeriodId)) errors.academic_period_id = ['Academic period is required.']
+  if (!isPresent(form.academicPeriodId))
+    errors.academic_period_id = ['Academic period is required.']
   if (!isPresent(form.effectiveStartDate)) errors.effective_start_date = ['Start date is required.']
   const ids = uniqueIds(form.studentProfileIds)
   if (ids.length < 1) errors.student_profile_ids = ['Select at least one student.']
-  if (ids.length > ROSTER_BATCH_LIMIT) errors.student_profile_ids = ['Select no more than 100 students.']
+  if (ids.length > ROSTER_BATCH_LIMIT)
+    errors.student_profile_ids = ['Select no more than 100 students.']
   return errors
 }
 
@@ -66,7 +87,8 @@ export function validateRosterBatchEndDraft(form = {}) {
   if (!isPresent(form.reason)) errors.reason = ['Reason is required.']
   const ids = uniqueIds(form.rosterMembershipIds)
   if (ids.length < 1) errors.roster_membership_ids = ['Select at least one membership.']
-  if (ids.length > ROSTER_BATCH_LIMIT) errors.roster_membership_ids = ['Select no more than 100 memberships.']
+  if (ids.length > ROSTER_BATCH_LIMIT)
+    errors.roster_membership_ids = ['Select no more than 100 memberships.']
   return errors
 }
 
@@ -86,10 +108,10 @@ export function mapClassSection(record = {}) {
     academicPeriodId: record.academic_period_id ?? null,
     code: record.code ?? '',
     name: record.name ?? '',
-    course: record.course ?? record.metadata?.course?.name ?? '',
-    classroom: record.classroom ?? record.metadata?.classroom?.name ?? '',
-    section: record.section ?? record.metadata?.section?.name ?? '',
-    group: record.group ?? record.metadata?.group?.name ?? '',
+    course: metadataName(record.course ?? record.metadata?.course),
+    classroom: metadataName(record.classroom ?? record.metadata?.classroom),
+    section: metadataName(record.section ?? record.metadata?.section),
+    group: metadataName(record.group ?? record.metadata?.group),
     status: record.status ?? CLASS_SECTION_STATUS.active,
     inactiveReason: record.inactive_reason ?? null,
     inactiveEffectiveAt: record.inactive_effective_at ?? null,
@@ -101,26 +123,29 @@ export function mapClassSectionCreateRequest(form = {}) {
     academic_period_id: form.academicPeriodId,
     code: form.code,
     name: form.name,
-    course: form.course,
-    classroom: form.classroom,
-    section: form.section,
-    group: form.group,
+    course: metadataBlock(form.course),
+    classroom: metadataBlock(form.classroom),
+    section: metadataBlock(form.section),
+    group: metadataBlock(form.group),
   })
 }
 
 export function mapClassSectionUpdateRequest(form = {}) {
-  return compactPayload({
-    code: form.code,
-    name: form.name,
-    course: form.course,
-    classroom: form.classroom,
-    section: form.section,
-    group: form.group,
-  })
+  return {
+    ...compactPayload({
+      code: form.code,
+      name: form.name,
+    }),
+    ...metadataUpdatePayload(form),
+  }
 }
 
 export function mapClassSectionStatusRequest(form = {}) {
-  return compactPayload({ status: form.status, effective_at: form.effectiveAt, reason: form.reason })
+  return compactPayload({
+    status: form.status,
+    effective_at: form.effectiveAt,
+    reason: form.reason,
+  })
 }
 
 export function mapRosterMembership(record = {}) {
@@ -158,11 +183,36 @@ export function mapRosterBatchEndRequest(form = {}) {
 export function mapRosterBatchResult(record = {}) {
   return {
     succeeded: Boolean(record.succeeded ?? record.success ?? true),
-    memberships: Array.isArray(record.memberships) ? record.memberships.map(mapRosterMembership) : [],
+    memberships: Array.isArray(record.memberships)
+      ? record.memberships.map(mapRosterMembership)
+      : [],
     rejected: Array.isArray(record.rejected) ? record.rejected : [],
   }
 }
 
 export function uniqueIds(ids = []) {
   return [...new Set((Array.isArray(ids) ? ids : []).filter(Boolean))]
+}
+
+function metadataName(value) {
+  if (typeof value === 'string') return value
+  if (!value || typeof value !== 'object') return ''
+  return value.name ?? value.label ?? value.code ?? ''
+}
+
+function metadataBlock(value) {
+  const name = String(metadataName(value)).trim()
+  return name ? { name } : undefined
+}
+
+function metadataBlockOrNull(value) {
+  return metadataBlock(value) ?? null
+}
+
+function metadataUpdatePayload(form = {}) {
+  return Object.fromEntries(
+    CLASS_SECTION_METADATA_FIELDS.filter((field) =>
+      Object.prototype.hasOwnProperty.call(form, field),
+    ).map((field) => [field, metadataBlockOrNull(form[field])]),
+  )
 }

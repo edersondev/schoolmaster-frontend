@@ -1,28 +1,66 @@
 <script setup>
-import { reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { createStudentProfileDraft, validateStudentProfileDraft } from '@/contracts/admin-system/student-profiles'
-import { useStudentProfiles } from '@/composables/admin-system/useStudentProfiles'
-import StudentProfileForm from '@/components/admin-system/students/StudentProfileForm.vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
+import { useStudentCreateWorkflow } from '@/composables/admin-system/useStudentCreateWorkflow'
+import AdminFormPage from '@/components/ui/admin/AdminFormPage.vue'
+import StudentCreateGuardiansTab from '@/components/admin-system/students/StudentCreateGuardiansTab.vue'
+import StudentCreateStudentTab from '@/components/admin-system/students/StudentCreateStudentTab.vue'
 
+const { t } = useI18n()
+const route = useRoute()
 const router = useRouter()
-const profiles = useStudentProfiles({ autoLoad: false })
-const form = reactive(createStudentProfileDraft())
+const workflow = useStudentCreateWorkflow()
+const page = workflow.page
 
 async function submit() {
-  profiles.fieldErrors.value = validateStudentProfileDraft(form)
-  if (Object.keys(profiles.fieldErrors.value).length > 0) return
-  const record = await profiles.create(form)
-  if (record?.id) router.push({ name: 'studentProfileDetail', params: { studentProfileId: record.id } })
+  const record = await page.submit()
+  if (!record?.id) return
+  await router.push({
+    name: 'studentProfileDetail',
+    params: { studentProfileId: record.id },
+    query: route.query,
+  })
 }
 </script>
 
 <template>
-  <main class="space-y-5">
-    <header>
-      <h1 class="text-2xl font-semibold text-sm-text">Create student</h1>
-      <p class="text-sm text-sm-muted">Approved profile fields only</p>
-    </header>
-    <StudentProfileForm v-model="form" :field-errors="profiles.fieldErrors.value" @submit="submit" />
-  </main>
+  <AdminFormPage
+    :title="t('studentEnrollmentRoster.students.create')"
+    :pending="page.form.pending.value"
+    :field-errors="page.form.fieldErrors.value"
+    :form-error="page.form.formError.value"
+    @submit="submit"
+    @cancel="page.cancel"
+  >
+    <ElTabs v-model="workflow.activeTab.value" class="student-create-tabs">
+      <ElTabPane name="student">
+        <template #label>
+          <span>{{ t('studentGuardianTabs.tabs.student') }}</span>
+          <ElBadge v-if="workflow.tabErrors.value.student" is-dot class="ml-2" />
+        </template>
+        <StudentCreateStudentTab
+          v-model="page.form.values"
+          :field-errors="page.form.fieldErrors.value"
+        />
+      </ElTabPane>
+      <ElTabPane name="guardians">
+        <template #label>
+          <span>{{ t('studentGuardianTabs.tabs.guardians') }}</span>
+          <ElBadge v-if="workflow.tabErrors.value.guardians" is-dot class="ml-2" />
+        </template>
+        <StudentCreateGuardiansTab
+          :entries="workflow.guardianEntries.value"
+          :field-errors="page.form.fieldErrors.value"
+          :can-manage="workflow.canManageGuardians.value"
+          :can-add="workflow.canAddGuardian.value"
+          :maximum-reached="workflow.maximumReached.value"
+          :pending="page.form.pending.value"
+          :lookup="workflow.lookupGuardians"
+          @add="workflow.addGuardian"
+          @remove="workflow.removeGuardian"
+          @update="workflow.updateGuardian"
+        />
+      </ElTabPane>
+    </ElTabs>
+  </AdminFormPage>
 </template>

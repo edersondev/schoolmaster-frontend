@@ -2,8 +2,17 @@ import { computed, reactive, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ADMIN_FEEDBACK_STATES } from '@/contracts/admin-system/administration'
-import { createClassSectionDraft, validateClassSectionDraft } from '@/contracts/admin-system/classroom-roster'
-import { createClassSection, getClassSection, listClassSections, updateClassSection, updateClassSectionStatus } from '@/services/admin-system/classroomRoster'
+import {
+  createClassSectionDraft,
+  validateClassSectionDraft,
+} from '@/contracts/admin-system/classroom-roster'
+import {
+  createClassSection,
+  getClassSection,
+  listClassSections,
+  updateClassSection,
+  updateClassSectionStatus,
+} from '@/services/admin-system/classroomRoster'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
 
 export function useClassSections(options = {}) {
@@ -16,6 +25,7 @@ export function useClassSections(options = {}) {
   const detail = shallowRef(null)
   const meta = shallowRef({ page: 1, perPage: 25, total: 0 })
   const status = shallowRef(ADMIN_FEEDBACK_STATES.idle)
+  const pending = shallowRef(false)
   const error = shallowRef(null)
   const fieldErrors = shallowRef({})
   const requestId = shallowRef(0)
@@ -41,7 +51,9 @@ export function useClassSections(options = {}) {
     status.value = ADMIN_FEEDBACK_STATES.loading
     error.value = null
     try {
-      const result = await (options.listLoader ?? listClassSections)(input, { schoolId: tenantId.value })
+      const result = await (options.listLoader ?? listClassSections)(input, {
+        schoolId: tenantId.value,
+      })
       if (id !== requestId.value) return
       items.value = result.items
       meta.value = result.meta
@@ -58,7 +70,9 @@ export function useClassSections(options = {}) {
     requestId.value = id
     status.value = ADMIN_FEEDBACK_STATES.loading
     try {
-      const record = await (options.detailLoader ?? getClassSection)(classSectionId, { schoolId: tenantId.value })
+      const record = await (options.detailLoader ?? getClassSection)(classSectionId, {
+        schoolId: tenantId.value,
+      })
       if (id !== requestId.value) return null
       detail.value = record
       Object.assign(form, createClassSectionDraft(record))
@@ -75,6 +89,8 @@ export function useClassSections(options = {}) {
   async function save(id = null) {
     fieldErrors.value = validateClassSectionDraft(form)
     if (Object.keys(fieldErrors.value).length > 0) return null
+    pending.value = true
+    error.value = null
     try {
       return id
         ? await (options.updateLoader ?? updateClassSection)(id, form, { schoolId: tenantId.value })
@@ -83,19 +99,42 @@ export function useClassSections(options = {}) {
       fieldErrors.value = err.fieldErrors ?? {}
       error.value = err
       throw err
+    } finally {
+      pending.value = false
     }
   }
 
   async function updateStatus(id, input) {
-    return (options.statusLoader ?? updateClassSectionStatus)(id, input, { schoolId: tenantId.value })
+    return (options.statusLoader ?? updateClassSectionStatus)(id, input, {
+      schoolId: tenantId.value,
+    })
   }
 
   if (options.autoLoad !== false) {
-    watch([query, tenantId], () => {
-      requestId.value += 1
-      if (tenantId.value) load(query.value)
-    }, { immediate: true, deep: true })
+    watch(
+      [query, tenantId],
+      () => {
+        requestId.value += 1
+        if (tenantId.value) load(query.value)
+      },
+      { immediate: true, deep: true },
+    )
   }
 
-  return { items, detail, meta, status, error, fieldErrors, form, query, load, loadDetail, save, updateStatus, updateQuery }
+  return {
+    items,
+    detail,
+    meta,
+    status,
+    pending,
+    error,
+    fieldErrors,
+    form,
+    query,
+    load,
+    loadDetail,
+    save,
+    updateStatus,
+    updateQuery,
+  }
 }

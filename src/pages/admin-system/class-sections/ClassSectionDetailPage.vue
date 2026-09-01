@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useClassSections } from '@/composables/admin-system/useClassSections'
 import { useRosterMemberships } from '@/composables/admin-system/useRosterMemberships'
 import { useAuthSessionStore } from '@/stores/auth/sessionStore'
@@ -11,6 +11,7 @@ import RosterMembershipBatchPanel from '@/components/admin-system/class-sections
 import AdminSafeFeedbackState from '@/components/admin-system/shared/AdminSafeFeedbackState.vue'
 
 const route = useRoute()
+const router = useRouter()
 const sessionStore = useAuthSessionStore()
 const sections = useClassSections({ autoLoad: false })
 const memberships = useRosterMemberships({
@@ -22,6 +23,10 @@ const showFeedback = computed(() => !['ready'].includes(sections.status.value))
 async function save() {
   await sections.save(classSectionId.value)
   await sections.loadDetail(classSectionId.value)
+}
+
+function cancel() {
+  router.push({ name: 'classSectionsList', query: route.query })
 }
 
 async function addMemberships() {
@@ -42,13 +47,53 @@ onMounted(async () => {
 
 <template>
   <main class="space-y-5">
-    <AdminSafeFeedbackState v-if="showFeedback" :state="sections.status.value" :feedback="sections.error.value" @retry="sections.loadDetail(classSectionId)" />
+    <AdminSafeFeedbackState
+      v-if="showFeedback"
+      :state="sections.status.value"
+      :feedback="sections.error.value"
+      @retry="sections.loadDetail(classSectionId)"
+    />
     <template v-else>
-      <ClassSectionSummaryPanel :class-section="sections.detail.value" :conflict="sections.error.value" />
-      <ClassSectionForm v-model="sections.form" :include-period="false" :field-errors="sections.fieldErrors.value" @submit="save" />
-      <RosterMembershipTable :rows="memberships.items.value" @select="memberships.setMembershipSelection" />
-      <RosterMembershipBatchPanel v-model="memberships.batch" mode="add" :selected-count="memberships.batch.studentProfileIds.length" :field-errors="memberships.fieldErrors.value" @submit="addMemberships" />
-      <RosterMembershipBatchPanel v-model="memberships.batch" mode="end" :selected-count="memberships.selectedMembershipIds.value.length" :field-errors="memberships.fieldErrors.value" @submit="endMemberships" />
+      <ClassSectionSummaryPanel
+        :class-section="sections.detail.value"
+        :conflict="sections.error.value"
+      />
+      <ElForm
+        :model="sections.form"
+        label-position="top"
+        class="rounded-xl border border-sm-border bg-sm-surface p-4 sm:p-6"
+        @submit.prevent="save"
+      >
+        <ClassSectionForm
+          v-model="sections.form"
+          :include-period="false"
+          :field-errors="sections.fieldErrors.value"
+        />
+        <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <ElButton :disabled="sections.pending.value" @click="cancel">Cancel</ElButton>
+          <ElButton type="primary" native-type="submit" :loading="sections.pending.value">
+            Update
+          </ElButton>
+        </div>
+      </ElForm>
+      <RosterMembershipTable
+        :rows="memberships.items.value"
+        @select="memberships.setMembershipSelection"
+      />
+      <RosterMembershipBatchPanel
+        v-model="memberships.batch"
+        mode="add"
+        :selected-count="memberships.batch.studentProfileIds.length"
+        :field-errors="memberships.fieldErrors.value"
+        @submit="addMemberships"
+      />
+      <RosterMembershipBatchPanel
+        v-model="memberships.batch"
+        mode="end"
+        :selected-count="memberships.selectedMembershipIds.value.length"
+        :field-errors="memberships.fieldErrors.value"
+        @submit="endMemberships"
+      />
     </template>
   </main>
 </template>
