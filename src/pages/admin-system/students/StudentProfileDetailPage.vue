@@ -9,6 +9,7 @@ import { useStudentTransfer } from '@/composables/admin-system/useStudentTransfe
 import { useStudentEnrollmentRosterPermissions } from '@/composables/admin-system/useStudentEnrollmentRosterPermissions'
 import StudentProfileSummaryPanel from '@/components/admin-system/students/StudentProfileSummaryPanel.vue'
 import StudentEnrollmentStatusPanel from '@/components/admin-system/students/StudentEnrollmentStatusPanel.vue'
+import StudentGuardianAssociationsPanel from '@/components/admin-system/students/StudentGuardianAssociationsPanel.vue'
 import StudentTransferDialog from '@/components/admin-system/students/StudentTransferDialog.vue'
 import AdminDetailPage from '@/components/ui/admin/AdminDetailPage.vue'
 import { createReturnToListLocation } from '@/router/modules/administration-route'
@@ -25,6 +26,7 @@ const transfer = useStudentTransfer({
   serviceOptions: () => ({ schoolId: sessionStore.activeSchool?.id }),
 })
 const transferOpen = shallowRef(false)
+const activeTab = shallowRef('student')
 const studentId = computed(() => String(route.params.studentProfileId ?? ''))
 const tenantId = computed(() => sessionStore.activeSchool?.id ?? null)
 const returnTo = computed(() => createReturnToListLocation(route, 'studentProfilesList'))
@@ -73,15 +75,24 @@ watch(
     </template>
 
     <template v-if="profiles.detail.value">
-      <StudentProfileSummaryPanel :student="profiles.detail.value" />
-      <StudentEnrollmentStatusPanel
-        v-model="lifecycle.form"
-        :can-manage="permissions.canManageStudents.value"
-        :pending="lifecycle.pending.value"
-        :field-errors="lifecycle.fieldErrors.value"
-        :feedback="lifecycle.feedback.value"
-        @submit="submitStatus"
-      />
+      <ElTabs v-model="activeTab" class="student-detail-tabs">
+        <ElTabPane :label="t('studentGuardianTabs.tabs.student')" name="student">
+          <StudentProfileSummaryPanel :student="profiles.detail.value" />
+          <StudentEnrollmentStatusPanel
+            v-model="lifecycle.form"
+            :can-manage="permissions.canManageStudents.value"
+            :pending="lifecycle.pending.value"
+            :field-errors="lifecycle.fieldErrors.value"
+            :feedback="lifecycle.feedback.value"
+            @submit="submitStatus"
+          />
+        </ElTabPane>
+        <ElTabPane :label="t('studentGuardianTabs.tabs.guardians')" name="guardians">
+          <StudentGuardianAssociationsPanel
+            :associations="profiles.detail.value.guardianAssociations"
+          />
+        </ElTabPane>
+      </ElTabs>
     </template>
   </AdminDetailPage>
 
