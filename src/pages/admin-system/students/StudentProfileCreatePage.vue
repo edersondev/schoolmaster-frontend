@@ -1,27 +1,16 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import {
-  createStudentProfileDraft,
-  validateStudentProfileDraft,
-} from '@/contracts/admin-system/student-profiles'
-import { useAdministrationCreatePage } from '@/composables/admin-system/useAdministrationCreatePage'
-import { createStudentProfile } from '@/services/admin-system/studentProfiles'
+import { useStudentCreateWorkflow } from '@/composables/admin-system/useStudentCreateWorkflow'
 import AdminFormPage from '@/components/ui/admin/AdminFormPage.vue'
-import StudentProfileForm from '@/components/admin-system/students/StudentProfileForm.vue'
+import StudentCreateGuardiansTab from '@/components/admin-system/students/StudentCreateGuardiansTab.vue'
+import StudentCreateStudentTab from '@/components/admin-system/students/StudentCreateStudentTab.vue'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const page = useAdministrationCreatePage({
-  initialValues: createStudentProfileDraft(),
-  validate: validateStudentProfileDraft,
-  submitter: createStudentProfile,
-  operationId: 'createStudentProfile',
-  listRouteName: 'studentProfilesList',
-  tenantOwned: true,
-  navigateOnSuccess: false,
-})
+const workflow = useStudentCreateWorkflow()
+const page = workflow.page
 
 async function submit() {
   const record = await page.submit()
@@ -43,6 +32,35 @@ async function submit() {
     @submit="submit"
     @cancel="page.cancel"
   >
-    <StudentProfileForm v-model="page.form.values" :field-errors="page.form.fieldErrors.value" />
+    <ElTabs v-model="workflow.activeTab.value" class="student-create-tabs">
+      <ElTabPane name="student">
+        <template #label>
+          <span>{{ t('studentGuardianTabs.tabs.student') }}</span>
+          <ElBadge v-if="workflow.tabErrors.value.student" is-dot class="ml-2" />
+        </template>
+        <StudentCreateStudentTab
+          v-model="page.form.values"
+          :field-errors="page.form.fieldErrors.value"
+        />
+      </ElTabPane>
+      <ElTabPane name="guardians">
+        <template #label>
+          <span>{{ t('studentGuardianTabs.tabs.guardians') }}</span>
+          <ElBadge v-if="workflow.tabErrors.value.guardians" is-dot class="ml-2" />
+        </template>
+        <StudentCreateGuardiansTab
+          :entries="workflow.guardianEntries.value"
+          :field-errors="page.form.fieldErrors.value"
+          :can-manage="workflow.canManageGuardians.value"
+          :can-add="workflow.canAddGuardian.value"
+          :maximum-reached="workflow.maximumReached.value"
+          :pending="page.form.pending.value"
+          :lookup="workflow.lookupGuardians"
+          @add="workflow.addGuardian"
+          @remove="workflow.removeGuardian"
+          @update="workflow.updateGuardian"
+        />
+      </ElTabPane>
+    </ElTabs>
   </AdminFormPage>
 </template>

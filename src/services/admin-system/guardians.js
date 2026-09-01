@@ -34,6 +34,8 @@ export function createGuardiansService(client) {
   })
   return {
     listGuardians: service.list,
+    lookupActiveGuardians: (query = {}, options = {}) =>
+      service.list({ ...query, status: 'active' }, options),
     createGuardian: service.create,
     getGuardian: operations.getOne,
     updateGuardian: operations.updateOne,
@@ -49,6 +51,7 @@ export const {
   listGuardians,
   createGuardian,
   getGuardian,
+  lookupActiveGuardians,
   updateGuardian,
   activateGuardian,
   deactivateGuardian,

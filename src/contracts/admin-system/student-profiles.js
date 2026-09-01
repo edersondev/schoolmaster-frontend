@@ -1,9 +1,9 @@
+import { ADMIN_FEEDBACK_STATES, compactPayload, isPresent, mapCommonRecord } from './administration'
 import {
-  ADMIN_FEEDBACK_STATES,
-  compactPayload,
-  isPresent,
-  mapCommonRecord,
-} from './administration'
+  mapGuardianEntriesRequest,
+  mapStudentGuardianAssociation,
+  validateGuardianEntries,
+} from './student-guardian-tabs'
 
 export const STUDENT_PROFILE_STATUS = Object.freeze({
   active: 'active',
@@ -62,11 +62,12 @@ export function createStudentTransferDraft(overrides = {}) {
 
 export function validateStudentProfileDraft(form = {}) {
   const errors = {}
-  if (!isPresent(form.registrationNumber)) errors.registration_number = ['Registration number is required.']
+  if (!isPresent(form.registrationNumber))
+    errors.registration_number = ['Registration number is required.']
   if (!isPresent(form.firstName)) errors.first_name = ['First name is required.']
   if (!isPresent(form.lastName)) errors.last_name = ['Last name is required.']
   if (!isPresent(form.enrolledAt)) errors.enrolled_at = ['Enrollment date is required.']
-  return errors
+  return { ...errors, ...validateGuardianEntries(form.guardianAssociations ?? []) }
 }
 
 export function validateStudentLifecycleDraft(form = {}) {
@@ -95,7 +96,9 @@ export function mapStudentProfile(record = {}) {
     guardianAssociations: Array.isArray(record.guardian_associations)
       ? record.guardian_associations.map(mapGuardianAssociation)
       : [],
-    activeEligible: Boolean(record.active_eligible ?? record.status === STUDENT_PROFILE_STATUS.active),
+    activeEligible: Boolean(
+      record.active_eligible ?? record.status === STUDENT_PROFILE_STATUS.active,
+    ),
   }
 }
 
@@ -111,7 +114,7 @@ export function mapStudentProfileCreateRequest(form = {}) {
     current_academic_year_id: form.currentAcademicYearId,
     status: form.status,
     enrolled_at: form.enrolledAt,
-    guardian_associations: form.guardianAssociations,
+    guardian_associations: mapGuardianEntriesRequest(form.guardianAssociations ?? []),
   })
 }
 
@@ -149,9 +152,5 @@ function mapEnrollmentHistory(record = {}) {
 }
 
 function mapGuardianAssociation(record = {}) {
-  return {
-    guardianId: record.guardian_id ?? record.guardianId ?? null,
-    relationshipType: record.relationship_type ?? record.relationshipType ?? null,
-    status: record.status ?? null,
-  }
+  return mapStudentGuardianAssociation(record)
 }
